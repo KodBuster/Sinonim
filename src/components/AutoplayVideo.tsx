@@ -27,8 +27,23 @@ export function AutoplayVideo({
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
 
+    const restoreScrollIfJumped = (x: number, y: number) => {
+      // Mobile browsers sometimes scroll the video into view on play(),
+      // which pushes the hero top above the viewport.
+      requestAnimationFrame(() => {
+        if (Math.abs(window.scrollY - y) > 2 || Math.abs(window.scrollX - x) > 2) {
+          window.scrollTo(x, y);
+        }
+      });
+    };
+
     const tryPlay = () => {
-      void video.play().catch(() => {});
+      const x = window.scrollX;
+      const y = window.scrollY;
+      void video.play().then(
+        () => restoreScrollIfJumped(x, y),
+        () => restoreScrollIfJumped(x, y),
+      );
     };
 
     tryPlay();
@@ -56,7 +71,7 @@ export function AutoplayVideo({
       loop
       muted
       playsInline
-      preload="auto"
+      preload="metadata"
       disablePictureInPicture
       className={className}
       aria-label={ariaLabel}
