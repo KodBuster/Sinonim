@@ -206,6 +206,7 @@ function GalleryMainMedia({
 
   return (
     <ProductImage
+      key={slide.src}
       src={slide.src}
       alt={name}
       fill
