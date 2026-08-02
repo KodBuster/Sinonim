@@ -56,7 +56,7 @@ export function filterProducts(
   }
 
   if (filters.complectsOnly) {
-    result = result.filter((product) => Boolean(product.complectNumber));
+    result = result.filter((product) => Boolean(product.setArtNos?.length));
   }
 
   switch (filters.sort) {

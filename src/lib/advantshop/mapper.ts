@@ -1,7 +1,7 @@
 import type { CategorySlug, Product, ProductDetails, ProductSizeOption, StoneVariant } from "@/lib/products";
 import { defaultRingBraceletSizeOptions, sortProductSizeOptions } from "@/lib/products";
 import { parseCaratWeightFromDescription } from "@/lib/product-weight";
-import { resolveComplectNumber } from "@/lib/product-complect";
+import { resolveSetArtNos } from "@/lib/product-complect";
 import { buildSeoProductSlug } from "@/lib/product-slug";
 import { resolveProductImageUrl, resolveProductImages } from "./images";
 import {
@@ -118,7 +118,11 @@ function parseStoneWeight(
 }
 
 function parseWeightGrams(properties: AdvantShopProperty[]): string | undefined {
-  const fromProperty = parseProperty(properties, ["вес, гр", "вес гр"]);
+  const fromProperty = parseProperty(properties, [
+    "вес, гр.",
+    "вес, гр",
+    "вес гр",
+  ]);
   if (fromProperty?.trim()) return fromProperty.trim();
 
   for (const property of properties) {
@@ -234,7 +238,7 @@ function resolveCatalogSizeOptions(
 export function mapCatalogProduct(
   item: AdvantShopCatalogProduct,
   category: CategorySlug,
-  complectNumber?: string,
+  setArtNos?: string[],
   stock?: AdvantShopStockInfo,
 ): Product {
   const price = Math.round(item.priceWithDiscount ?? item.price);
@@ -280,7 +284,7 @@ export function mapCatalogProduct(
     sizeOptions: resolveCatalogSizeOptions(sizeOptions, category),
     artNo,
     offerArtNos,
-    complectNumber,
+    setArtNos: setArtNos?.length ? setArtNos : undefined,
     stockAmount,
     inStock,
   };
@@ -331,7 +335,7 @@ export function mapProductDetails(
   // Остатки по всем размерам (включая 0) — для проверки на чекауте
   const sizeStockAmounts = buildSizeStockAmounts(item, allSizes);
   const legacySlug = item.urlPath;
-  const complectNumber = resolveComplectNumber(properties);
+  const setArtNos = resolveSetArtNos(properties);
   const { stockAmount, inStock } = getAdvantShopDetailsStockInfo(
     item,
     category,
@@ -371,7 +375,7 @@ export function mapProductDetails(
     sizeStockAmounts,
     offerArtNos: collectOfferArtNos(item),
     weightGrams: parseWeightGrams(properties),
-    complectNumber,
+    setArtNos: setArtNos.length ? setArtNos : undefined,
     stockAmount,
     inStock,
   };

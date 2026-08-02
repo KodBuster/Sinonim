@@ -59,21 +59,19 @@ function flattenProperties(response) {
   return response.properties ?? [];
 }
 
-function getComplectProperty(properties) {
+function getSetProperty(properties) {
   for (const property of properties) {
     const name = (property.propertyName ?? property.name ?? "").trim();
-    if (!/комплект/i.test(name)) continue;
+    if (!/^set$/i.test(name)) continue;
     const value = (property.propertyValue ?? property.value ?? "").trim();
     return { name, value };
   }
   return null;
 }
 
-function isNonZeroComplect(value) {
+function hasSetArtNos(value) {
   if (!value) return false;
-  const numeric = Number(value.replace(",", "."));
-  if (!Number.isNaN(numeric)) return numeric !== 0;
-  return true;
+  return value.split(",").some((part) => part.trim());
 }
 
 async function fetchProperties(productId) {
@@ -117,15 +115,15 @@ const matches = [];
 await mapPool(products, 8, async (product) => {
   try {
     const properties = await fetchProperties(product.productId);
-    const complect = getComplectProperty(properties);
-    if (complect && isNonZeroComplect(complect.value)) {
+    const setProp = getSetProperty(properties);
+    if (setProp && hasSetArtNos(setProp.value)) {
       matches.push({
         id: product.productId,
         artNo: product.artNo,
         name: product.name,
         category: product.category,
         urlPath: product.urlPath,
-        complect: complect.value,
+        set: setProp.value,
       });
     }
   } catch (error) {
@@ -133,12 +131,7 @@ await mapPool(products, 8, async (product) => {
   }
 });
 
-matches.sort((a, b) => {
-  const na = Number(a.complect);
-  const nb = Number(b.complect);
-  if (!Number.isNaN(na) && !Number.isNaN(nb) && na !== nb) return na - nb;
-  return String(a.complect).localeCompare(String(b.complect));
-});
+matches.sort((a, b) => String(a.artNo ?? "").localeCompare(String(b.artNo ?? "")));
 
 console.log(JSON.stringify(matches, null, 2));
-console.error(`Found: ${matches.length} products with non-zero "Комплект"`);
+console.error(`Found: ${matches.length} products with non-empty "Set"`);

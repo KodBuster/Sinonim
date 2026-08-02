@@ -28,8 +28,8 @@ export type Product = {
   offerArtNos?: string[];
   sizeArtNos?: Record<string, string>;
   urlPath?: string;
-  /** Номер комплекта из AdvantShop (например «1» для «Комплект №1»). */
-  complectNumber?: string;
+  /** Артикулы комплекта из свойства AdvantShop «Set» (stocks.csv). */
+  setArtNos?: string[];
   /** Суммарный остаток; undefined — данных нет. */
   stockAmount?: number;
   /** Товар доступен к покупке (остаток > 0 или неизвестен). */

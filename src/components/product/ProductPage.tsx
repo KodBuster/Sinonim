@@ -163,12 +163,9 @@ export function ProductPage({
           </div>
         </ProductSelectionProvider>
 
-        {complectProducts.length > 0 && product.complectNumber && (
-          <ProductComplectSection
-            complectNumber={product.complectNumber}
-            products={complectProducts}
-          />
-        )}
+        {complectProducts.length > 0 && product.setArtNos?.length ? (
+          <ProductComplectSection products={complectProducts} />
+        ) : null}
 
         {related.length > 0 && (
           <div className={complectProducts.length > 0 ? "mt-16 md:mt-20" : ""}>

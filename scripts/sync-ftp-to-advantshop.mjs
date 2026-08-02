@@ -2,7 +2,7 @@
  * 1С CSV (FTP) → AdvantShop `/api/1c/importproducts`
  *
  * Ожидаемые колонки в файле 1С (разделитель ; или ,):
- *   ArtNo;OfferArtNo;Amount;Price
+ *   ArtNo;OfferArtNo;Amount;Price;Weight;Set
  *   (имена можно переименовать через env)
  *
  * AdvantShop URL берётся со страницы:
@@ -32,10 +32,14 @@
  *   SYNC_SRC_OFFER=OfferArtNo
  *   SYNC_SRC_AMOUNT=Amount
  *   SYNC_SRC_PRICE=Price
- *   SYNC_DST_ARTNO=ArtNo
- *   SYNC_DST_OFFER=MultiOffer
- *   SYNC_DST_AMOUNT=Amount
- *   SYNC_DST_PRICE=Price
+ *   SYNC_SRC_WEIGHT=Weight
+ *   SYNC_SRC_SET=Set
+ *   SYNC_DST_ARTNO=Артикул
+ *   SYNC_DST_OFFER=Артикул модификации
+ *   SYNC_DST_AMOUNT=Количество
+ *   SYNC_DST_PRICE=Цена
+ *   SYNC_DST_WEIGHT=Свойство: Вес, гр.
+ *   SYNC_DST_SET=Свойство: Set
  *   SYNC_SKIP_IF_UNCHANGED=true
  *   SYNC_WORK_DIR=./tmp/1c-sync
  */
@@ -76,13 +80,17 @@ const config = {
     offer: process.env.SYNC_SRC_OFFER || "OfferArtNo",
     amount: process.env.SYNC_SRC_AMOUNT || "Amount",
     price: process.env.SYNC_SRC_PRICE || "Price",
+    weight: process.env.SYNC_SRC_WEIGHT || "Weight",
+    set: process.env.SYNC_SRC_SET || "Set",
   },
   dst: {
     // Имена колонок AdvantShop CSV лучше сверить с exportproducts
-    artNo: process.env.SYNC_DST_ARTNO || "ArtNo",
-    offer: process.env.SYNC_DST_OFFER || "MultiOffer",
-    amount: process.env.SYNC_DST_AMOUNT || "Amount",
-    price: process.env.SYNC_DST_PRICE || "Price",
+    artNo: process.env.SYNC_DST_ARTNO || "Артикул",
+    offer: process.env.SYNC_DST_OFFER || "Артикул модификации",
+    amount: process.env.SYNC_DST_AMOUNT || "Количество",
+    price: process.env.SYNC_DST_PRICE || "Цена",
+    weight: process.env.SYNC_DST_WEIGHT || "Свойство: Вес, гр.",
+    set: process.env.SYNC_DST_SET || "Свойство: Set",
   },
   skipIfUnchanged:
     String(process.env.SYNC_SKIP_IF_UNCHANGED || "true").toLowerCase() !==
@@ -257,10 +265,12 @@ function transformToAdvantShopCsv(sourceText) {
     offer: findColumnIndex(header, config.src.offer),
     amount: findColumnIndex(header, config.src.amount),
     price: findColumnIndex(header, config.src.price),
+    weight: findColumnIndex(header, config.src.weight),
+    set: findColumnIndex(header, config.src.set),
   };
 
-  for (const [key, value] of Object.entries(idx)) {
-    if (value < 0) {
+  for (const key of ["artNo", "offer", "amount", "price"]) {
+    if (idx[key] < 0) {
       throw new Error(
         `Column "${config.src[key]}" not found. Header: ${header.join(" | ")}`,
       );
@@ -272,22 +282,32 @@ function transformToAdvantShopCsv(sourceText) {
     config.dst.offer,
     config.dst.amount,
     config.dst.price,
+    config.dst.weight,
+    config.dst.set,
   ];
   const outRows = [outHeader.join(";")];
 
   for (const line of lines.slice(1)) {
     const cols = parseCsvLine(line, delimiter);
     const artNo = (cols[idx.artNo] || "").trim();
-    const offer = (cols[idx.offer] || "").trim();
+    const offer = (cols[idx.offer] || "").trim() || artNo;
     const amount = normalizeNumber(cols[idx.amount]);
     const price = normalizeNumber(cols[idx.price]);
+    const weight =
+      idx.weight >= 0 ? String(cols[idx.weight] ?? "").trim() : "";
+    const set = idx.set >= 0 ? String(cols[idx.set] ?? "").trim() : "";
 
     if (!artNo) continue;
 
     outRows.push(
-      [escapeCsv(artNo), escapeCsv(offer), escapeCsv(amount), escapeCsv(price)].join(
-        ";",
-      ),
+      [
+        escapeCsv(artNo),
+        escapeCsv(offer),
+        escapeCsv(amount),
+        escapeCsv(price),
+        escapeCsv(weight),
+        escapeCsv(set),
+      ].join(";"),
     );
   }
 

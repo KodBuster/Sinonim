@@ -1,19 +1,15 @@
 import { ProductCard } from "@/components/catalog/ProductCard";
-import { formatComplectLabel } from "@/lib/product-complect";
 import type { Product } from "@/lib/products";
 
 type ProductComplectSectionProps = {
-  complectNumber: string;
   products: Product[];
 };
 
 export function ProductComplectSection({
-  complectNumber,
   products,
 }: ProductComplectSectionProps) {
   if (!products.length) return null;
 
-  const badgeLabel = formatComplectLabel(complectNumber);
   const gridClass =
     products.length === 1
       ? "grid grid-cols-1 max-w-sm"
@@ -28,11 +24,7 @@ export function ProductComplectSection({
       </h2>
       <div className={gridClass}>
         {products.map((item) => (
-          <ProductCard
-            key={item.id}
-            product={item}
-            badgeLabel={badgeLabel}
-          />
+          <ProductCard key={item.id} product={item} />
         ))}
       </div>
     </div>

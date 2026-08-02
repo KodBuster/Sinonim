@@ -157,7 +157,7 @@ export async function getComplectProducts(
   product: Product,
   limit = 3
 ): Promise<Product[]> {
-  if (!product.complectNumber) return [];
+  if (!product.setArtNos?.length) return [];
 
   const catalog = await getCatalogProducts();
   return getComplectSiblings(product, catalog, limit);

@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { CategorySlug, Product, ProductDetails } from "@/lib/products";
 import { findProductBySlug } from "@/lib/product-slug";
-import { parseComplectNumberFromProperties } from "@/lib/product-complect";
+import { parseSetArtNosFromProperties } from "@/lib/product-complect";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
 import { mapCatalogProduct, mapProductDetails } from "./mapper";
@@ -110,8 +110,8 @@ async function mapPool<T, R>(
   return results;
 }
 
-const getCachedComplectMap = unstable_cache(
-  async (): Promise<Record<string, string>> => {
+const getCachedSetMap = unstable_cache(
+  async (): Promise<Record<string, string[]>> => {
     const categoryMap = getCategoryUrlMap();
     const productIds = new Set<number>();
 
@@ -125,20 +125,20 @@ const getCachedComplectMap = unstable_cache(
       }
     }
 
-    const complectMap: Record<string, string> = {};
+    const setMap: Record<string, string[]> = {};
     const ids = [...productIds];
 
     await mapPool(ids, 8, async (productId) => {
       const properties = await fetchProductProperties(productId);
-      const complectNumber = parseComplectNumberFromProperties(properties);
-      if (complectNumber) {
-        complectMap[String(productId)] = complectNumber;
+      const setArtNos = parseSetArtNosFromProperties(properties);
+      if (setArtNos.length) {
+        setMap[String(productId)] = setArtNos;
       }
     });
 
-    return complectMap;
+    return setMap;
   },
-  ["advantshop-complect-map"],
+  ["advantshop-set-map"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
 );
 
@@ -191,7 +191,7 @@ function resolveListStockInfo(
 async function mapCatalogItems(
   items: NonNullable<AdvantShopCatalogResponse["products"]>,
   category: CategorySlug,
-  complectMap: Record<string, string>,
+  setMap: Record<string, string[]>,
   includeOutOfStock = false,
 ): Promise<Product[]> {
   const stockMap = await loadStockInfoMap(items, category);
@@ -204,7 +204,7 @@ async function mapCatalogItems(
     mapCatalogProduct(
       item,
       category,
-      complectMap[String(item.productId)],
+      setMap[String(item.productId)],
       stockMap.get(item.productId),
     ),
   );
@@ -224,7 +224,7 @@ export async function fetchAdvantShopProducts(options?: {
 }): Promise<Product[]> {
   const categoryMap = getCategoryUrlMap();
   const sort = SORT_MAP[options?.sort ?? "default"] ?? "NoSorting";
-  const complectMap = await getCachedComplectMap();
+  const setMap = await getCachedSetMap();
   const includeOutOfStock = Boolean(options?.includeOutOfStock);
 
   if (options?.category) {
@@ -236,7 +236,7 @@ export async function fetchAdvantShopProducts(options?: {
         url: categoryUrl,
         sorting: sort,
       });
-      return mapCatalogItems(items, options.category, complectMap, includeOutOfStock);
+      return mapCatalogItems(items, options.category, setMap, includeOutOfStock);
     } catch (error) {
       if (isMissingCategoryError(error)) {
         console.warn(
@@ -258,7 +258,7 @@ export async function fetchAdvantShopProducts(options?: {
 
       try {
         const items = await fetchAllCatalogProducts({ url, sorting: sort });
-        return mapCatalogItems(items, slug, complectMap, includeOutOfStock);
+        return mapCatalogItems(items, slug, setMap, includeOutOfStock);
       } catch (error) {
         if (isMissingCategoryError(error)) {
           console.warn(

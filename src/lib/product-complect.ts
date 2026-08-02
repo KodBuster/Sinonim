@@ -8,56 +8,49 @@ const COMPLECT_CATEGORY_ORDER: CategorySlug[] = [
   "bracelets",
 ];
 
-function isValidComplectValue(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) return false;
-
-  const numeric = Number(trimmed.replace(",", "."));
-  if (!Number.isNaN(numeric) && numeric === 0) return false;
-
-  return true;
+function normalizeArtNo(value: string): string {
+  return value.trim().toLowerCase();
 }
 
-function parseComplectFromPropertyValue(value: string): string | undefined {
-  const trimmed = value.trim();
-  if (!isValidComplectValue(trimmed)) return undefined;
-
-  const digits = trimmed.match(/(\d+)/);
-  return digits?.[1];
-}
-
-export function parseComplectNumberFromProperties(
+/** Parse comma-separated artNos from AdvantShop property «Set». */
+export function parseSetArtNosFromProperties(
   properties: AdvantShopProperty[],
-): string | undefined {
+): string[] {
   for (const property of properties) {
-    const name = (property.propertyName ?? property.name ?? "").toLowerCase();
-    const value = property.propertyValue ?? property.value ?? "";
+    const name = (property.propertyName ?? property.name ?? "").trim().toLowerCase();
+    if (name !== "set") continue;
 
-    if (
-      name.includes("комплект") ||
-      name.includes("complect") ||
-      name.includes("набор")
-    ) {
-      const parsed = parseComplectFromPropertyValue(value);
-      if (parsed) return parsed;
-    }
+    const value = (property.propertyValue ?? property.value ?? "").trim();
+    if (!value) return [];
+
+    return [
+      ...new Set(
+        value
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean),
+      ),
+    ];
   }
 
-  return undefined;
+  return [];
 }
 
-export function resolveComplectNumber(
+export function resolveSetArtNos(
   properties: AdvantShopProperty[] = [],
-): string | undefined {
-  return parseComplectNumberFromProperties(properties);
+): string[] {
+  return parseSetArtNosFromProperties(properties);
 }
 
-export function formatComplectLabel(complectNumber: string): string {
-  const display =
-    /^\d+$/.test(complectNumber) && complectNumber.length > 1
-      ? String(Number(complectNumber))
-      : complectNumber;
-  return `Комплект №${display}`;
+function productMatchesArtNo(product: Product, artNo: string): boolean {
+  const target = normalizeArtNo(artNo);
+  if (!target) return false;
+
+  if (product.artNo && normalizeArtNo(product.artNo) === target) return true;
+
+  return Boolean(
+    product.offerArtNos?.some((offer) => normalizeArtNo(offer) === target),
+  );
 }
 
 export function getComplectSiblings(
@@ -65,14 +58,24 @@ export function getComplectSiblings(
   catalog: Product[],
   limit = 3,
 ): Product[] {
-  const complectKey = product.complectNumber;
-  if (!complectKey) return [];
+  const setArtNos = product.setArtNos;
+  if (!setArtNos?.length) return [];
 
-  return catalog
-    .filter((item) => {
-      if (item.id === product.id || item.category === "gifts") return false;
-      return item.complectNumber === complectKey;
-    })
+  const matched: Product[] = [];
+  const seenIds = new Set<string>([product.id]);
+
+  for (const artNo of setArtNos) {
+    const found = catalog.find((item) => {
+      if (seenIds.has(item.id) || item.category === "gifts") return false;
+      return productMatchesArtNo(item, artNo);
+    });
+    if (found) {
+      seenIds.add(found.id);
+      matched.push(found);
+    }
+  }
+
+  return matched
     .sort(
       (a, b) =>
         COMPLECT_CATEGORY_ORDER.indexOf(a.category) -
