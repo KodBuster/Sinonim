@@ -13,6 +13,7 @@ import {
 } from "./stock";
 import type {
   AdvantShopCatalogProduct,
+  AdvantShopOffer,
   AdvantShopPhoto,
   AdvantShopProductDetails,
   AdvantShopProperty,
@@ -153,12 +154,37 @@ function parseProperty(
   return undefined;
 }
 
+function pickPositivePrice(
+  ...candidates: Array<number | null | undefined>
+): number | undefined {
+  for (const value of candidates) {
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+      return Math.round(value);
+    }
+  }
+  return undefined;
+}
+
+function pickOfferPrice(
+  offers: AdvantShopOffer[] | null | undefined,
+): number {
+  if (!offers?.length) return 0;
+
+  const main = offers.find((offer) => offer.isMain);
+  const fromMain = pickPositivePrice(main?.price);
+  if (fromMain !== undefined) return fromMain;
+
+  const withPrice = offers.find((offer) => (offer.price ?? 0) > 0);
+  return pickPositivePrice(withPrice?.price, offers[0]?.price) ?? 0;
+}
+
 function pickDefaultArtNo(
   item: Pick<AdvantShopProductDetails, "artNo" | "offers">
 ): string {
   return (
     item.artNo ??
     item.offers?.find((offer) => offer.isMain)?.artNo ??
+    item.offers?.find((offer) => (offer.price ?? 0) > 0)?.artNo ??
     item.offers?.[0]?.artNo ??
     ""
   );
@@ -241,7 +267,12 @@ export function mapCatalogProduct(
   setArtNos?: string[],
   stock?: AdvantShopStockInfo,
 ): Product {
-  const price = Math.round(item.priceWithDiscount ?? item.price);
+  const price =
+    pickPositivePrice(
+      item.priceWithDiscount,
+      item.price,
+      pickOfferPrice(item.offers),
+    ) ?? 0;
   const sizeOptions = extractProductSizeOptions(item);
 
   const description = item.briefDescription || undefined;
@@ -295,12 +326,8 @@ export function mapProductDetails(
   properties: AdvantShopProperty[] = [],
   catalogPrice?: number,
 ): ProductDetails {
-  const offerPrice = Math.round(
-    item.offers?.find((offer) => offer.isMain)?.price ??
-      item.offers?.[0]?.price ??
-      0,
-  );
-  const basePrice = catalogPrice ?? offerPrice;
+  const offerPrice = pickOfferPrice(item.offers);
+  const basePrice = pickPositivePrice(catalogPrice, offerPrice) ?? 0;
 
   const description =
     item.description ||

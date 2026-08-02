@@ -306,7 +306,9 @@ export async function loadAdvantShopProductDetails(
     ...product,
     slug: summary.slug,
     urlPath: summary.urlPath,
-    price: summary.price,
+    // Каталог AdvantShop отдаёт price=0, если у модификации не стоит «Главная».
+    // Не затираем цену из offers нулём из summary.
+    price: product.price > 0 ? product.price : summary.price,
     stoneWeight:
       parseStoneWeightFromProperties(properties) || product.stoneWeight,
     stockAmount: product.stockAmount ?? summary.stockAmount,

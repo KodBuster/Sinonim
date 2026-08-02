@@ -287,6 +287,11 @@ function transformToAdvantShopCsv(sourceText) {
   ];
   const outRows = [outHeader.join(";")];
 
+  /** @type {Map<string, string[]>} */
+  const byKey = new Map();
+  /** @type {string[]} */
+  const duplicateKeys = [];
+
   for (const line of lines.slice(1)) {
     const cols = parseCsvLine(line, delimiter);
     const artNo = (cols[idx.artNo] || "").trim();
@@ -299,15 +304,27 @@ function transformToAdvantShopCsv(sourceText) {
 
     if (!artNo) continue;
 
-    outRows.push(
-      [
-        escapeCsv(artNo),
-        escapeCsv(offer),
-        escapeCsv(amount),
-        escapeCsv(price),
-        escapeCsv(weight),
-        escapeCsv(set),
-      ].join(";"),
+    const key = `${artNo}\0${offer}`;
+    if (byKey.has(key)) {
+      duplicateKeys.push(`${artNo}/${offer}`);
+    }
+    byKey.set(key, [
+      escapeCsv(artNo),
+      escapeCsv(offer),
+      escapeCsv(amount),
+      escapeCsv(price),
+      escapeCsv(weight),
+      escapeCsv(set),
+    ]);
+  }
+
+  for (const cols of byKey.values()) {
+    outRows.push(cols.join(";"));
+  }
+
+  if (duplicateKeys.length) {
+    console.warn(
+      `[sync] collapsed ${[...new Set(duplicateKeys)].length} duplicate ArtNo+OfferArtNo: ${[...new Set(duplicateKeys)].join(", ")}`,
     );
   }
 
