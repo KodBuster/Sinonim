@@ -139,6 +139,59 @@ function parseWeightGrams(properties: AdvantShopProperty[]): string | undefined 
   return undefined;
 }
 
+/** Нормализует вес оффера в строку для UI («2,71»). */
+function formatOfferWeightGrams(
+  weight: number | string | null | undefined,
+): string | undefined {
+  if (weight == null || weight === "") return undefined;
+  const num =
+    typeof weight === "number"
+      ? weight
+      : Number(String(weight).trim().replace(",", "."));
+  if (!Number.isFinite(num) || num <= 0) return undefined;
+  return String(num).replace(".", ",");
+}
+
+function buildSizeWeightGrams(
+  item: AdvantShopProductDetails,
+  sizes: { id: number; name: string }[],
+): Record<string, string> | undefined {
+  if (!sizes.length || !item.offers?.length) return undefined;
+
+  const map: Record<string, string> = {};
+  for (const size of sizes) {
+    const sizeKey = size.name.trim();
+    if (!sizeKey) continue;
+    const offer = item.offers.find((entry) => entry.sizeId === size.id);
+    const formatted = formatOfferWeightGrams(offer?.weight);
+    if (formatted) map[sizeKey] = formatted;
+  }
+
+  return Object.keys(map).length ? map : undefined;
+}
+
+function pickDefaultWeightGrams(
+  item: AdvantShopProductDetails,
+  properties: AdvantShopProperty[],
+  sizeWeightGrams?: Record<string, string>,
+): string | undefined {
+  const main = item.offers?.find((offer) => offer.isMain);
+  const fromMain = formatOfferWeightGrams(main?.weight);
+  if (fromMain) return fromMain;
+
+  if (sizeWeightGrams) {
+    const first = Object.values(sizeWeightGrams).find(Boolean);
+    if (first) return first;
+  }
+
+  const fromOffer = item.offers
+    ?.map((offer) => formatOfferWeightGrams(offer.weight))
+    .find(Boolean);
+  if (fromOffer) return fromOffer;
+
+  return parseWeightGrams(properties);
+}
+
 function parseProperty(
   properties: AdvantShopProperty[],
   keywords: string[]
@@ -361,6 +414,7 @@ export function mapProductDetails(
   const sizeArtNos = buildSizeArtNos(item, availableSizes);
   // Остатки по всем размерам (включая 0) — для проверки на чекауте
   const sizeStockAmounts = buildSizeStockAmounts(item, allSizes);
+  const sizeWeightGrams = buildSizeWeightGrams(item, allSizes);
   const legacySlug = item.urlPath;
   const setArtNos = resolveSetArtNos(properties);
   const { stockAmount, inStock } = getAdvantShopDetailsStockInfo(
@@ -401,7 +455,8 @@ export function mapProductDetails(
     sizeArtNos,
     sizeStockAmounts,
     offerArtNos: collectOfferArtNos(item),
-    weightGrams: parseWeightGrams(properties),
+    weightGrams: pickDefaultWeightGrams(item, properties, sizeWeightGrams),
+    sizeWeightGrams,
     setArtNos: setArtNos.length ? setArtNos : undefined,
     stockAmount,
     inStock,

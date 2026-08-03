@@ -82,6 +82,8 @@ export type AdvantShopOffer = {
   amount?: number;
   isMain?: boolean;
   sizeId?: number | null;
+  /** Вес модификации (г), разный у размеров. */
+  weight?: number | null;
 };
 
 export type AdvantShopProductDetails = {

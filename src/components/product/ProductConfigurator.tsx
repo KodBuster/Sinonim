@@ -33,6 +33,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const canBuy =
     product.inStock !== false &&
     (product.sizeOptions.length === 0 || selectedSize != null);
+  const displayWeightGrams =
+    (selectedSize && product.sizeWeightGrams?.[selectedSize]) ||
+    product.weightGrams;
 
   const handleAddToCart = () => {
     if (!canBuy) return;
@@ -84,9 +87,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             Нет в наличии
           </p>
         ) : null}
-        {product.weightGrams ? (
+        {displayWeightGrams ? (
           <p className="mt-1 text-sm text-brand-muted">
-            Вес изделия: {formatWeightGrams(product.weightGrams)}
+            Вес изделия: {formatWeightGrams(displayWeightGrams)}
           </p>
         ) : null}
       </div>

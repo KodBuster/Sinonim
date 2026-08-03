@@ -51,7 +51,10 @@ export type ProductDetails = Product & {
   metal: string;
   sizeOptions: ProductSizeOption[];
   stoneVariants: StoneVariant[];
+  /** Вес изделия по умолчанию (г), если нет веса выбранного размера. */
   weightGrams?: string;
+  /** Вес изделия (г) по ключу размера (value из sizeOptions). */
+  sizeWeightGrams?: Record<string, string>;
   /** Остаток по ключу размера (value из sizeOptions). */
   sizeStockAmounts?: Record<string, number>;
 };
