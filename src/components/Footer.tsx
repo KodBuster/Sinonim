@@ -92,8 +92,15 @@ export function Footer() {
             >
               {SITE_PHONE}
             </MetrikaPhoneLink>
-            <p className="text-sm text-brand-muted">
+            <p className="text-sm text-brand-muted mb-3">
               {SHOWROOM.hours}
+            </p>
+            <p className="text-sm text-brand-muted leading-relaxed">
+              ООО «СИНОНИМ»
+              <br />
+              ИНН 7735173098
+              <br />
+              ОГРН 1187746428484
             </p>
           </div>
         </div>
