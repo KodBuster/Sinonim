@@ -103,51 +103,19 @@ export function AboutPage() {
       </section>
 
       <section className="py-12 md:py-16">
-        <div className="mx-auto max-w-3xl px-4 md:px-6 lg:px-10">
-          <h2 className="font-heading text-2xl md:text-4xl text-brand-olive-dark mb-6 md:mb-8">
-            Особенности бриллиантов нового поколения
-          </h2>
-
-          <div className="space-y-5 text-brand-text leading-relaxed">
-            <p className="text-lg text-brand-olive-dark">
-              Лабораторные бриллианты — натуральные камни без миллионов лет
-              ожидания и вреда природе!
-            </p>
-            <p>
-              Лабораторно выращенные бриллианты обладают оптическими,
-              физическими и химическими свойствами, идентичными природными
-              бриллиантам: и те, и другие состоят из чистого углерода и имеют
-              одинаково высокую твёрдость (10 баллов по шкале Мооса).
-            </p>
-            <p>
-              Камни, выращенные в лаборатории, получают без вреда для людей и
-              природы — это подтверждают современные технологии и
-              международные стандарты производства.
-            </p>
-            <p>
-              Выращенные бриллианты проходят сертификацию в ведущих
-              геммологических лабораториях и институтах в России и за рубежом.
-            </p>
-            <p>
-              Такие камни оцениваются аналогично природным бриллиантам по
-              системе 4C: огранке, цвету, чистоте и каратности.
-            </p>
-          </div>
-
-          <div className="mt-10 pt-8 border-t border-brand-olive/15 flex flex-wrap gap-4">
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center px-8 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo text-white text-sm tracking-widest uppercase transition-colors"
-            >
-              Смотреть каталог
-            </Link>
-            <Link
-              href="/showroom"
-              className="inline-flex items-center justify-center px-8 py-3.5 border border-brand-olive/30 text-brand-olive-dark hover:border-brand-olive text-sm tracking-widest uppercase transition-colors"
-            >
-              Примерить в шоуруме
-            </Link>
-          </div>
+        <div className="mx-auto max-w-3xl px-4 md:px-6 lg:px-10 flex flex-wrap gap-4 justify-center">
+          <Link
+            href="/shop"
+            className="inline-flex items-center justify-center px-8 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo text-white text-sm tracking-widest uppercase transition-colors"
+          >
+            Смотреть каталог
+          </Link>
+          <Link
+            href="/showroom"
+            className="inline-flex items-center justify-center px-8 py-3.5 border border-brand-olive/30 text-brand-olive-dark hover:border-brand-olive text-sm tracking-widest uppercase transition-colors"
+          >
+            Примерить в шоуруме
+          </Link>
         </div>
       </section>
     </>

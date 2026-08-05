@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { label: "Браслеты", href: "/shop/bracelets" },
   { label: "Подарки", href: "/shop/gifts" },
   { label: "О бренде", href: "/about" },
+  { label: "Блог", href: "/blog" },
 ];
 
 function IconSearch({ className = "size-6 lg:size-5" }: { className?: string }) {
