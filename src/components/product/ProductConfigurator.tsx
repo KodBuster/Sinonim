@@ -92,6 +92,12 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             Вес изделия: {formatWeightGrams(displayWeightGrams)}
           </p>
         ) : null}
+        {artNo ? (
+          <p className="mt-1 text-sm text-brand-muted">
+            Артикул:{" "}
+            <span className="font-medium text-brand-olive-dark">{artNo}</span>
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-4">

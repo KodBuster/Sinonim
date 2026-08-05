@@ -86,14 +86,26 @@ export function buildSeoProductSlug({
     return legacySlug;
   }
 
-  const nameSlug = slugify(name);
   const fallback = CATEGORY_FALLBACK[category];
-  const baseName =
-    nameSlug && nameSlug !== fallback ? nameSlug : `${fallback}-s-brilliantom`;
+  let nameSlug = slugify(name)
+    // Название уже содержит каратность / металл — не дублируем в хвосте slug.
+    .replace(/-\d+(?:-\d+)?-karat$/i, "")
+    .replace(/-(?:iz-)?serebra-925$/i, "")
+    .replace(/-serebro-925$/i, "");
 
-  const slug = `${baseName}-${formatWeightSlug(stoneWeight)}-serebro-925-${productId}`
+  if (!nameSlug || nameSlug === fallback) {
+    nameSlug = `${fallback}-s-brilliantom`;
+  }
+
+  const slug = `${nameSlug}-${formatWeightSlug(stoneWeight)}-serebro-925-${productId}`
     .replace(/-{2,}/g, "-")
     .slice(0, 120);
+
+  // Не обрезаем productId — по нему ищем товар после смены названия.
+  if (!slug.endsWith(`-${productId}`)) {
+    const maxBase = Math.max(0, 120 - productId.length - 1);
+    return `${slug.slice(0, maxBase).replace(/-+$/g, "")}-${productId}`;
+  }
 
   return slug || `${fallback}-${productId}`;
 }
@@ -124,12 +136,22 @@ export function findProductBySlug(
     return legacyIdMatch ?? legacyMatches[0];
   }
 
+  // Старые SEO-slug после смены названия в AdvantShop:
+  // …-serebro-925-{productId} → ищем по id в конце URL.
+  const idSuffix = normalized.match(/-(\d+)$/);
+  if (idSuffix) {
+    const productId = idSuffix[1];
+    const byId = products.filter((item) => item.id === productId);
+    if (byId.length === 1) return byId[0];
+  }
+
   return undefined;
 }
 
+/** Любой URL, отличный от канонического slug, нужно редиректить. */
 export function isLegacyProductSlug(
   slug: string,
-  product: { slug: string; urlPath?: string }
+  product: { slug: string; urlPath?: string },
 ): boolean {
-  return slug !== product.slug && slug === (product.urlPath ?? product.slug);
+  return slug.trim() !== product.slug;
 }
