@@ -1,9 +1,23 @@
 import { execSync, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { resolve, dirname } from "node:path";
 
 const serverPath = ".next/standalone/server.js";
+const rootCa = resolve("certs/russian_trusted_root_ca.cer");
+const subCa = resolve("certs/russian_trusted_sub_ca.cer");
 const caBundle = resolve("certs/russian_trusted_ca_bundle.pem");
+
+function ensureCaBundle() {
+  if (existsSync(caBundle)) return true;
+  if (!existsSync(rootCa) || !existsSync(subCa)) return false;
+  mkdirSync(dirname(caBundle), { recursive: true });
+  writeFileSync(
+    caBundle,
+    `${readFileSync(rootCa, "utf8").trim()}\n${readFileSync(subCa, "utf8").trim()}\n`,
+    "utf8"
+  );
+  return true;
+}
 
 function runBuild() {
   console.log("Standalone bundle missing — running npm run build...");
@@ -33,11 +47,11 @@ if (!existsSync(serverPath)) {
 const env = { ...process.env };
 
 // MAX platform-api2.max.ru подписан УЦ Минцифры — без CA Node fetch падает
-if (existsSync(caBundle)) {
+if (ensureCaBundle()) {
   env.NODE_EXTRA_CA_CERTS = caBundle;
   console.log("MAX TLS: NODE_EXTRA_CA_CERTS =", caBundle);
 } else {
-  console.warn("MAX TLS: certs/russian_trusted_ca_bundle.pem not found");
+  console.warn("MAX TLS: certs/russian_trusted_*.cer not found");
 }
 
 const result = spawnSync(process.execPath, [serverPath], {
