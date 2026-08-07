@@ -2,7 +2,10 @@ import type { CartItem } from "@/lib/cart";
 import type { Order } from "@/lib/checkout";
 import type { CategorySlug } from "@/lib/products";
 
+/** Основной счётчик Метрики */
 export const METRIKA_ID = 110000084;
+/** Все счётчики: события и цели уходят в каждый */
+export const METRIKA_IDS = [METRIKA_ID, 111384290] as const;
 export const METRIKA_READY_EVENT = "sinonim:metrika-ready";
 
 const BRAND = "Синоним";
@@ -96,7 +99,9 @@ function runWhenMetrikaReady(callback: () => void) {
 
 function callMetrika(method: string, ...args: unknown[]) {
   runWhenMetrikaReady(() => {
-    window.ym?.(METRIKA_ID, method, ...args);
+    for (const counterId of METRIKA_IDS) {
+      window.ym?.(counterId, method, ...args);
+    }
   });
 }
 
@@ -284,19 +289,29 @@ export function trackPurchase(order: Order) {
 }
 
 export function trackContactTelegram() {
-  reachGoal("contact_telegram");
+  reachContactLead("telegram");
 }
 
 export function trackContactMax() {
-  reachGoal("contact_max");
+  reachContactLead("max");
 }
 
 export function trackContactWhatsapp() {
-  reachGoal("contact_whatsapp");
+  reachContactLead("whatsapp");
 }
 
 export function trackContactPhone() {
-  reachGoal("contact_phone");
+  reachContactLead("phone");
+}
+
+/**
+ * Составная цель для Директа: любой контакт через мессенджер или звонок.
+ * В Метрике создайте JS-цель с идентификатором `contact_lead`.
+ * Параллельно уходит детальная цель contact_*.
+ */
+function reachContactLead(channel: "phone" | "whatsapp" | "telegram" | "max") {
+  reachGoal(`contact_${channel}`);
+  reachGoal("contact_lead", { channel });
 }
 
 export function trackShowroomMapClick() {

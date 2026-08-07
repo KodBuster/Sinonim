@@ -1,5 +1,21 @@
 import Script from "next/script";
-import { METRIKA_ID, METRIKA_READY_EVENT } from "@/lib/analytics/metrika";
+import {
+  METRIKA_ID,
+  METRIKA_IDS,
+  METRIKA_READY_EVENT,
+} from "@/lib/analytics/metrika";
+
+const INIT_OPTIONS = `{
+  clickmap:true,
+  trackLinks:true,
+  accurateTrackBounce:true,
+  webvisor:true,
+  ecommerce:'dataLayer'
+}`;
+
+const initCalls = METRIKA_IDS.map(
+  (id) => `ym(${id}, 'init', ${INIT_OPTIONS});`
+).join("\n");
 
 export function YandexMetrika() {
   return (
@@ -23,13 +39,7 @@ export function YandexMetrika() {
     k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
 })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=${METRIKA_ID}', 'ym');
 
-ym(${METRIKA_ID}, 'init', {
-  clickmap:true,
-  trackLinks:true,
-  accurateTrackBounce:true,
-  webvisor:true,
-  ecommerce:'dataLayer'
-});
+${initCalls}
 
 window.dispatchEvent(new Event('${METRIKA_READY_EVENT}'));
           `.trim(),
@@ -37,11 +47,14 @@ window.dispatchEvent(new Event('${METRIKA_READY_EVENT}'));
       />
       <noscript>
         <div>
-          <img
-            src={`https://mc.yandex.ru/watch/${METRIKA_ID}`}
-            style={{ position: "absolute", left: "-9999px" }}
-            alt=""
-          />
+          {METRIKA_IDS.map((id) => (
+            <img
+              key={id}
+              src={`https://mc.yandex.ru/watch/${id}`}
+              style={{ position: "absolute", left: "-9999px" }}
+              alt=""
+            />
+          ))}
         </div>
       </noscript>
     </>
