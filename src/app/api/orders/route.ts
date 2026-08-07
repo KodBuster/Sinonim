@@ -4,12 +4,12 @@ import { submitAdvantShopOrder } from "@/lib/advantshop/orders";
 import { isAdvantShopConfigured } from "@/lib/advantshop/config";
 import type { CartItem } from "@/lib/cart";
 import {
-  generateOrderId,
   getDeliveryFee,
   validateCheckoutForm,
   type CheckoutFormData,
   type PaymentMethod,
 } from "@/lib/checkout";
+import { allocateNextOrderNumber } from "@/lib/order-sequence";
 import { createYooKassaPayment } from "@/lib/yookassa/client";
 import { isYooKassaConfigured } from "@/lib/yookassa/config";
 
@@ -53,7 +53,6 @@ export async function POST(request: Request) {
       : body.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = getDeliveryFee(customer.deliveryMethod, subtotal);
   const total = subtotal + deliveryFee;
-  const orderId = generateOrderId();
   const paymentMethod: PaymentMethod = customer.paymentMethod;
 
   if (paymentMethod === "yookassa" && !isYooKassaConfigured()) {
@@ -83,17 +82,21 @@ export async function POST(request: Request) {
       );
     }
 
+    const sequentialNumber = String(await allocateNextOrderNumber());
     const advantshop = await submitAdvantShopOrder({
-      orderId,
+      orderNumber: sequentialNumber,
       customer,
       items: body.items,
       deliveryFee,
     });
 
+    // Публичный номер: то, что вернул AdvantShop (обычно совпадает с отправленным 1, 2, 3…)
+    const orderId = advantshop.advantshopOrderNumber;
+
     const response: Record<string, unknown> = {
       id: orderId,
       advantshopOrderId: advantshop.advantshopOrderId,
-      advantshopOrderNumber: advantshop.advantshopOrderNumber,
+      advantshopOrderNumber: orderId,
       deliveryFee,
       total,
       paymentMethod,
@@ -103,7 +106,7 @@ export async function POST(request: Request) {
       const payment = await createYooKassaPayment({
         orderId,
         amount: total,
-        description: `Заказ ${advantshop.advantshopOrderNumber ?? orderId} — Синоним`,
+        description: `Заказ ${orderId} — Синоним`,
         customerPhone: customer.phone,
       });
 

@@ -105,17 +105,6 @@ export function validateCheckoutForm(data: CheckoutFormData): string | null {
   return null;
 }
 
-export function generateOrderId(): string {
-  const date = new Date();
-  const stamp = [
-    date.getFullYear().toString().slice(-2),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("");
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `SN-${stamp}-${random}`;
-}
-
 export function saveOrder(order: Order): void {
   if (typeof window === "undefined") return;
   try {

@@ -22,7 +22,8 @@ type AdvantShopOrderPayload = {
     Apartment?: string;
     Country?: string;
   };
-  Number: string;
+  /** Если не передан — AdvantShop назначит сам. */
+  Number?: string;
   OrderSource: string;
   Currency: string;
   CustomerComment?: string;
@@ -43,7 +44,8 @@ type AdvantShopOrderAddResponse = {
 };
 
 export type SubmitStorefrontOrderInput = {
-  orderId: string;
+  /** Порядковый номер для AdvantShop (1, 2, 3…). */
+  orderNumber: string;
   customer: CheckoutFormData;
   items: CartItem[];
   deliveryFee: number;
@@ -51,7 +53,8 @@ export type SubmitStorefrontOrderInput = {
 
 export type SubmitStorefrontOrderResult = {
   advantshopOrderId?: number;
-  advantshopOrderNumber?: string;
+  /** Итоговый номер из AdvantShop (приоритет для витрины). */
+  advantshopOrderNumber: string;
 };
 
 function formatAdvantShopErrors(errors: string | string[] | undefined): string {
@@ -118,7 +121,7 @@ function buildOrderPayload(
       Street: isPickup ? SHOWROOM.address : input.customer.address.trim(),
       Apartment: isPickup ? undefined : input.customer.apartment.trim() || undefined,
     },
-    Number: input.orderId.replace(/^SN-/, ""),
+    Number: input.orderNumber,
     OrderSource: process.env.ADVANTSHOP_ORDER_SOURCE?.trim() || "sinonim.ru",
     Currency: "RUB",
     CustomerComment: buildCustomerComment(input.items, input.customer.comment),
@@ -160,8 +163,13 @@ export async function submitAdvantShopOrder(
     throw new Error(formatAdvantShopErrors(response.errors));
   }
 
+  const fromShop =
+    response.obj?.Number?.trim() ||
+    (response.obj?.Id != null ? String(response.obj.Id) : "");
+
   return {
     advantshopOrderId: response.obj?.Id,
-    advantshopOrderNumber: response.obj?.Number,
+    // Приоритет — номер из AdvantShop; иначе тот, что отправили мы
+    advantshopOrderNumber: fromShop || input.orderNumber,
   };
 }

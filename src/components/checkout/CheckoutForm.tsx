@@ -13,7 +13,6 @@ import {
 } from "@/lib/analytics/metrika";
 import {
   applyPhoneInputChange,
-  generateOrderId,
   getDeliveryFee,
   DELIVERY_FEE,
   FREE_DELIVERY_THRESHOLD,
@@ -170,8 +169,14 @@ export function CheckoutForm() {
         throw new Error(data.error ?? "Не удалось оформить заказ");
       }
 
+      if (!data.id && !data.advantshopOrderNumber) {
+        throw new Error("Сервер не вернул номер заказа");
+      }
+
+      const publicOrderNumber = data.advantshopOrderNumber ?? data.id!;
+
       const order: Order = {
-        id: data.id ?? generateOrderId(),
+        id: publicOrderNumber,
         createdAt: new Date().toISOString(),
         customer,
         items: [...items],
@@ -179,7 +184,7 @@ export function CheckoutForm() {
         deliveryFee: data.deliveryFee ?? deliveryFee,
         total: data.total ?? orderTotal,
         advantshopOrderId: data.advantshopOrderId,
-        advantshopOrderNumber: data.advantshopOrderNumber,
+        advantshopOrderNumber: publicOrderNumber,
         paymentId: data.paymentId,
         paymentStatus: data.paymentUrl ? "pending" : undefined,
       };
