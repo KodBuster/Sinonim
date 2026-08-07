@@ -46,7 +46,8 @@ export async function POST(request: Request) {
   const result = await notifyMaxAdmins(text);
 
   return NextResponse.json({
-    ok: result.sent > 0,
+    ok: result.sent > 0 && result.errors === 0,
+    partial: result.sent > 0 && result.errors > 0,
     ...result,
   });
 }

@@ -1,14 +1,28 @@
-import { getMaxAdminUserIds, getMaxBotToken } from "@/lib/max/config";
+import {
+  getMaxAdminChatIds,
+  getMaxAdminUserIds,
+  getMaxBotToken,
+} from "@/lib/max/config";
 
-const MAX_API_BASE = "https://platform-api.max.ru";
+/** Актуальный домен API (старый platform-api.max.ru тоже отвечает, но docs рекомендуют api2). */
+const MAX_API_BASE = "https://platform-api2.max.ru";
 
-type MaxTarget = { type: "user_id" | "chat_id"; id: number };
+export type MaxTarget = { type: "user_id" | "chat_id"; id: number };
+
+export type MaxSendDetail = {
+  type: "user_id" | "chat_id";
+  id: number;
+  ok: boolean;
+  httpCode: number;
+  error?: string;
+};
 
 type MaxApiResult = {
   ok: boolean;
   httpCode: number;
   body: string;
   error?: string;
+  json?: unknown;
 };
 
 function authHeader(token: string): string {
@@ -19,7 +33,7 @@ function authHeader(token: string): string {
   return trimmed;
 }
 
-async function maxApiRequest(
+export async function maxApiRequest(
   token: string,
   method: "GET" | "POST",
   path: string,
@@ -47,11 +61,19 @@ async function maxApiRequest(
     });
 
     const text = await response.text();
+    let json: unknown;
+    try {
+      json = text ? JSON.parse(text) : undefined;
+    } catch {
+      json = undefined;
+    }
+
     return {
       ok: response.ok,
       httpCode: response.status,
       body: text,
       error: response.ok ? undefined : text.slice(0, 500),
+      json,
     };
   } catch (error) {
     return {
@@ -67,7 +89,7 @@ async function sendMaxMessage(
   token: string,
   target: MaxTarget,
   text: string
-): Promise<boolean> {
+): Promise<MaxSendDetail> {
   const result = await maxApiRequest(
     token,
     "POST",
@@ -83,7 +105,36 @@ async function sendMaxMessage(
     );
   }
 
-  return result.ok;
+  return {
+    type: target.type,
+    id: target.id,
+    ok: result.ok,
+    httpCode: result.httpCode,
+    error: result.ok
+      ? undefined
+      : (result.error ?? result.body.slice(0, 300) || `HTTP ${result.httpCode}`),
+  };
+}
+
+export function getMaxNotifyTargets(): MaxTarget[] {
+  const targets: MaxTarget[] = [];
+  const seen = new Set<string>();
+
+  for (const id of getMaxAdminUserIds()) {
+    const key = `user_id:${id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    targets.push({ type: "user_id", id });
+  }
+
+  for (const id of getMaxAdminChatIds()) {
+    const key = `chat_id:${id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    targets.push({ type: "chat_id", id });
+  }
+
+  return targets;
 }
 
 export type MaxNotifyResult = {
@@ -91,35 +142,48 @@ export type MaxNotifyResult = {
   sent: number;
   recipients: number;
   errors: number;
+  details: MaxSendDetail[];
 };
 
-/** Отправить текст всем админам из MAX_ADMIN_USER_IDS. */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Отправить текст всем админам из MAX_ADMIN_USER_IDS / MAX_ADMIN_CHAT_IDS. */
 export async function notifyMaxAdmins(text: string): Promise<MaxNotifyResult> {
   const token = getMaxBotToken();
-  const userIds = getMaxAdminUserIds();
+  const targets = getMaxNotifyTargets();
 
-  if (!token || userIds.length === 0) {
-    return { configured: false, sent: 0, recipients: 0, errors: 0 };
+  if (!token || targets.length === 0) {
+    return {
+      configured: false,
+      sent: 0,
+      recipients: 0,
+      errors: 0,
+      details: [],
+    };
   }
 
-  const targets: MaxTarget[] = userIds.map((id) => ({
-    type: "user_id",
-    id,
-  }));
+  console.info(
+    "MAX notify targets:",
+    targets.map((t) => `${t.type}=${t.id}`).join(", ")
+  );
 
-  let sent = 0;
-  let errors = 0;
+  const details: MaxSendDetail[] = [];
 
-  for (const target of targets) {
-    const ok = await sendMaxMessage(token, target, text);
-    if (ok) sent += 1;
-    else errors += 1;
+  for (let i = 0; i < targets.length; i += 1) {
+    if (i > 0) await sleep(350);
+    details.push(await sendMaxMessage(token, targets[i], text));
   }
+
+  const sent = details.filter((d) => d.ok).length;
+  const errors = details.length - sent;
 
   return {
     configured: true,
     sent,
     recipients: targets.length,
     errors,
+    details,
   };
 }
