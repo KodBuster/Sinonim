@@ -9,7 +9,7 @@ export const MESSENGERS = [
   {
     id: "max",
     label: "MAX",
-    href: `https://max.ru/:share?text=${encodeURIComponent(DEFAULT_MESSAGE)}`,
+    href: "https://max.ru/u/f9LHodD0cOJvAR42F_FFaqrLPtQm2Kw36zndWQqfnUVs01NnnVKahc6wOJ4",
   },
   {
     id: "telegram",
