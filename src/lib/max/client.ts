@@ -112,7 +112,7 @@ async function sendMaxMessage(
     httpCode: result.httpCode,
     error: result.ok
       ? undefined
-      : (result.error ?? result.body.slice(0, 300) || `HTTP ${result.httpCode}`),
+      : result.error || result.body.slice(0, 300) || `HTTP ${result.httpCode}`,
   };
 }
 
