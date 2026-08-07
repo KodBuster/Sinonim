@@ -1,10 +1,14 @@
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import tls from "node:tls";
+import { Agent } from "undici";
 import {
   getMaxAdminChatIds,
   getMaxAdminUserIds,
   getMaxBotToken,
 } from "@/lib/max/config";
 
-/** Актуальный домен API (старый platform-api.max.ru тоже отвечает, но docs рекомендуют api2). */
+/** С 19.07.2026 — platform-api2 (сертификат Минцифры). */
 const MAX_API_BASE = "https://platform-api2.max.ru";
 
 export type MaxTarget = { type: "user_id" | "chat_id"; id: number };
@@ -25,12 +29,63 @@ type MaxApiResult = {
   json?: unknown;
 };
 
+function resolveCertsDir(): string | null {
+  const candidates = [
+    join(process.cwd(), "certs"),
+    join(process.cwd(), "..", "certs"),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(join(dir, "russian_trusted_root_ca.cer"))) return dir;
+  }
+  return null;
+}
+
+let maxDispatcher: Agent | undefined;
+let maxDispatcherReady = false;
+
+/** TLS-агент с корневыми CA Node + сертификатами Минцифры (для api2). */
+function getMaxDispatcher(): Agent | undefined {
+  if (maxDispatcherReady) return maxDispatcher;
+  maxDispatcherReady = true;
+
+  const dir = resolveCertsDir();
+  if (!dir) {
+    console.warn(
+      "MAX: папка certs/ не найдена — TLS к platform-api2.max.ru может падать"
+    );
+    return undefined;
+  }
+
+  try {
+    const root = readFileSync(join(dir, "russian_trusted_root_ca.cer"));
+    const sub = readFileSync(join(dir, "russian_trusted_sub_ca.cer"));
+    maxDispatcher = new Agent({
+      connect: {
+        ca: [...tls.rootCertificates, root, sub],
+      },
+    });
+  } catch (error) {
+    console.error("MAX: не удалось загрузить сертификаты Минцифры", error);
+  }
+
+  return maxDispatcher;
+}
+
 function authHeader(token: string): string {
   const trimmed = token.trim();
   if (trimmed.toLowerCase().startsWith("bearer ")) {
     return trimmed.slice(7).trim();
   }
   return trimmed;
+}
+
+function formatFetchError(error: unknown): string {
+  if (!(error instanceof Error)) return "fetch failed";
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (cause instanceof Error && cause.message) {
+    return `${error.message}: ${cause.message}`;
+  }
+  return error.message || "fetch failed";
 }
 
 export async function maxApiRequest(
@@ -48,6 +103,7 @@ export async function maxApiRequest(
   }
 
   try {
+    const dispatcher = getMaxDispatcher();
     const response = await fetch(url, {
       method,
       headers: {
@@ -58,7 +114,8 @@ export async function maxApiRequest(
       },
       body: method === "POST" ? JSON.stringify(body ?? {}) : undefined,
       cache: "no-store",
-    });
+      ...(dispatcher ? { dispatcher } : {}),
+    } as RequestInit);
 
     const text = await response.text();
     let json: unknown;
@@ -80,7 +137,7 @@ export async function maxApiRequest(
       ok: false,
       httpCode: 0,
       body: "",
-      error: error instanceof Error ? error.message : "fetch failed",
+      error: formatFetchError(error),
     };
   }
 }

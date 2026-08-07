@@ -19,6 +19,9 @@ ENV PORT=80
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/certs ./certs
+
+ENV NODE_EXTRA_CA_CERTS=/app/certs/russian_trusted_ca_bundle.pem
 
 EXPOSE 80
 

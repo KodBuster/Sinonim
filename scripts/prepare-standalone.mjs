@@ -11,4 +11,8 @@ if (!existsSync(standaloneDir)) {
 cpSync(".next/static", join(standaloneDir, ".next/static"), { recursive: true });
 cpSync("public", join(standaloneDir, "public"), { recursive: true });
 
+if (existsSync("certs")) {
+  cpSync("certs", join(standaloneDir, "certs"), { recursive: true });
+}
+
 console.log("Standalone bundle prepared");
