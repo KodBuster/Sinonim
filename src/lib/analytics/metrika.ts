@@ -285,6 +285,21 @@ export function trackPurchase(order: Order) {
       order_price: order.total,
       currency: "RUB",
     });
+    void notifyMaxPurchase(order);
+  });
+}
+
+/** Уведомление админам в MAX при срабатывании purchase (best-effort). */
+function notifyMaxPurchase(order: Order) {
+  if (typeof window === "undefined") return;
+
+  void fetch("/api/notify/max-purchase", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ order }),
+    keepalive: true,
+  }).catch(() => {
+    /* не блокируем UX при сбое мессенджера */
   });
 }
 
