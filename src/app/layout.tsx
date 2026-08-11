@@ -9,6 +9,7 @@ import { CartProvider } from "@/context/CartContext";
 import { CompareProvider } from "@/context/CompareContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { MessengerFab } from "@/components/MessengerFab";
+import { PageVisitTracker } from "@/components/analytics/PageVisitTracker";
 import { YandexMetrika } from "@/components/analytics/YandexMetrika";
 import { getSiteUrl } from "@/lib/site-url";
 import { getSiteVerification } from "@/lib/site-verification";
@@ -43,6 +44,7 @@ export default function RootLayout({
     <html lang="ru" className="h-full antialiased">
       <body className="min-h-full flex flex-col font-body">
         <YandexMetrika />
+        <PageVisitTracker />
         <CartProvider>
           <CompareProvider>
             <FavoritesProvider>

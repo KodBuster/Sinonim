@@ -332,3 +332,13 @@ function reachContactLead(channel: "phone" | "whatsapp" | "telegram" | "max") {
 export function trackShowroomMapClick() {
   reachGoal("showroom_map_click");
 }
+
+/**
+ * Цели «посетил страницу» для Директа / Метрики.
+ * В кабинете Метрики создайте JS-цели с этими идентификаторами:
+ * page_rings, page_earrings, page_pendants, page_bracelets, page_gifts,
+ * page_about, page_blog, page_showroom, page_shipping, page_guide.
+ */
+export function trackPageVisit(goal: string) {
+  reachGoal(goal);
+}
