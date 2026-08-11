@@ -1,5 +1,5 @@
-export const SITE_PHONE = "+7 (903) 761-36-97";
-export const SITE_PHONE_TEL = "tel:+79037613697";
+export const SITE_PHONE = "+7 (499)65-35-925";
+export const SITE_PHONE_TEL = "tel:+74996535925";
 
 const PHONE_DIGITS = "79037613697";
 const TELEGRAM_PHONE = "+79037613697";
