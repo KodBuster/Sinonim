@@ -166,6 +166,7 @@ export function MessengerFab() {
   return (
     <div
       ref={rootRef}
+      id="messenger-fab-root"
       className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50"
     >
       <div className="relative flex h-14 w-14 items-center justify-center">

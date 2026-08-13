@@ -183,20 +183,18 @@ body {
   }
 }
 
-/* Mango chat button clearly above Messenger FAB (FAB top ≈ 4.75rem) */
+/* Fallback: Mango chat above FAB (JS also pins to #messenger-fab-root) */
 .mgo-widget-call_button,
 .mgo-widget-online-button,
 .mgo-widget-callback_button,
 [class*="mgo-widget"][class*="button"],
 [class*="mgo-multichannel"][class*="button"] {
-  bottom: 9rem !important;
+  bottom: 11rem !important;
   right: 1.25rem !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
   z-index: 49 !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  width: auto !important;
-  height: auto !important;
-  overflow: visible !important;
 }
 
 @media (min-width: 768px) {
@@ -205,7 +203,7 @@ body {
   .mgo-widget-callback_button,
   [class*="mgo-widget"][class*="button"],
   [class*="mgo-multichannel"][class*="button"] {
-    bottom: 9.5rem !important;
+    bottom: 11.5rem !important;
     right: 1.5rem !important;
   }
 }
