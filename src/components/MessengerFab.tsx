@@ -142,7 +142,7 @@ export function MessengerFab() {
       if (
         target instanceof Element &&
         target.closest(
-          ".mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel']"
+          ".mgo-mcw-widget, .mgo-mcw__button, .mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel'], [class*='mgo-mcw']"
         )
       ) {
         return;

@@ -183,13 +183,9 @@ body {
   }
 }
 
-/* Fallback: Mango chat above FAB (JS also pins to #messenger-fab-root) */
-.mgo-widget-call_button,
-.mgo-widget-online-button,
-.mgo-widget-callback_button,
-[class*="mgo-widget"][class*="button"],
-[class*="mgo-multichannel"][class*="button"] {
-  bottom: 11rem !important;
+/* Fallback: Mango «Чат» above Messenger FAB (JS pins to #messenger-fab-root) */
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
+  bottom: 5.75rem !important;
   right: 1.25rem !important;
   top: auto !important;
   left: auto !important;
@@ -198,12 +194,8 @@ body {
 }
 
 @media (min-width: 768px) {
-  .mgo-widget-call_button,
-  .mgo-widget-online-button,
-  .mgo-widget-callback_button,
-  [class*="mgo-widget"][class*="button"],
-  [class*="mgo-multichannel"][class*="button"] {
-    bottom: 11.5rem !important;
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
+    bottom: 6.25rem !important;
     right: 1.5rem !important;
   }
 }
@@ -212,7 +204,9 @@ body {
 @media (max-width: 767.98px) {
   [class*="mgo-"][class*="panel"],
   [class*="mgo-"][class*="window"],
-  [class*="mgo-"][class*="dialog"] {
+  [class*="mgo-"][class*="dialog"],
+  .mgo-mcw__window,
+  .mgo-mcw__chat-window {
     max-width: calc(100vw - 16px) !important;
     max-height: calc(100dvh - 24px) !important;
   }

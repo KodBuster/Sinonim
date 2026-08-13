@@ -4,55 +4,19 @@ import Script from "next/script";
 import { useEffect } from "react";
 import { MANGO_WIDGET_ID } from "@/lib/mango-office";
 
-const GAP_PX = 20;
+const GAP_PX = 16;
 
-function findMangoLaunchers(): HTMLElement[] {
-  const fab = document.getElementById("messenger-fab-root");
-  const nodes = new Set<HTMLElement>();
-
-  document
-    .querySelectorAll<HTMLElement>(
-      [
-        ".mgo-widget-call_button",
-        ".mgo-widget-online-button",
-        ".mgo-widget-callback_button",
-        "[class*='mgo-widget'][class*='button']",
-        "[class*='mgo-multichannel'][class*='button']",
-      ].join(",")
-    )
-    .forEach((el) => {
-      if (fab?.contains(el)) return;
-      const style = window.getComputedStyle(el);
-      if (style.position !== "fixed" && style.position !== "absolute") {
-        // Prefer the nearest fixed ancestor that looks like the launcher shell.
-        let current: HTMLElement | null = el;
-        while (current && current !== document.body) {
-          if (fab?.contains(current)) return;
-          const currentStyle = window.getComputedStyle(current);
-          if (currentStyle.position === "fixed") {
-            const rect = current.getBoundingClientRect();
-            if (
-              rect.width >= 36 &&
-              rect.width <= 96 &&
-              rect.height >= 36 &&
-              rect.height <= 96
-            ) {
-              nodes.add(current);
-            }
-            return;
-          }
-          current = current.parentElement;
-        }
-        return;
-      }
-
-      const rect = el.getBoundingClientRect();
-      if (rect.width < 24 || rect.height < 24) return;
-      if (rect.width > 120 || rect.height > 120) return;
-      nodes.add(el);
-    });
-
-  return [...nodes];
+function clearPositionOverrides(el: HTMLElement) {
+  [
+    "position",
+    "top",
+    "left",
+    "right",
+    "bottom",
+    "transform",
+    "z-index",
+    "margin",
+  ].forEach((prop) => el.style.removeProperty(prop));
 }
 
 function positionMangoAboveFab() {
@@ -62,28 +26,46 @@ function positionMangoAboveFab() {
   const fabRect = fab.getBoundingClientRect();
   if (fabRect.height <= 0) return;
 
-  const bottomPx = Math.max(
-    0,
-    Math.round(window.innerHeight - fabRect.top + GAP_PX)
-  );
-  const rightPx = Math.round(window.innerWidth - fabRect.right);
+  const widgets = document.querySelectorAll<HTMLElement>(".mgo-mcw-widget");
 
-  findMangoLaunchers().forEach((el) => {
-    el.style.setProperty("position", "fixed", "important");
-    el.style.setProperty("top", "auto", "important");
-    el.style.setProperty("left", "auto", "important");
-    el.style.setProperty("bottom", `${bottomPx}px`, "important");
-    el.style.setProperty("right", `${rightPx}px`, "important");
-    el.style.setProperty("transform", "none", "important");
-    el.style.setProperty("z-index", "49", "important");
-    el.style.setProperty("margin", "0", "important");
+  widgets.forEach((widget) => {
+    // Mobile open state goes fullscreen — do not fight Mango styles.
+    if (widget.classList.contains("mgo-mcw_state-window-open")) {
+      clearPositionOverrides(widget);
+      return;
+    }
+
+    const button =
+      widget.querySelector<HTMLElement>(
+        ".mgo-mcw__button_main, .mgo-mcw__button_chat, .mgo-mcw__button"
+      ) ?? widget;
+
+    const buttonWidth = Math.max(button.getBoundingClientRect().width || 56, 40);
+    const fabCenterX = fabRect.left + fabRect.width / 2;
+    const bottomPx = Math.max(
+      0,
+      Math.round(window.innerHeight - fabRect.top + GAP_PX)
+    );
+    const rightPx = Math.max(
+      0,
+      Math.round(window.innerWidth - (fabCenterX + buttonWidth / 2))
+    );
+
+    widget.style.setProperty("position", "fixed", "important");
+    widget.style.setProperty("top", "auto", "important");
+    widget.style.setProperty("left", "auto", "important");
+    widget.style.setProperty("bottom", `${bottomPx}px`, "important");
+    widget.style.setProperty("right", `${rightPx}px`, "important");
+    widget.style.setProperty("transform", "none", "important");
+    widget.style.setProperty("margin", "0", "important");
+    widget.style.setProperty("z-index", "49", "important");
   });
 }
 
 export function MangoOfficeChat() {
   useEffect(() => {
     positionMangoAboveFab();
-    const interval = window.setInterval(positionMangoAboveFab, 1500);
+    const interval = window.setInterval(positionMangoAboveFab, 1000);
     let raf = 0;
     const observer = new MutationObserver(() => {
       if (raf) return;
@@ -92,10 +74,11 @@ export function MangoOfficeChat() {
         positionMangoAboveFab();
       });
     });
-    // Only watch DOM inserts — rewriting styles on attribute changes fights the open animation.
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
     });
     window.addEventListener("resize", positionMangoAboveFab);
 
