@@ -197,23 +197,21 @@ export function MessengerFab() {
               >
                 {isMax ? (
                   <span
-                    className={`pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-10 -translate-x-1/2 transition-all duration-300 ${
+                    className={`pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-10 grid -translate-x-1/2 grid-cols-[1fr_auto_1fr] items-center gap-x-2 transition-all duration-300 ${
                       open ? "opacity-100" : "opacity-0"
                     }`}
                     style={{
                       transitionDelay: open ? openDelay : closeDelay,
                     }}
                   >
-                    <span className="relative block">
-                      <span className="absolute right-[calc(100%+8px)] top-0 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10">
-                        Telegram
-                      </span>
-                      <span className="whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10">
-                        MAX
-                      </span>
-                      <span className="absolute left-[calc(100%+8px)] top-0 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10">
-                        Позвонить
-                      </span>
+                    <span className="justify-self-end whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm leading-none text-brand-olive-dark shadow-md border border-brand-olive/10">
+                      Telegram
+                    </span>
+                    <span className="whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm leading-none text-brand-olive-dark shadow-md border border-brand-olive/10">
+                      MAX
+                    </span>
+                    <span className="justify-self-start whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm leading-none text-brand-olive-dark shadow-md border border-brand-olive/10">
+                      Позвонить
                     </span>
                   </span>
                 ) : null}
