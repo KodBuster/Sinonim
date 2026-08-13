@@ -139,14 +139,6 @@ export function MessengerFab() {
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (rootRef.current?.contains(target)) return;
-      if (
-        target instanceof Element &&
-        target.closest(
-          ".mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel']"
-        )
-      ) {
-        return;
-      }
       setOpen(false);
     };
 
