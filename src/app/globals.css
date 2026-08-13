@@ -183,21 +183,17 @@ body {
   }
 }
 
-/* Mango Office chat sits above Messenger FAB (56px + gap) */
-.mgo-widget-call_button,
-.mgo-widget-online-button,
-.mgo-widget-callback_button,
-[class*="mgo-widget"] {
-  bottom: 5.5rem !important;
-  right: 1.25rem !important;
-}
-
-@media (min-width: 768px) {
-  .mgo-widget-call_button,
-  .mgo-widget-online-button,
-  .mgo-widget-callback_button,
-  [class*="mgo-widget"] {
-    bottom: 6rem !important;
-    right: 1.5rem !important;
-  }
+/* Mango button lives inside FAB slot (not as a separate fixed float) */
+.mango-fab-slot .mango-fab-mounted,
+.mango-fab-slot [class*="mgo-widget"] {
+  position: relative !important;
+  inset: auto !important;
+  bottom: auto !important;
+  right: auto !important;
+  left: auto !important;
+  top: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  max-width: 3rem;
+  max-height: 3rem;
 }
