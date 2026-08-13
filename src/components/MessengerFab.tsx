@@ -202,12 +202,16 @@ export function MessengerFab() {
                 }}
               >
                 <span
-                  className={`pointer-events-none absolute bottom-full mb-2 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
+                  className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
                     open
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-1"
+                      ? "opacity-100"
+                      : "opacity-0"
                   }`}
-                  style={{ transitionDelay: open ? openDelay : closeDelay }}
+                  style={{
+                    bottom: `calc(100% + ${8 + (FAB_ITEMS.length - 1 - index) * 30}px)`,
+                    transitionDelay: open ? openDelay : closeDelay,
+                    zIndex: 10 + (FAB_ITEMS.length - index),
+                  }}
                 >
                   {item.label}
                 </span>
