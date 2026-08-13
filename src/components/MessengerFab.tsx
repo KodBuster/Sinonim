@@ -174,6 +174,7 @@ export function MessengerFab() {
           {[...FAB_ITEMS].reverse().map((item, index) => {
             const Icon = ICONS[item.id];
             const isPhone = item.id === "phone";
+            const isMax = item.id === "max";
             const openDelay = `${(FAB_ITEMS.length - 1 - index) * 50}ms`;
             const closeDelay = `${index * 40}ms`;
 
@@ -194,20 +195,28 @@ export function MessengerFab() {
                   setOpen(false);
                 }}
               >
-                <span
-                  className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
-                    open
-                      ? "opacity-100"
-                      : "opacity-0"
-                  }`}
-                  style={{
-                    bottom: `calc(100% + ${8 + (FAB_ITEMS.length - 1 - index) * 30}px)`,
-                    transitionDelay: open ? openDelay : closeDelay,
-                    zIndex: 10 + (FAB_ITEMS.length - index),
-                  }}
-                >
-                  {item.label}
-                </span>
+                {isMax ? (
+                  <span
+                    className={`pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-10 -translate-x-1/2 transition-all duration-300 ${
+                      open ? "opacity-100" : "opacity-0"
+                    }`}
+                    style={{
+                      transitionDelay: open ? openDelay : closeDelay,
+                    }}
+                  >
+                    <span className="relative block">
+                      <span className="absolute right-[calc(100%+8px)] top-0 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10">
+                        Telegram
+                      </span>
+                      <span className="whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10">
+                        MAX
+                      </span>
+                      <span className="absolute left-[calc(100%+8px)] top-0 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10">
+                        Позвонить
+                      </span>
+                    </span>
+                  </span>
+                ) : null}
                 <span
                   className={`flex h-12 w-12 origin-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
                     open ? "scale-100 opacity-100" : "scale-0 opacity-0"
