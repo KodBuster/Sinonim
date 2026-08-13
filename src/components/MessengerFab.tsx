@@ -73,7 +73,6 @@ function IconClose() {
 }
 
 const ICONS = {
-  chat: IconChat,
   phone: IconPhone,
   max: IconMax,
   telegram: IconTelegram,
@@ -92,24 +91,11 @@ const MESSENGER_BUTTON_BG =
 const FAB_ITEMS: Array<{
   id: keyof typeof ICONS;
   label: string;
-  href?: string;
+  href: string;
 }> = [
-  { id: "chat", label: "Чат" },
   { id: "phone", label: "Позвонить", href: SITE_PHONE_TEL },
   ...MESSENGERS.filter((item) => item.id === "max" || item.id === "telegram"),
 ];
-
-function clickMangoChatButton() {
-  const button = document.querySelector<HTMLElement>(
-    [
-      ".mgo-widget-call_button",
-      ".mgo-widget-online-button",
-      ".mgo-widget-callback_button",
-      "[class*='mgo-widget-call']",
-    ].join(",")
-  );
-  button?.click();
-}
 
 export function MessengerFab() {
   const [open, setOpen] = useState(false);
@@ -180,45 +166,53 @@ export function MessengerFab() {
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-3"
+      className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50"
     >
-      <div
-        className={`flex flex-col items-end gap-2 transition-all duration-300 ${
-          open
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 translate-y-4 pointer-events-none"
-        }`}
-        aria-hidden={!open}
-      >
-        {FAB_ITEMS.map((item, index) => {
-          const Icon = ICONS[item.id];
-          const closeDelay = `${(FAB_ITEMS.length - 1 - index) * 40}ms`;
-          const openDelay = `${index * 50}ms`;
-          const isChat = item.id === "chat";
-          const isPhone = item.id === "phone";
+      <div className="relative flex h-14 w-14 items-center justify-center">
+        <div
+          className={`absolute right-full top-1/2 mr-3 flex -translate-y-1/2 flex-row items-center gap-2 transition-all duration-300 ${
+            open
+              ? "opacity-100 translate-x-0 pointer-events-auto"
+              : "opacity-0 translate-x-4 pointer-events-none"
+          }`}
+          aria-hidden={!open}
+        >
+          {/* Слева направо: Telegram → MAX → Позвонить → FAB */}
+          {[...FAB_ITEMS].reverse().map((item, index) => {
+            const Icon = ICONS[item.id];
+            const isPhone = item.id === "phone";
+            const openDelay = `${(FAB_ITEMS.length - 1 - index) * 50}ms`;
+            const closeDelay = `${index * 40}ms`;
 
-          if (isChat) {
             return (
-              <button
+              <a
                 key={item.id}
-                type="button"
-                className="group flex items-center gap-3 origin-bottom-right"
+                href={item.href}
+                {...(isPhone
+                  ? {}
+                  : { target: "_blank", rel: "noopener noreferrer" })}
+                className="group relative flex items-center justify-center origin-right"
                 onClick={() => {
-                  clickMangoChatButton();
+                  if (isPhone) {
+                    trackContactPhone();
+                  } else if (item.id === "max" || item.id === "telegram") {
+                    MESSENGER_GOALS[item.id]();
+                  }
+                  setOpen(false);
                 }}
               >
                 <span
-                  className={`rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
+                  className={`pointer-events-none absolute bottom-full mb-2 whitespace-nowrap rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
                     open
-                      ? "opacity-100 translate-x-0"
-                      : "opacity-0 translate-x-2"
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-1"
                   }`}
                   style={{ transitionDelay: open ? openDelay : closeDelay }}
                 >
                   {item.label}
                 </span>
                 <span
-                  className={`flex h-12 w-12 origin-bottom-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
+                  className={`flex h-12 w-12 origin-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
                     open ? "scale-100 opacity-100" : "scale-0 opacity-0"
                   } ${MESSENGER_BUTTON_BG} ${ICON_CLASS}`}
                   style={{ transitionDelay: open ? openDelay : closeDelay }}
@@ -226,74 +220,35 @@ export function MessengerFab() {
                 >
                   <Icon />
                 </span>
-              </button>
+              </a>
             );
-          }
+          })}
+        </div>
 
-          return (
-            <a
-              key={item.id}
-              href={item.href}
-              {...(isPhone
-                ? {}
-                : { target: "_blank", rel: "noopener noreferrer" })}
-              className="group flex items-center gap-3 origin-bottom-right"
-              onClick={() => {
-                if (isPhone) {
-                  trackContactPhone();
-                } else if (item.id === "max" || item.id === "telegram") {
-                  MESSENGER_GOALS[item.id]();
-                }
-                setOpen(false);
-              }}
-            >
-              <span
-                className={`rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
-                  open
-                    ? "opacity-100 translate-x-0"
-                    : "opacity-0 translate-x-2"
-                }`}
-                style={{ transitionDelay: open ? openDelay : closeDelay }}
-              >
-                {item.label}
-              </span>
-              <span
-                className={`flex h-12 w-12 origin-bottom-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
-                  open ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                } ${MESSENGER_BUTTON_BG} ${ICON_CLASS}`}
-                style={{ transitionDelay: open ? openDelay : closeDelay }}
-                aria-label={item.label}
-              >
-                <Icon />
-              </span>
-            </a>
-          );
-        })}
+        <button
+          ref={toggleRef}
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
+          aria-expanded={open}
+          aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
+        >
+          <span
+            className={`absolute transition-all duration-300 ${
+              open ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"
+            }`}
+          >
+            <IconChat />
+          </span>
+          <span
+            className={`absolute transition-all duration-300 ${
+              open ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
+            }`}
+          >
+            <IconClose />
+          </span>
+        </button>
       </div>
-
-      <button
-        ref={toggleRef}
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
-        aria-expanded={open}
-        aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
-      >
-        <span
-          className={`absolute transition-all duration-300 ${
-            open ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"
-          }`}
-        >
-          <IconChat />
-        </span>
-        <span
-          className={`absolute transition-all duration-300 ${
-            open ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
-          }`}
-        >
-          <IconClose />
-        </span>
-      </button>
     </div>
   );
 }
