@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MANGO_FAB_SLOT_ID } from "@/components/MangoOfficeChat";
 import { MESSENGERS, SITE_PHONE_TEL } from "@/lib/contacts";
 import {
   MESSENGER_FAB_OPEN_EVENT,
-  openMessengerFab,
   type MessengerFabOpenDetail,
 } from "@/lib/messenger-fab";
 import {
@@ -75,6 +73,7 @@ function IconClose() {
 }
 
 const ICONS = {
+  chat: IconChat,
   phone: IconPhone,
   max: IconMax,
   telegram: IconTelegram,
@@ -93,64 +92,28 @@ const MESSENGER_BUTTON_BG =
 const FAB_ITEMS: Array<{
   id: keyof typeof ICONS;
   label: string;
-  href: string;
+  href?: string;
 }> = [
+  { id: "chat", label: "Чат" },
   { id: "phone", label: "Позвонить", href: SITE_PHONE_TEL },
   ...MESSENGERS.filter((item) => item.id === "max" || item.id === "telegram"),
 ];
 
-const MANGO_BUTTON_SELECTORS = [
-  ".mgo-widget-call_button",
-  ".mgo-widget-online-button",
-  ".mgo-widget-callback_button",
-  "[class*='mgo-widget'][style*='fixed']",
-  "[class*='mgo-widget-call']",
-  "[id^='mgo-'][class*='button']",
-].join(",");
-
-function findMangoLaunchButton(): HTMLElement | null {
-  const nodes = Array.from(
-    document.querySelectorAll<HTMLElement>(MANGO_BUTTON_SELECTORS)
+function clickMangoChatButton() {
+  const button = document.querySelector<HTMLElement>(
+    [
+      ".mgo-widget-call_button",
+      ".mgo-widget-online-button",
+      ".mgo-widget-callback_button",
+      "[class*='mgo-widget-call']",
+    ].join(",")
   );
-
-  return (
-    nodes.find((el) => {
-      if (el.closest(`#${MANGO_FAB_SLOT_ID}`)) return true;
-      const style = window.getComputedStyle(el);
-      const clickable =
-        el.tagName === "BUTTON" ||
-        el.getAttribute("role") === "button" ||
-        style.cursor === "pointer" ||
-        el.onclick !== null;
-      const sized = el.offsetWidth >= 24 && el.offsetHeight >= 24;
-      return clickable && sized;
-    }) ?? null
-  );
-}
-
-function mountMangoIntoFabSlot(slot: HTMLElement) {
-  const button = findMangoLaunchButton();
-  if (!button) return false;
-  if (button.parentElement === slot) return true;
-
-  button.classList.add("mango-fab-mounted");
-  button.style.setProperty("position", "relative", "important");
-  button.style.setProperty("bottom", "auto", "important");
-  button.style.setProperty("right", "auto", "important");
-  button.style.setProperty("left", "auto", "important");
-  button.style.setProperty("top", "auto", "important");
-  button.style.setProperty("margin", "0", "important");
-  button.style.setProperty("transform", "none", "important");
-  button.style.setProperty("inset", "auto", "important");
-  slot.replaceChildren(button);
-  return true;
+  button?.click();
 }
 
 export function MessengerFab() {
   const [open, setOpen] = useState(false);
-  const [mangoReady, setMangoReady] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const mangoSlotRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const pendingDesktopFocusRef = useRef(false);
 
@@ -193,7 +156,7 @@ export function MessengerFab() {
       if (
         target instanceof Element &&
         target.closest(
-          ".mgo-widget, [class*='mgo-widget'], [id^='mgo-'], .mango-fab-mounted"
+          ".mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel']"
         )
       ) {
         return;
@@ -214,46 +177,100 @@ export function MessengerFab() {
     };
   }, [open]);
 
-  useEffect(() => {
-    const slot = mangoSlotRef.current;
-    if (!slot) return;
-
-    const sync = () => {
-      setMangoReady(mountMangoIntoFabSlot(slot));
-    };
-
-    sync();
-    const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    const onMangoInteract = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (
-        !target.closest(
-          `#${MANGO_FAB_SLOT_ID}, .mango-fab-mounted, .mgo-widget, [class*='mgo-widget'], [id^='mgo-']`
-        )
-      ) {
-        return;
-      }
-      openMessengerFab({ focusOnDesktop: false });
-    };
-
-    document.addEventListener("pointerdown", onMangoInteract, true);
-    document.addEventListener("click", onMangoInteract, true);
-
-    return () => {
-      observer.disconnect();
-      document.removeEventListener("pointerdown", onMangoInteract, true);
-      document.removeEventListener("click", onMangoInteract, true);
-    };
-  }, []);
-
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50 flex flex-col-reverse items-end gap-3"
+      className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-3"
     >
+      <div
+        className={`flex flex-col items-end gap-2 transition-all duration-300 ${
+          open
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+        aria-hidden={!open}
+      >
+        {FAB_ITEMS.map((item, index) => {
+          const Icon = ICONS[item.id];
+          const closeDelay = `${(FAB_ITEMS.length - 1 - index) * 40}ms`;
+          const openDelay = `${index * 50}ms`;
+          const isChat = item.id === "chat";
+          const isPhone = item.id === "phone";
+
+          if (isChat) {
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="group flex items-center gap-3 origin-bottom-right"
+                onClick={() => {
+                  clickMangoChatButton();
+                }}
+              >
+                <span
+                  className={`rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
+                    open
+                      ? "opacity-100 translate-x-0"
+                      : "opacity-0 translate-x-2"
+                  }`}
+                  style={{ transitionDelay: open ? openDelay : closeDelay }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className={`flex h-12 w-12 origin-bottom-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
+                    open ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                  } ${MESSENGER_BUTTON_BG} ${ICON_CLASS}`}
+                  style={{ transitionDelay: open ? openDelay : closeDelay }}
+                  aria-label={item.label}
+                >
+                  <Icon />
+                </span>
+              </button>
+            );
+          }
+
+          return (
+            <a
+              key={item.id}
+              href={item.href}
+              {...(isPhone
+                ? {}
+                : { target: "_blank", rel: "noopener noreferrer" })}
+              className="group flex items-center gap-3 origin-bottom-right"
+              onClick={() => {
+                if (isPhone) {
+                  trackContactPhone();
+                } else if (item.id === "max" || item.id === "telegram") {
+                  MESSENGER_GOALS[item.id]();
+                }
+                setOpen(false);
+              }}
+            >
+              <span
+                className={`rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
+                  open
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 translate-x-2"
+                }`}
+                style={{ transitionDelay: open ? openDelay : closeDelay }}
+              >
+                {item.label}
+              </span>
+              <span
+                className={`flex h-12 w-12 origin-bottom-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
+                  open ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                } ${MESSENGER_BUTTON_BG} ${ICON_CLASS}`}
+                style={{ transitionDelay: open ? openDelay : closeDelay }}
+                aria-label={item.label}
+              >
+                <Icon />
+              </span>
+            </a>
+          );
+        })}
+      </div>
+
       <button
         ref={toggleRef}
         type="button"
@@ -277,90 +294,6 @@ export function MessengerFab() {
           <IconClose />
         </span>
       </button>
-
-      <div className="flex flex-col-reverse items-end gap-2">
-        {/* Порядок снизу вверх: Telegram → MAX → Позвонить → Чат (самый верх) */}
-        <div
-          className={`flex flex-col-reverse items-end gap-2 transition-all duration-300 ${
-            open
-              ? "max-h-80 opacity-100 pointer-events-auto"
-              : "max-h-0 opacity-0 pointer-events-none overflow-hidden"
-          }`}
-          aria-hidden={!open}
-        >
-          {[...FAB_ITEMS].reverse().map((item, index) => {
-            const isPhone = item.id === "phone";
-            const Icon = ICONS[item.id];
-            const openDelay = `${index * 50}ms`;
-
-            return (
-              <a
-                key={item.id}
-                href={item.href}
-                {...(isPhone
-                  ? {}
-                  : { target: "_blank", rel: "noopener noreferrer" })}
-                className="group flex items-center gap-3 origin-bottom-right"
-                onClick={() => {
-                  if (isPhone) {
-                    trackContactPhone();
-                  } else if (item.id === "max" || item.id === "telegram") {
-                    MESSENGER_GOALS[item.id]();
-                  }
-                  setOpen(false);
-                }}
-              >
-                <span
-                  className={`rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
-                    open
-                      ? "opacity-100 translate-x-0"
-                      : "opacity-0 translate-x-2"
-                  }`}
-                  style={{ transitionDelay: open ? openDelay : "0ms" }}
-                >
-                  {item.label}
-                </span>
-                <span
-                  className={`flex h-12 w-12 origin-bottom-right items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-105 ${
-                    open ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                  } ${MESSENGER_BUTTON_BG} ${ICON_CLASS}`}
-                  style={{ transitionDelay: open ? openDelay : "0ms" }}
-                  aria-label={item.label}
-                >
-                  <Icon />
-                </span>
-              </a>
-            );
-          })}
-        </div>
-
-        {/* Чат Mango — всегда над «Позвонить», в самом верху стека */}
-        <div className="group flex items-center gap-3 origin-bottom-right">
-          <span
-            className={`rounded-full bg-brand-surface px-3 py-1.5 text-sm text-brand-olive-dark shadow-md border border-brand-olive/10 transition-all duration-300 ${
-              open
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 translate-x-2 pointer-events-none"
-            }`}
-          >
-            Чат
-          </span>
-          <div
-            id={MANGO_FAB_SLOT_ID}
-            ref={mangoSlotRef}
-            className={`mango-fab-slot relative flex h-12 w-12 items-center justify-center overflow-visible rounded-full shadow-lg ${
-              mangoReady ? "" : MESSENGER_BUTTON_BG
-            }`}
-            aria-label="Чат"
-          >
-            {!mangoReady ? (
-              <span className={ICON_CLASS}>
-                <IconChat />
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

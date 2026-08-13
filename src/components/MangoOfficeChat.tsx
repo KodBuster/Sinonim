@@ -1,11 +1,41 @@
 "use client";
 
 import Script from "next/script";
+import { useEffect } from "react";
+import { MANGO_WIDGET_ID } from "@/lib/mango-office";
+import { openMessengerFab } from "@/lib/messenger-fab";
 
-export const MANGO_WIDGET_ID = 80702;
-export const MANGO_FAB_SLOT_ID = "mango-fab-slot";
+function isMangoUi(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return Boolean(
+    target.closest(
+      ".mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel']"
+    )
+  );
+}
 
 export function MangoOfficeChat() {
+  useEffect(() => {
+    let openedByMango = false;
+
+    const openFabFromMango = () => {
+      if (openedByMango) return;
+      openedByMango = true;
+      openMessengerFab({ focusOnDesktop: false });
+      window.setTimeout(() => {
+        openedByMango = false;
+      }, 500);
+    };
+
+    const onInteract = (event: Event) => {
+      if (!isMangoUi(event.target)) return;
+      openFabFromMango();
+    };
+
+    document.addEventListener("pointerdown", onInteract, true);
+    return () => document.removeEventListener("pointerdown", onInteract, true);
+  }, []);
+
   return (
     <Script
       id="mango-office-chat"

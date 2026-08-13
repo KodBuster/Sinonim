@@ -183,17 +183,25 @@ body {
   }
 }
 
-/* Mango button lives inside FAB slot (not as a separate fixed float) */
-.mango-fab-slot .mango-fab-mounted,
-.mango-fab-slot [class*="mgo-widget"] {
-  position: relative !important;
-  inset: auto !important;
-  bottom: auto !important;
-  right: auto !important;
-  left: auto !important;
-  top: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  max-width: 3rem;
-  max-height: 3rem;
+/* Hide native Mango float — chat opens from FAB item «Чат» */
+.mgo-widget-call_button,
+.mgo-widget-online-button,
+.mgo-widget-callback_button {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  z-index: -1 !important;
+}
+
+/* Keep Mango expanded panel usable when opened from FAB */
+[class*="mgo-multichannel"][class*="panel"],
+[class*="mgo-widget"][class*="panel"],
+[class*="mgo-widget"][class*="window"] {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  z-index: 60 !important;
 }
