@@ -8,6 +8,7 @@ import "@fontsource/playfair-display/latin-400.css";
 import { CartProvider } from "@/context/CartContext";
 import { CompareProvider } from "@/context/CompareContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
+import { MangoOfficeChat } from "@/components/MangoOfficeChat";
 import { MessengerFab } from "@/components/MessengerFab";
 import { PageVisitTracker } from "@/components/analytics/PageVisitTracker";
 import { YandexMetrika } from "@/components/analytics/YandexMetrika";
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="ru" className="h-full antialiased">
       <body className="min-h-full flex flex-col font-body">
         <YandexMetrika />
+        <MangoOfficeChat />
         <PageVisitTracker />
         <CartProvider>
           <CompareProvider>
