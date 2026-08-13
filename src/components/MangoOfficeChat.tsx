@@ -22,8 +22,8 @@ function isMangoUi(target: EventTarget | null): boolean {
 
 function positionMangoAboveFab() {
   const bottom = window.matchMedia("(min-width: 768px)").matches
-    ? "7.75rem"
-    : "7.25rem";
+    ? "9.5rem"
+    : "9rem";
   const right = window.matchMedia("(min-width: 768px)").matches
     ? "1.5rem"
     : "1.25rem";

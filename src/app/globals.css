@@ -189,7 +189,7 @@ body {
 .mgo-widget-callback_button,
 [class*="mgo-widget"][class*="button"],
 [class*="mgo-multichannel"][class*="button"] {
-  bottom: 7.25rem !important;
+  bottom: 9rem !important;
   right: 1.25rem !important;
   z-index: 49 !important;
   opacity: 1 !important;
@@ -205,7 +205,7 @@ body {
   .mgo-widget-callback_button,
   [class*="mgo-widget"][class*="button"],
   [class*="mgo-multichannel"][class*="button"] {
-    bottom: 7.75rem !important;
+    bottom: 9.5rem !important;
     right: 1.5rem !important;
   }
 }
