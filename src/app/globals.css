@@ -208,35 +208,12 @@ body {
   }
 }
 
-/* Mobile: keep opened Mango chat window inside the viewport */
+/* Mobile: soft size caps only — do not force position (breaks open animation) */
 @media (max-width: 767.98px) {
   [class*="mgo-"][class*="panel"],
   [class*="mgo-"][class*="window"],
-  [class*="mgo-"][class*="dialog"],
-  [class*="mgo-multichannel"]:not([class*="button"]) {
-    position: fixed !important;
-    top: 8px !important;
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 8px !important;
-    width: auto !important;
-    height: auto !important;
+  [class*="mgo-"][class*="dialog"] {
     max-width: calc(100vw - 16px) !important;
-    max-height: calc(100dvh - 16px) !important;
-    transform: none !important;
-    margin: 0 !important;
-    z-index: 60 !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-  }
-
-  [class*="mgo-"][class*="panel"] iframe,
-  [class*="mgo-"][class*="window"] iframe,
-  [class*="mgo-"][class*="dialog"] iframe,
-  iframe[src*="mango"] {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
+    max-height: calc(100dvh - 24px) !important;
   }
 }
