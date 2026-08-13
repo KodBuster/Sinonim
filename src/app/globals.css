@@ -182,3 +182,22 @@ body {
     opacity: 0;
   }
 }
+
+/* Mango Office chat sits above Messenger FAB (56px + gap) */
+.mgo-widget-call_button,
+.mgo-widget-online-button,
+.mgo-widget-callback_button,
+[class*="mgo-widget"] {
+  bottom: 5.5rem !important;
+  right: 1.25rem !important;
+}
+
+@media (min-width: 768px) {
+  .mgo-widget-call_button,
+  .mgo-widget-online-button,
+  .mgo-widget-callback_button,
+  [class*="mgo-widget"] {
+    bottom: 6rem !important;
+    right: 1.5rem !important;
+  }
+}

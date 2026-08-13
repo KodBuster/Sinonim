@@ -1,8 +1,44 @@
+"use client";
+
 import Script from "next/script";
+import { useEffect } from "react";
 
 const MANGO_WIDGET_ID = 80702;
 
+function offsetMangoButtons() {
+  const bottom = window.matchMedia("(min-width: 768px)").matches ? "6rem" : "5.5rem";
+  const right = window.matchMedia("(min-width: 768px)").matches ? "1.5rem" : "1.25rem";
+
+  const nodes = document.querySelectorAll<HTMLElement>(
+    [
+      ".mgo-widget-call_button",
+      ".mgo-widget-online-button",
+      ".mgo-widget-callback_button",
+      "[class*='mgo-widget']",
+      "[id^='mgo-']",
+    ].join(",")
+  );
+
+  nodes.forEach((el) => {
+    const style = window.getComputedStyle(el);
+    if (style.position !== "fixed") return;
+    el.style.setProperty("bottom", bottom, "important");
+    el.style.setProperty("right", right, "important");
+  });
+}
+
 export function MangoOfficeChat() {
+  useEffect(() => {
+    offsetMangoButtons();
+    const observer = new MutationObserver(offsetMangoButtons);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", offsetMangoButtons);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", offsetMangoButtons);
+    };
+  }, []);
+
   return (
     <Script
       id="mango-office-chat"
