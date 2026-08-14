@@ -7,13 +7,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getProductSizeLabel, type ProductDetails } from "@/lib/products";
+import { getProductSizeLabel, getProductSizePrice, type ProductDetails } from "@/lib/products";
 
 type ProductSelectionContextValue = {
   selectedSize: string | null;
   setSelectedSize: (size: string | null) => void;
   selectedSizeLabel: string | null;
   artNo?: string;
+  price: number;
 };
 
 const ProductSelectionContext = createContext<ProductSelectionContextValue | null>(
@@ -49,6 +50,7 @@ export function ProductSelectionProvider({
       setSelectedSize,
       selectedSizeLabel: getProductSizeLabel(product, selectedSize) ?? null,
       artNo: resolveArtNo(product, selectedSize),
+      price: getProductSizePrice(product, selectedSize),
     }),
     [product, selectedSize]
   );

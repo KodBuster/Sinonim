@@ -712,7 +712,6 @@ function ModalThumbColumnSpacer({ visible }: { visible: boolean }) {
 
 type ProductGalleryModalFooterProps = {
   slides: GallerySlide[];
-  price: number;
   slug: string;
   name: string;
   productImage: string;
@@ -724,7 +723,6 @@ type ProductGalleryModalFooterProps = {
 
 function ProductGalleryModalFooter({
   slides,
-  price,
   slug,
   name,
   productImage,
@@ -735,7 +733,7 @@ function ProductGalleryModalFooter({
 }: ProductGalleryModalFooterProps) {
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
-  const { selectedSize, selectedSizeLabel, artNo } = useProductSelection();
+  const { selectedSize, selectedSizeLabel, artNo, price: selectedPrice } = useProductSelection();
 
   const handleBuy = () => {
     if (!inStock) return;
@@ -751,7 +749,7 @@ function ProductGalleryModalFooter({
       productSlug: slug,
       name,
       image: productImage,
-      price,
+      price: selectedPrice,
       stoneWeight,
       stoneLabel,
       size: selectedSize,
@@ -760,7 +758,7 @@ function ProductGalleryModalFooter({
     trackAddToCart({
       id: artNo ?? slug,
       name,
-      price,
+      price: selectedPrice,
       category,
       variant: variant || undefined,
     });
@@ -773,7 +771,7 @@ function ProductGalleryModalFooter({
       <ModalThumbColumnSpacer visible={slides.length > 1} />
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
         <p className="font-heading text-2xl md:text-3xl text-brand-olive-dark">
-          {formatPrice(price)}
+          {formatPrice(selectedPrice)}
         </p>
 
         <div className="flex items-center gap-3">
@@ -922,7 +920,6 @@ function ProductGalleryModal({
 
           <ProductGalleryModalFooter
             slides={slides}
-            price={price}
             slug={slug}
             name={name}
             productImage={productImage}

@@ -170,6 +170,24 @@ function buildSizeWeightGrams(
   return Object.keys(map).length ? map : undefined;
 }
 
+function buildSizePrices(
+  item: AdvantShopProductDetails,
+  sizes: { id: number; name: string }[],
+): Record<string, number> | undefined {
+  if (!sizes.length || !item.offers?.length) return undefined;
+
+  const map: Record<string, number> = {};
+  for (const size of sizes) {
+    const sizeKey = size.name.trim();
+    if (!sizeKey) continue;
+    const offer = item.offers.find((entry) => entry.sizeId === size.id);
+    const price = pickPositivePrice(offer?.price);
+    if (price !== undefined) map[sizeKey] = price;
+  }
+
+  return Object.keys(map).length ? map : undefined;
+}
+
 function pickDefaultWeightGrams(
   item: AdvantShopProductDetails,
   properties: AdvantShopProperty[],
@@ -222,6 +240,21 @@ function pickOfferPrice(
   offers: AdvantShopOffer[] | null | undefined,
 ): number {
   if (!offers?.length) return 0;
+
+  const inStock = offers.filter((offer) => {
+    const amount = parseAdvantShopAmount(offer.amount);
+    return amount === undefined || amount > 0;
+  });
+
+  const fromInStockMain = pickPositivePrice(
+    inStock.find((offer) => offer.isMain)?.price,
+  );
+  if (fromInStockMain !== undefined) return fromInStockMain;
+
+  const fromInStock = pickPositivePrice(
+    ...inStock.map((offer) => offer.price),
+  );
+  if (fromInStock !== undefined) return fromInStock;
 
   const main = offers.find((offer) => offer.isMain);
   const fromMain = pickPositivePrice(main?.price);
@@ -415,6 +448,7 @@ export function mapProductDetails(
   // Остатки по всем размерам (включая 0) — для проверки на чекауте
   const sizeStockAmounts = buildSizeStockAmounts(item, allSizes);
   const sizeWeightGrams = buildSizeWeightGrams(item, allSizes);
+  const sizePrices = buildSizePrices(item, allSizes);
   const legacySlug = item.urlPath;
   const setArtNos = resolveSetArtNos(properties);
   const { stockAmount, inStock } = getAdvantShopDetailsStockInfo(
@@ -457,6 +491,7 @@ export function mapProductDetails(
     offerArtNos: collectOfferArtNos(item),
     weightGrams: pickDefaultWeightGrams(item, properties, sizeWeightGrams),
     sizeWeightGrams,
+    sizePrices,
     setArtNos: setArtNos.length ? setArtNos : undefined,
     stockAmount,
     inStock,

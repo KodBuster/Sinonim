@@ -55,6 +55,8 @@ export type ProductDetails = Product & {
   weightGrams?: string;
   /** Вес изделия (г) по ключу размера (value из sizeOptions). */
   sizeWeightGrams?: Record<string, string>;
+  /** Цена оффера по ключу размера (value из sizeOptions). */
+  sizePrices?: Record<string, number>;
   /** Остаток по ключу размера (value из sizeOptions). */
   sizeStockAmounts?: Record<string, number>;
 };
@@ -348,6 +350,16 @@ export function getProductSizeLabel(
     product.sizeOptions?.find((option) => option.value === sizeValue)?.label ??
     sizeValue
   );
+}
+
+export function getProductSizePrice(
+  product: Pick<ProductDetails, "price" | "sizePrices">,
+  sizeValue: string | null,
+): number {
+  if (sizeValue && product.sizePrices?.[sizeValue] != null) {
+    return product.sizePrices[sizeValue];
+  }
+  return product.price;
 }
 
 const DEFAULT_SIZE_OPTIONS = defaultRingBraceletSizeOptions();

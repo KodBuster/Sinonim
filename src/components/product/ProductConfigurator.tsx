@@ -24,9 +24,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     (variant) => Math.abs(variant.weight - product.stoneWeight) < 0.001,
   ) ?? product.stoneVariants[0];
 
-  const displayPrice = product.price;
   const cartStoneLabel = `${getProductCaratWeightLabel(product)} карат`;
-  const { selectedSize, setSelectedSize, selectedSizeLabel, artNo } =
+  const { selectedSize, setSelectedSize, selectedSizeLabel, artNo, price } =
     useProductSelection();
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
@@ -51,7 +50,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
       productSlug: product.slug,
       name: product.name,
       image: product.image,
-      price: displayPrice,
+      price,
       stoneWeight: product.stoneWeight,
       stoneLabel: cartStoneLabel,
       size: selectedSize,
@@ -60,7 +59,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     trackAddToCart({
       id: artNo ?? product.slug,
       name: product.name,
-      price: displayPrice,
+      price,
       category: product.category,
       variant: variant || undefined,
     });
@@ -73,7 +72,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
       <div>
         <div className="flex flex-wrap items-center gap-3 mb-2">
           <p className="font-heading text-3xl md:text-4xl text-brand-olive-dark">
-            {formatPrice(displayPrice)}
+            {formatPrice(price)}
           </p>
           {product.badge && (
             <span className="px-2.5 py-1 bg-brand-terracotta text-white text-[10px] tracking-widest uppercase">
