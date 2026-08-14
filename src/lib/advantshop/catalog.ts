@@ -4,7 +4,7 @@ import { findProductBySlug } from "@/lib/product-slug";
 import { parseSetArtNosFromProperties } from "@/lib/product-complect";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
-import { mapCatalogProduct, mapProductDetails } from "./mapper";
+import { mapCatalogProduct, mapProductDetails, pickOfferPrice } from "./mapper";
 import {
   getAdvantShopDetailsStockInfo,
   isAdvantShopProductInStock,
@@ -150,7 +150,12 @@ async function fetchProductStockInfo(
     const details = await advantshopClientFetch<AdvantShopProductDetails>(
       `/api/products/${productId}`,
     );
-    return getAdvantShopDetailsStockInfo(details, category);
+    const stock = getAdvantShopDetailsStockInfo(details, category);
+    const listPrice = pickOfferPrice(details.offers);
+    return {
+      ...stock,
+      listPrice: listPrice > 0 ? listPrice : undefined,
+    };
   } catch (error) {
     console.warn(
       `AdvantShop stock for product ${productId} unavailable:`,

@@ -142,6 +142,8 @@ export type AdvantShopStockInfo = {
   inStock: boolean;
   /** Артикулы с карточки (включая модификации размеров) — для поиска. */
   offerArtNos?: string[];
+  /** Цена для каталога: оффер в наличии, не «Главная» с нулевым остатком. */
+  listPrice?: number;
 };
 
 export function getAdvantShopDetailsStockInfo(

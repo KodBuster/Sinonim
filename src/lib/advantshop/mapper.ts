@@ -236,7 +236,7 @@ function pickPositivePrice(
   return undefined;
 }
 
-function pickOfferPrice(
+export function pickOfferPrice(
   offers: AdvantShopOffer[] | null | undefined,
 ): number {
   if (!offers?.length) return 0;
@@ -355,9 +355,10 @@ export function mapCatalogProduct(
 ): Product {
   const price =
     pickPositivePrice(
+      stock?.listPrice,
+      pickOfferPrice(item.offers),
       item.priceWithDiscount,
       item.price,
-      pickOfferPrice(item.offers),
     ) ?? 0;
   const sizeOptions = extractProductSizeOptions(item);
 
