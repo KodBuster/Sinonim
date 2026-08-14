@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { getProductSizeLabel, getProductSizePrice, type ProductDetails } from "@/lib/products";
+import { getProductCaratWeight, getProductCaratWeightLabel } from "@/lib/product-weight";
 
 type ProductSelectionContextValue = {
   selectedSize: string | null;
@@ -15,6 +16,8 @@ type ProductSelectionContextValue = {
   selectedSizeLabel: string | null;
   artNo?: string;
   price: number;
+  diamondWeight: number;
+  diamondWeightLabel: string;
 };
 
 const ProductSelectionContext = createContext<ProductSelectionContextValue | null>(
@@ -51,6 +54,8 @@ export function ProductSelectionProvider({
       selectedSizeLabel: getProductSizeLabel(product, selectedSize) ?? null,
       artNo: resolveArtNo(product, selectedSize),
       price: getProductSizePrice(product, selectedSize),
+      diamondWeight: getProductCaratWeight(product, selectedSize),
+      diamondWeightLabel: getProductCaratWeightLabel(product, selectedSize),
     }),
     [product, selectedSize]
   );

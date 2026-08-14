@@ -57,6 +57,10 @@ export type ProductDetails = Product & {
   sizeWeightGrams?: Record<string, string>;
   /** Цена оффера по ключу размера (value из sizeOptions). */
   sizePrices?: Record<string, number>;
+  /** Подпись «Вес бриллианта» из свойства AdvantShop (не из описания). */
+  diamondWeightLabel?: string;
+  /** Вес бриллианта по ключу размера (артикул модификации). */
+  sizeDiamondWeights?: Record<string, string>;
   /** Остаток по ключу размера (value из sizeOptions). */
   sizeStockAmounts?: Record<string, number>;
 };

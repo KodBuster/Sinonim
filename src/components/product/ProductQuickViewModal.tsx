@@ -99,7 +99,9 @@ export function ProductQuickViewModal({
   const categoryTitle = product
     ? CATEGORIES[product.category].title
     : null;
-  const caratLabel = product ? getProductCaratWeightLabel(product) : null;
+  const caratLabel = product
+    ? getProductCaratWeightLabel(product, cartItem.size)
+    : null;
 
   return createPortal(
     <div

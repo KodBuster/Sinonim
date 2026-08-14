@@ -1,12 +1,14 @@
 import { unstable_cache } from "next/cache";
 import type { CategorySlug, Product, ProductDetails } from "@/lib/products";
 import { findProductBySlug } from "@/lib/product-slug";
+import { parseDiamondWeightNumber } from "@/lib/product-weight";
 import { parseSetArtNosFromProperties } from "@/lib/product-complect";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
-import { mapCatalogProduct, mapProductDetails, pickOfferPrice } from "./mapper";
+import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, pickOfferPrice } from "./mapper";
 import {
   getAdvantShopDetailsStockInfo,
+  getAvailableSizePickerSizes,
   isAdvantShopProductInStock,
   type AdvantShopStockInfo,
 } from "./stock";
@@ -307,6 +309,24 @@ export async function loadAdvantShopProductDetails(
     summary.price,
   );
 
+  const fetchedSizeDiamondWeights = await fetchDiamondWeightsForSizes(
+    Number(summary.id),
+    getAvailableSizePickerSizes(details),
+  );
+  const sizeDiamondWeights = {
+    ...(fetchedSizeDiamondWeights ?? {}),
+    ...(product.sizeDiamondWeights ?? {}),
+  };
+  const hasSizeDiamondWeights = Object.keys(sizeDiamondWeights).length > 0;
+  const defaultSize =
+    product.sizeOptions[3] ?? product.sizeOptions[0];
+  const diamondWeightLabel =
+    (defaultSize && hasSizeDiamondWeights
+      ? sizeDiamondWeights[defaultSize.value]
+      : undefined) ??
+    product.diamondWeightLabel ??
+    (hasSizeDiamondWeights ? Object.values(sizeDiamondWeights)[0] : undefined);
+
   return {
     ...product,
     slug: summary.slug,
@@ -314,8 +334,10 @@ export async function loadAdvantShopProductDetails(
     // Каталог AdvantShop отдаёт price=0, если у модификации не стоит «Главная».
     // Не затираем цену из offers нулём из summary.
     price: product.price > 0 ? product.price : summary.price,
+    diamondWeightLabel,
+    sizeDiamondWeights: hasSizeDiamondWeights ? sizeDiamondWeights : undefined,
     stoneWeight:
-      parseStoneWeightFromProperties(properties) || product.stoneWeight,
+      parseDiamondWeightNumber(diamondWeightLabel) ?? product.stoneWeight,
     stockAmount: product.stockAmount ?? summary.stockAmount,
     inStock: product.inStock !== false && summary.inStock !== false,
   };
@@ -349,25 +371,30 @@ export async function fetchAdvantShopProductDetails(
   return loadAdvantShopProductDetails(summary);
 }
 
-function parseStoneWeightFromProperties(
-  properties: { name?: string; value?: string; propertyName?: string; propertyValue?: string }[]
-): number {
-  for (const property of properties) {
-    const name = (property.propertyName ?? property.name ?? "").toLowerCase();
-    const value = property.propertyValue ?? property.value ?? "";
+async function fetchDiamondWeightsForSizes(
+  productId: number,
+  sizes: { id: number; name: string }[],
+): Promise<Record<string, string> | undefined> {
+  if (!sizes.length) return undefined;
 
-    if (
-      name.includes("карат") ||
-      name.includes("вес камн") ||
-      name.includes("вес брилл") ||
-      name.includes("бриллиант")
-    ) {
-      const match = value.replace(",", ".").match(/(\d+(?:\.\d+)?)/);
-      if (match) return Number(match[1]);
+  const map: Record<string, string> = {};
+  await mapPool(sizes, 4, async (size) => {
+    try {
+      const response = await advantshopClientFetch<AdvantShopPropertiesResponse>(
+        `/api/products/${productId}/properties`,
+        { searchParams: { type: "inDetails", sizeId: size.id } },
+      );
+      const label = parseDiamondWeightLabelFromProperties(
+        flattenAdvantShopProperties(response),
+      );
+      const sizeKey = size.name.trim();
+      if (label && sizeKey) map[sizeKey] = label;
+    } catch {
+      // sizeId на properties может не поддерживаться — тогда останется значение товара.
     }
-  }
+  });
 
-  return 0;
+  return Object.keys(map).length ? map : undefined;
 }
 
 export async function fetchAdvantShopProductsBySlugs(

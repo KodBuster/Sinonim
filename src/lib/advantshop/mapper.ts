@@ -1,6 +1,11 @@
 import type { CategorySlug, Product, ProductDetails, ProductSizeOption, StoneVariant } from "@/lib/products";
 import { defaultRingBraceletSizeOptions, sortProductSizeOptions } from "@/lib/products";
-import { parseCaratWeightFromDescription } from "@/lib/product-weight";
+import {
+  formatDiamondWeightLabel,
+  isDiamondWeightPropertyName,
+  parseCaratWeightFromDescription,
+  parseDiamondWeightNumber,
+} from "@/lib/product-weight";
 import { resolveSetArtNos } from "@/lib/product-complect";
 import { buildSeoProductSlug } from "@/lib/product-slug";
 import { resolveProductImageUrl, resolveProductImages } from "./images";
@@ -90,32 +95,147 @@ function collectImages(photos?: AdvantShopPhoto[] | null): string[] {
     .filter((src): src is string => Boolean(src));
 }
 
-function parseStoneWeight(
+type DiamondWeightEntry = {
+  label: string;
+  numeric: number;
+  offerId?: number;
+  artNo?: string;
+};
+
+function propertyDisplayName(property: AdvantShopProperty): string {
+  return property.propertyName ?? property.name ?? "";
+}
+
+function collectDiamondWeightEntries(
   properties: AdvantShopProperty[],
-  description?: string,
-): number {
+): DiamondWeightEntry[] {
+  const entries: DiamondWeightEntry[] = [];
+
+  const push = (
+    raw?: string | null,
+    offerId?: number | null,
+    artNo?: string | null,
+  ) => {
+    const label = formatDiamondWeightLabel(raw);
+    const numeric = parseDiamondWeightNumber(raw);
+    if (!label || numeric === undefined) return;
+    entries.push({
+      label,
+      numeric,
+      offerId: offerId ?? undefined,
+      artNo: artNo?.trim() || undefined,
+    });
+  };
+
   for (const property of properties) {
-    const name = (property.propertyName ?? property.name ?? "").toLowerCase();
-    const value = property.propertyValue ?? property.value ?? "";
+    if (!isDiamondWeightPropertyName(propertyDisplayName(property))) continue;
 
-    if (
-      name.includes("карат") ||
-      name.includes("вес камн") ||
-      name.includes("вес брилл") ||
-      name.includes("бриллиант") ||
-      name.includes("carat")
-    ) {
-      const match = value.replace(",", ".").match(/(\d+(?:\.\d+)?)/);
-      if (match) return Number(match[1]);
+    const nested = [
+      ...(property.propertyValues ?? []),
+      ...(property.values ?? []),
+    ];
+    if (nested.length) {
+      for (const item of nested) {
+        push(
+          item.propertyValue ?? item.value,
+          item.offerId,
+          item.artNo ?? item.offerArtNo,
+        );
+      }
+      continue;
     }
+
+    push(
+      property.propertyValue ?? property.value,
+      property.offerId,
+      property.artNo ?? property.offerArtNo,
+    );
   }
 
-  if (description) {
-    const fromDescription = parseCaratWeightFromDescription(description);
-    if (fromDescription !== undefined) return fromDescription;
+  return entries;
+}
+
+function offerDiamondWeightLabel(
+  offer?: AdvantShopOffer,
+): string | undefined {
+  if (!offer) return undefined;
+  const props = [...(offer.properties ?? []), ...(offer.params ?? [])];
+  for (const property of props) {
+    if (!isDiamondWeightPropertyName(propertyDisplayName(property))) continue;
+    const label = formatDiamondWeightLabel(
+      property.propertyValue ?? property.value,
+    );
+    if (label) return label;
+  }
+  return undefined;
+}
+
+function buildSizeDiamondWeights(
+  item: AdvantShopProductDetails,
+  sizes: { id: number; name: string }[],
+  properties: AdvantShopProperty[],
+): Record<string, string> | undefined {
+  if (!sizes.length) return undefined;
+
+  const entries = collectDiamondWeightEntries(properties);
+  const map: Record<string, string> = {};
+
+  for (const size of sizes) {
+    const sizeKey = size.name.trim();
+    if (!sizeKey) continue;
+    const offer = item.offers?.find((entry) => entry.sizeId === size.id);
+
+    const fromOffer = offerDiamondWeightLabel(offer);
+    if (fromOffer) {
+      map[sizeKey] = fromOffer;
+      continue;
+    }
+    if (!offer) continue;
+
+    const byOfferId = entries.find(
+      (entry) => entry.offerId != null && entry.offerId === offer.offerId,
+    );
+    if (byOfferId) {
+      map[sizeKey] = byOfferId.label;
+      continue;
+    }
+
+    const offerArtNo = offer.artNo?.trim().toLowerCase();
+    if (!offerArtNo) continue;
+    const byArtNo = entries.find(
+      (entry) => entry.artNo?.trim().toLowerCase() === offerArtNo,
+    );
+    if (byArtNo) map[sizeKey] = byArtNo.label;
   }
 
-  return 0.2;
+  return Object.keys(map).length ? map : undefined;
+}
+
+function pickDefaultDiamondWeight(
+  item: AdvantShopProductDetails,
+  sizeDiamondWeights: Record<string, string> | undefined,
+  properties: AdvantShopProperty[],
+): DiamondWeightEntry | undefined {
+  const available = getAvailableSizePickerSizes(item);
+  for (const size of available) {
+    const label = sizeDiamondWeights?.[size.name.trim()];
+    const numeric = parseDiamondWeightNumber(label);
+    if (label && numeric !== undefined) return { label, numeric };
+  }
+
+  if (sizeDiamondWeights) {
+    const first = Object.values(sizeDiamondWeights).find(Boolean);
+    const numeric = parseDiamondWeightNumber(first);
+    if (first && numeric !== undefined) return { label: first, numeric };
+  }
+
+  return collectDiamondWeightEntries(properties)[0];
+}
+
+export function parseDiamondWeightLabelFromProperties(
+  properties: AdvantShopProperty[],
+): string | undefined {
+  return collectDiamondWeightEntries(properties)[0]?.label;
 }
 
 function parseWeightGrams(properties: AdvantShopProperty[]): string | undefined {
@@ -421,10 +541,19 @@ export function mapProductDetails(
     item.briefDescription ||
     `${item.name} — украшение из серебра 925 пробы с лабораторным бриллиантом.`;
 
-  const stoneWeight = parseStoneWeight(properties, description);
   const rawImages = collectImages(item.photos);
   const images = resolveProductImages(rawImages);
   const fallbackImage = images[0] ?? DEFAULT_IMAGE;
+
+  const allSizes = item.sizeColorPicker?.sizes ?? [];
+  const availableSizes = getAvailableSizePickerSizes(item);
+  const sizeDiamondWeights = buildSizeDiamondWeights(item, allSizes, properties);
+  const diamondWeight = pickDefaultDiamondWeight(
+    item,
+    sizeDiamondWeights,
+    properties,
+  );
+  const stoneWeight = diamondWeight?.numeric ?? 0.2;
 
   const stoneVariants: StoneVariant[] = STONE_VARIANT_WEIGHTS.map((weight) => ({
     weight,
@@ -434,9 +563,6 @@ export function mapProductDetails(
         ? basePrice
         : Math.round(basePrice * (weight / Math.max(stoneWeight, 0.1))),
   }));
-
-  const allSizes = item.sizeColorPicker?.sizes ?? [];
-  const availableSizes = getAvailableSizePickerSizes(item);
 
   const sizeOptions = availableSizes.map((size) => {
     const label = size.name.trim();
@@ -493,6 +619,8 @@ export function mapProductDetails(
     weightGrams: pickDefaultWeightGrams(item, properties, sizeWeightGrams),
     sizeWeightGrams,
     sizePrices,
+    diamondWeightLabel: diamondWeight?.label,
+    sizeDiamondWeights,
     setArtNos: setArtNos.length ? setArtNos : undefined,
     stockAmount,
     inStock,

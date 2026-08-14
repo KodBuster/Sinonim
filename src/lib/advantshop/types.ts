@@ -74,6 +74,26 @@ export type AdvantShopCategoriesResponse = {
   };
 };
 
+export type AdvantShopPropertyValue = {
+  value?: string;
+  propertyValue?: string;
+  offerId?: number | null;
+  artNo?: string | null;
+  offerArtNo?: string | null;
+};
+
+export type AdvantShopProperty = {
+  name?: string;
+  value?: string;
+  propertyName?: string;
+  propertyValue?: string;
+  offerId?: number | null;
+  artNo?: string | null;
+  offerArtNo?: string | null;
+  values?: AdvantShopPropertyValue[];
+  propertyValues?: AdvantShopPropertyValue[];
+};
+
 export type AdvantShopOffer = {
   offerId: number;
   artNo?: string;
@@ -84,6 +104,8 @@ export type AdvantShopOffer = {
   sizeId?: number | null;
   /** Вес модификации (г), разный у размеров. */
   weight?: number | null;
+  properties?: AdvantShopProperty[] | null;
+  params?: AdvantShopProperty[] | null;
 };
 
 export type AdvantShopProductDetails = {
@@ -102,13 +124,6 @@ export type AdvantShopProductDetails = {
   sizeColorPicker?: {
     sizes?: { id: number; name: string }[];
   };
-};
-
-export type AdvantShopProperty = {
-  name?: string;
-  value?: string;
-  propertyName?: string;
-  propertyValue?: string;
 };
 
 export type AdvantShopPropertyGroup = {

@@ -7,7 +7,6 @@ import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics/metrika";
 import { formatPrice, type ProductDetails } from "@/lib/products";
-import { getProductCaratWeightLabel } from "@/lib/product-weight";
 import { useProductSelection } from "./ProductSelectionContext";
 
 function formatWeightGrams(value: string): string {
@@ -24,9 +23,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     (variant) => Math.abs(variant.weight - product.stoneWeight) < 0.001,
   ) ?? product.stoneVariants[0];
 
-  const cartStoneLabel = `${getProductCaratWeightLabel(product)} карат`;
-  const { selectedSize, setSelectedSize, selectedSizeLabel, artNo, price } =
+  const { selectedSize, setSelectedSize, selectedSizeLabel, artNo, price, diamondWeight, diamondWeightLabel } =
     useProductSelection();
+  const cartStoneLabel = `${diamondWeightLabel} карат`;
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
   const canBuy =
@@ -51,7 +50,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
       name: product.name,
       image: product.image,
       price,
-      stoneWeight: product.stoneWeight,
+      stoneWeight: diamondWeight,
       stoneLabel: cartStoneLabel,
       size: selectedSize,
       artNo,

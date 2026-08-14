@@ -23,14 +23,57 @@ export function formatCaratWeight(value: number): string {
   return String(value).replace(".", ",");
 }
 
-export function getProductCaratWeightLabel(product: {
-  description?: string;
-  stoneWeight: number;
-}): string {
-  if (product.description) {
-    const fromDescription = formatCaratWeightFromDescription(product.description);
-    if (fromDescription) return fromDescription;
-  }
+export function isDiamondWeightPropertyName(name: string): boolean {
+  const normalized = name
+    .toLowerCase()
+    .replace(/^свойство:\s*/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return normalized.includes("вес бриллианта");
+}
 
+export function formatDiamondWeightLabel(
+  raw?: string | null,
+): string | undefined {
+  if (!raw?.trim()) return undefined;
+  const match = raw.trim().match(/(\d+(?:[.,]\d+)?)/);
+  if (!match) return undefined;
+  return match[1].replace(".", ",");
+}
+
+export function parseDiamondWeightNumber(
+  raw?: string | null,
+): number | undefined {
+  const label = formatDiamondWeightLabel(raw);
+  if (!label) return undefined;
+  const value = Number.parseFloat(label.replace(",", "."));
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+export type ProductCaratWeightSource = {
+  stoneWeight: number;
+  diamondWeightLabel?: string;
+  sizeDiamondWeights?: Record<string, string>;
+};
+
+export function getProductCaratWeightLabel(
+  product: ProductCaratWeightSource,
+  sizeValue?: string | null,
+): string {
+  if (sizeValue && product.sizeDiamondWeights?.[sizeValue]) {
+    return product.sizeDiamondWeights[sizeValue];
+  }
+  if (product.diamondWeightLabel?.trim()) {
+    return product.diamondWeightLabel.trim();
+  }
   return formatCaratWeight(product.stoneWeight);
+}
+
+export function getProductCaratWeight(
+  product: ProductCaratWeightSource,
+  sizeValue?: string | null,
+): number {
+  const label = getProductCaratWeightLabel(product, sizeValue);
+  const value = Number.parseFloat(label.replace(",", "."));
+  return Number.isFinite(value) && value > 0 ? value : product.stoneWeight;
 }

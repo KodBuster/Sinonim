@@ -727,19 +727,19 @@ function ProductGalleryModalFooter({
   name,
   productImage,
   category,
-  stoneWeight,
-  stoneLabel,
   inStock = true,
 }: ProductGalleryModalFooterProps) {
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
-  const { selectedSize, selectedSizeLabel, artNo, price: selectedPrice } = useProductSelection();
+  const { selectedSize, selectedSizeLabel, artNo, price: selectedPrice, diamondWeight, diamondWeightLabel } =
+    useProductSelection();
+  const cartStoneLabel = `${diamondWeightLabel} карат`;
 
   const handleBuy = () => {
     if (!inStock) return;
 
     const variant = [
-      stoneLabel,
+      cartStoneLabel,
       selectedSizeLabel != null ? `размер ${selectedSizeLabel}` : null,
     ]
       .filter(Boolean)
@@ -750,8 +750,8 @@ function ProductGalleryModalFooter({
       name,
       image: productImage,
       price: selectedPrice,
-      stoneWeight,
-      stoneLabel,
+      stoneWeight: diamondWeight,
+      stoneLabel: cartStoneLabel,
       size: selectedSize,
       artNo,
     });
