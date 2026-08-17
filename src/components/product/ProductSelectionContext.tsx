@@ -34,6 +34,15 @@ function resolveArtNo(
   return product.artNo;
 }
 
+function pickDefaultSelectedSize(product: ProductDetails): string | null {
+  if (!product.sizeOptions.length) return null;
+  const inStock = product.sizeOptions.find((option) => {
+    const amount = product.sizeStockAmounts?.[option.value];
+    return amount === undefined || amount > 0;
+  });
+  return (inStock ?? product.sizeOptions[0]).value;
+}
+
 export function ProductSelectionProvider({
   product,
   children,
@@ -42,9 +51,7 @@ export function ProductSelectionProvider({
   children: ReactNode;
 }) {
   const [selectedSize, setSelectedSize] = useState<string | null>(
-    product.sizeOptions.length > 0
-      ? (product.sizeOptions[3] ?? product.sizeOptions[0]).value
-      : null
+    pickDefaultSelectedSize(product),
   );
 
   const value = useMemo(

@@ -16,6 +16,7 @@ import type {
   AdvantShopCatalogProduct,
   AdvantShopCatalogResponse,
   AdvantShopCategoriesResponse,
+  AdvantShopOffer,
   AdvantShopProductDetails,
   AdvantShopProperty,
   AdvantShopPropertiesResponse,
@@ -34,14 +35,118 @@ function isMissingCategoryError(error: unknown): boolean {
   );
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return null;
+}
+
+function normalizeAdvantShopProperty(raw: unknown): AdvantShopProperty {
+  const property = asRecord(raw) ?? {};
+  const selected = [
+    ...(Array.isArray(property.selectedPropertyValues)
+      ? property.selectedPropertyValues
+      : []),
+    ...(Array.isArray(property.SelectedPropertyValues)
+      ? property.SelectedPropertyValues
+      : []),
+  ];
+  const nestedRaw = [
+    ...(Array.isArray(property.propertyValues) ? property.propertyValues : []),
+    ...(Array.isArray(property.values) ? property.values : []),
+    ...selected,
+  ];
+  const nested = nestedRaw.map((item) => {
+    const value = asRecord(item) ?? {};
+    const text = String(
+      value.propertyValue ?? value.value ?? value.Value ?? "",
+    );
+    return {
+      value: text,
+      propertyValue: text,
+      offerId: (value.offerId ?? value.OfferId) as number | null | undefined,
+      artNo: (value.artNo ?? value.ArtNo ?? value.offerArtNo) as
+        | string
+        | null
+        | undefined,
+      offerArtNo: (value.offerArtNo ?? value.OfferArtNo) as
+        | string
+        | null
+        | undefined,
+    };
+  });
+  const firstSelected = asRecord(selected[0]);
+  const scalar =
+    (property.propertyValue as string | undefined) ??
+    (property.value as string | undefined) ??
+    (firstSelected?.Value as string | undefined) ??
+    (firstSelected?.value as string | undefined) ??
+    nested.find((item) => item.value)?.value;
+
+  return {
+    name: (property.name ?? property.Name ?? property.propertyName) as
+      | string
+      | undefined,
+    propertyName: (property.propertyName ?? property.name ?? property.Name) as
+      | string
+      | undefined,
+    value: scalar,
+    propertyValue: scalar,
+    offerId: (property.offerId ?? property.OfferId) as number | null | undefined,
+    artNo: (property.artNo ?? property.ArtNo ?? property.offerArtNo) as
+      | string
+      | null
+      | undefined,
+    offerArtNo: (property.offerArtNo ?? property.OfferArtNo) as
+      | string
+      | null
+      | undefined,
+    values: nested,
+    propertyValues: nested,
+    selectedPropertyValues: nested,
+  };
+}
+
 function flattenAdvantShopProperties(
-  response: AdvantShopPropertiesResponse
+  response: AdvantShopPropertiesResponse | unknown,
 ): AdvantShopProperty[] {
+  if (!response) return [];
+
   if (Array.isArray(response)) {
-    return response.flatMap((group) => group.properties ?? []);
+    return response.flatMap((entry) => {
+      const record = asRecord(entry);
+      if (!record) return [];
+      const grouped = record.properties ?? record.Properties;
+      if (Array.isArray(grouped)) {
+        return grouped.map(normalizeAdvantShopProperty);
+      }
+      return [normalizeAdvantShopProperty(entry)];
+    });
   }
 
-  return response.properties ?? [];
+  const record = asRecord(response);
+  if (!record) return [];
+
+  if (Array.isArray(record.properties)) {
+    return record.properties.map(normalizeAdvantShopProperty);
+  }
+  if (Array.isArray(record.Properties)) {
+    return record.Properties.map(normalizeAdvantShopProperty);
+  }
+
+  const groups = record.Groups ?? record.groups;
+  if (Array.isArray(groups)) {
+    return groups.flatMap((group) => {
+      const grouped = asRecord(group);
+      const props = grouped?.properties ?? grouped?.Properties;
+      return Array.isArray(props)
+        ? props.map(normalizeAdvantShopProperty)
+        : [];
+    });
+  }
+
+  return [];
 }
 
 function getCategorySlugByUrl(url: string): CategorySlug | undefined {
@@ -311,15 +416,19 @@ export async function loadAdvantShopProductDetails(
 
   const fetchedSizeDiamondWeights = await fetchDiamondWeightsForSizes(
     Number(summary.id),
-    getAvailableSizePickerSizes(details),
+    details.sizeColorPicker?.sizes ?? getAvailableSizePickerSizes(details),
+    details.offers ?? [],
   );
   const sizeDiamondWeights = {
-    ...(fetchedSizeDiamondWeights ?? {}),
     ...(product.sizeDiamondWeights ?? {}),
+    ...(fetchedSizeDiamondWeights ?? {}),
   };
   const hasSizeDiamondWeights = Object.keys(sizeDiamondWeights).length > 0;
   const defaultSize =
-    product.sizeOptions[3] ?? product.sizeOptions[0];
+    product.sizeOptions.find((option) => {
+      const amount = product.sizeStockAmounts?.[option.value];
+      return amount === undefined || amount > 0;
+    }) ?? product.sizeOptions[0];
   const diamondWeightLabel =
     (defaultSize && hasSizeDiamondWeights
       ? sizeDiamondWeights[defaultSize.value]
@@ -374,15 +483,23 @@ export async function fetchAdvantShopProductDetails(
 async function fetchDiamondWeightsForSizes(
   productId: number,
   sizes: { id: number; name: string }[],
+  offers: AdvantShopOffer[] = [],
 ): Promise<Record<string, string> | undefined> {
   if (!sizes.length) return undefined;
 
   const map: Record<string, string> = {};
   await mapPool(sizes, 4, async (size) => {
+    const offer = offers.find((entry) => entry.sizeId === size.id);
     try {
       const response = await advantshopClientFetch<AdvantShopPropertiesResponse>(
         `/api/products/${productId}/properties`,
-        { searchParams: { type: "inDetails", sizeId: size.id } },
+        {
+          searchParams: {
+            type: "inDetails",
+            sizeId: size.id,
+            offerId: offer?.offerId,
+          },
+        },
       );
       const label = parseDiamondWeightLabelFromProperties(
         flattenAdvantShopProperties(response),
@@ -390,7 +507,7 @@ async function fetchDiamondWeightsForSizes(
       const sizeKey = size.name.trim();
       if (label && sizeKey) map[sizeKey] = label;
     } catch {
-      // sizeId на properties может не поддерживаться — тогда останется значение товара.
+      // sizeId/offerId на properties может не поддерживаться — тогда останется значение товара.
     }
   });
 

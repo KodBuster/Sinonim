@@ -28,8 +28,15 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
   const cartStoneLabel = `${diamondWeightLabel} карат`;
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
+  const selectedSizeStock =
+    selectedSize && product.sizeStockAmounts
+      ? product.sizeStockAmounts[selectedSize]
+      : undefined;
+  const selectedSizeAvailable =
+    selectedSizeStock === undefined || selectedSizeStock > 0;
   const canBuy =
     product.inStock !== false &&
+    selectedSizeAvailable &&
     (product.sizeOptions.length === 0 || selectedSize != null);
   const displayWeightGrams =
     (selectedSize && product.sizeWeightGrams?.[selectedSize]) ||
@@ -114,6 +121,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             >
               {product.sizeOptions.map((size) => {
                 const isSelected = selectedSize === size.value;
+                const sizeStock = product.sizeStockAmounts?.[size.value];
+                const sizeAvailable =
+                  sizeStock === undefined || sizeStock > 0;
                 return (
                   <button
                     key={size.value}
@@ -124,7 +134,9 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                     className={`rounded-lg border px-2 py-2.5 text-center text-sm transition-colors ${
                       isSelected
                         ? "border-brand-olive-logo bg-brand-olive-logo text-white font-medium"
-                        : "border-brand-olive/20 bg-brand-surface text-brand-text hover:border-brand-olive"
+                        : sizeAvailable
+                          ? "border-brand-olive/20 bg-brand-surface text-brand-text hover:border-brand-olive"
+                          : "border-brand-olive/10 bg-brand-surface text-brand-muted"
                     }`}
                   >
                     {size.label}
@@ -149,7 +161,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
           disabled={!canBuy}
           className="flex-1 px-6 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo disabled:cursor-not-allowed disabled:opacity-50 text-white text-sm tracking-widest uppercase transition-colors"
         >
-          {product.inStock === false
+          {product.inStock === false || !selectedSizeAvailable
             ? "Нет в наличии"
             : added
               ? "Добавлено ✓"

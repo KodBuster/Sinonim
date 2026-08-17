@@ -103,7 +103,7 @@ type DiamondWeightEntry = {
 };
 
 function propertyDisplayName(property: AdvantShopProperty): string {
-  return property.propertyName ?? property.name ?? "";
+  return property.propertyName ?? property.name ?? property.Name ?? "";
 }
 
 function collectDiamondWeightEntries(
@@ -133,12 +133,14 @@ function collectDiamondWeightEntries(
     const nested = [
       ...(property.propertyValues ?? []),
       ...(property.values ?? []),
+      ...(property.selectedPropertyValues ?? []),
+      ...(property.SelectedPropertyValues ?? []),
     ];
     if (nested.length) {
       for (const item of nested) {
         push(
-          item.propertyValue ?? item.value,
-          item.offerId,
+          item.propertyValue ?? item.value ?? item.Value,
+          item.offerId ?? item.OfferId,
           item.artNo ?? item.offerArtNo,
         );
       }
@@ -162,8 +164,16 @@ function offerDiamondWeightLabel(
   const props = [...(offer.properties ?? []), ...(offer.params ?? [])];
   for (const property of props) {
     if (!isDiamondWeightPropertyName(propertyDisplayName(property))) continue;
+    const selected = [
+      ...(property.selectedPropertyValues ?? []),
+      ...(property.SelectedPropertyValues ?? []),
+    ][0];
     const label = formatDiamondWeightLabel(
-      property.propertyValue ?? property.value,
+      property.propertyValue ??
+        property.value ??
+        selected?.propertyValue ??
+        selected?.value ??
+        selected?.Value,
     );
     if (label) return label;
   }
@@ -412,12 +422,6 @@ function buildSizeArtNos(
     if (!sizeKey) continue;
 
     const offer = item.offers.find((entry) => entry.sizeId === size.id);
-    // Пропускаем только явно нулевой остаток; без amount — оставляем
-    if (offer) {
-      const amount = parseAdvantShopAmount(offer.amount);
-      if (amount !== undefined && amount <= 0) continue;
-    }
-
     const artNo = offer?.artNo ?? fallbackArtNo;
     if (artNo) map[sizeKey] = artNo;
   }
@@ -564,14 +568,25 @@ export function mapProductDetails(
         : Math.round(basePrice * (weight / Math.max(stoneWeight, 0.1))),
   }));
 
-  const sizeOptions = availableSizes.map((size) => {
-    const label = size.name.trim();
-    return { value: label, label };
-  });
+  const sizeSource =
+    allSizes.length > 0
+      ? allSizes.filter((size) =>
+          (item.offers ?? []).some((offer) => offer.sizeId === size.id),
+        )
+      : availableSizes;
+  const sizeOptions = (sizeSource.length ? sizeSource : availableSizes).map(
+    (size) => {
+      const label = size.name.trim();
+      return { value: label, label };
+    },
+  );
   const hasSizes =
     category === "rings" || category === "bracelets" || allSizes.length > 0;
   const artNo = pickDefaultArtNo(item);
-  const sizeArtNos = buildSizeArtNos(item, availableSizes);
+  const sizeArtNos = buildSizeArtNos(
+    item,
+    sizeSource.length ? sizeSource : availableSizes,
+  );
   // Остатки по всем размерам (включая 0) — для проверки на чекауте
   const sizeStockAmounts = buildSizeStockAmounts(item, allSizes);
   const sizeWeightGrams = buildSizeWeightGrams(item, allSizes);

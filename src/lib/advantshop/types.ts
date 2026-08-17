@@ -77,13 +77,16 @@ export type AdvantShopCategoriesResponse = {
 export type AdvantShopPropertyValue = {
   value?: string;
   propertyValue?: string;
+  Value?: string;
   offerId?: number | null;
+  OfferId?: number | null;
   artNo?: string | null;
   offerArtNo?: string | null;
 };
 
 export type AdvantShopProperty = {
   name?: string;
+  Name?: string;
   value?: string;
   propertyName?: string;
   propertyValue?: string;
@@ -92,6 +95,8 @@ export type AdvantShopProperty = {
   offerArtNo?: string | null;
   values?: AdvantShopPropertyValue[];
   propertyValues?: AdvantShopPropertyValue[];
+  selectedPropertyValues?: AdvantShopPropertyValue[];
+  SelectedPropertyValues?: AdvantShopPropertyValue[];
 };
 
 export type AdvantShopOffer = {
@@ -129,9 +134,11 @@ export type AdvantShopProductDetails = {
 export type AdvantShopPropertyGroup = {
   groupName?: string;
   properties?: AdvantShopProperty[];
+  Properties?: AdvantShopProperty[];
 };
 
-/** Client API may return a flat list or grouped blocks. */
+/** Client API / admin may return a flat list, `{ properties }`, or `{ Groups }`. */
 export type AdvantShopPropertiesResponse =
-  | { properties?: AdvantShopProperty[] }
-  | AdvantShopPropertyGroup[];
+  | { properties?: AdvantShopProperty[]; Groups?: AdvantShopPropertyGroup[] }
+  | AdvantShopPropertyGroup[]
+  | AdvantShopProperty[];
