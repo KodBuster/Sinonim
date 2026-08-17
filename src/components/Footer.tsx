@@ -13,6 +13,7 @@ const FOOTER_LINKS = {
   ],
   info: [
     { label: "О бренде", href: "/about" },
+    { label: "Сотрудничество", href: "/cooperation" },
     { label: "Блог", href: "/blog" },
     { label: "Гид покупателя", href: "/guide" },
     { label: "Шоурум", href: "/showroom" },

@@ -3,12 +3,32 @@ import Link from "next/link";
 
 const PILLARS = [
   {
-    title: "Вау-цена",
-    text: "Позвольте себе больше – собирайте свои стильные комплекты и сияйте каждый день!",
+    title: "Настоящие бриллианты на каждый день",
+    text: "Бриллиантовый блеск теперь доступен каждой: совершенные камни в оправе из серебра",
   },
   {
     title: "Гарантия качества",
     text: "Принимаем участие в добровольной аттестации качества ювелирных украшений и даем гарантию на изделия 2 года",
+  },
+  {
+    title: "Воспоминания, которые не тускнеют",
+    text: "Покрытие родием — главный секрет долговечности и премиального вида наших серебряных украшений",
+  },
+  {
+    title: "20 лет экспертизы в ювелирном деле",
+    text: "Контролируем каждый этап — от чистоты сплава до закрепки камней, чтобы вы получали безупречные украшения",
+  },
+  {
+    title: "Вау-цена",
+    text: "Позвольте себе больше – собирайте свои стильные комплекты и сияйте каждый день!",
+  },
+  {
+    title: "Природный или лабораторный?",
+    text: "Разница только в цене и происхождении. Состав — 100% алмаз. Эстетика высоких технологий: безупречные лабораторные бриллианты премиального качества",
+  },
+  {
+    title: "От спортзала до красной дорожки",
+    text: "Забудьте про дресс-код. Наши бриллианты созданы для жизни, а не для сейфа. Носите с любимым спортивным костюмом или вечерним шелком.",
   },
 ];
 
@@ -91,13 +111,13 @@ export function AboutPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5 md:gap-6 max-w-4xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {PILLARS.map((item) => (
               <div
                 key={item.title}
-                className="rounded-xl border border-brand-sand bg-brand-surface p-6 md:p-8"
+                className="rounded-xl border border-brand-sand bg-brand-surface p-5 md:p-6 min-h-[180px]"
               >
-                <h3 className="font-heading text-xl md:text-2xl text-brand-olive-dark mb-3">
+                <h3 className="font-heading text-lg md:text-xl text-brand-olive-dark mb-3">
                   {item.title}
                 </h3>
                 <p className="text-brand-muted text-sm md:text-base leading-relaxed">

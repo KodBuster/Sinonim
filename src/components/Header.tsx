@@ -164,6 +164,9 @@ export function Header() {
           <Link href="/showroom" className="hover:text-brand-terracotta transition-colors">
             Шоурум
           </Link>
+          <Link href="/cooperation" className="hover:text-brand-terracotta transition-colors">
+            Сотрудничество
+          </Link>
         </div>
         <MetrikaPhoneLink
           href={SITE_PHONE_TEL}
@@ -277,6 +280,13 @@ export function Header() {
                   onClick={closeMenu}
                 >
                   Шоурум
+                </Link>
+                <Link
+                  href="/cooperation"
+                  className="hover:text-brand-terracotta transition-colors"
+                  onClick={closeMenu}
+                >
+                  Сотрудничество
                 </Link>
                 <MetrikaPhoneLink
                   href={SITE_PHONE_TEL}
