@@ -12,13 +12,9 @@ type ProductCharacteristicsProps = {
 export function ProductCharacteristics({ product }: ProductCharacteristicsProps) {
   const { selectedSize } = useProductSelection();
   const isBracelet = product.category === "bracelets";
-  const braceletLength = isBracelet
-    ? getProductLengthMmLabel(product, selectedSize)
-    : undefined;
   const diamondWeight = isBracelet
-    ? braceletLength
+    ? getProductLengthMmLabel(product, selectedSize)
     : getProductCaratWeightLabel(product, selectedSize);
-  const diamondWeightSuffix = isBracelet ? " мм" : " карат";
 
   return (
     <div className="bg-brand-surface rounded-xl p-6 md:p-8">
@@ -41,7 +37,7 @@ export function ProductCharacteristics({ product }: ProductCharacteristicsProps)
         <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
           <dt className="text-brand-muted">Вес бриллианта</dt>
           <dd className="text-brand-text text-right">
-            {diamondWeight ? `${diamondWeight}${diamondWeightSuffix}` : "—"}
+            {diamondWeight ? `${diamondWeight} карат` : "—"}
           </dd>
         </div>
         <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
