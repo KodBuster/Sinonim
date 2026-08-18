@@ -61,6 +61,10 @@ export type ProductDetails = Product & {
   diamondWeightLabel?: string;
   /** Вес бриллианта по ключу размера (артикул модификации). */
   sizeDiamondWeights?: Record<string, string>;
+  /** Длина (мм) из AdvantShop — для браслетов в блоке «Характеристики». */
+  lengthMmLabel?: string;
+  /** Длина (мм) по ключу размера. */
+  sizeLengthMm?: Record<string, string>;
   /** Остаток по ключу размера (value из sizeOptions). */
   sizeStockAmounts?: Record<string, number>;
 };

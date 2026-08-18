@@ -109,6 +109,8 @@ export type AdvantShopOffer = {
   sizeId?: number | null;
   /** Вес модификации (г), разный у размеров. */
   weight?: number | null;
+  /** Длина модификации (мм), для браслетов. */
+  length?: number | null;
   properties?: AdvantShopProperty[] | null;
   params?: AdvantShopProperty[] | null;
 };

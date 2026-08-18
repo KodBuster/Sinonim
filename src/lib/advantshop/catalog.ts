@@ -5,7 +5,7 @@ import { parseDiamondWeightNumber } from "@/lib/product-weight";
 import { parseSetArtNosFromProperties } from "@/lib/product-complect";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
-import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, pickOfferPrice } from "./mapper";
+import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, pickOfferPrice } from "./mapper";
 import {
   getAdvantShopDetailsStockInfo,
   getAvailableSizePickerSizes,
@@ -423,7 +423,20 @@ export async function loadAdvantShopProductDetails(
     ...(product.sizeDiamondWeights ?? {}),
     ...(fetchedSizeDiamondWeights ?? {}),
   };
+  const fetchedSizeLengthMm =
+    summary.category === "bracelets"
+      ? await fetchLengthMmForSizes(
+          Number(summary.id),
+          details.sizeColorPicker?.sizes ?? getAvailableSizePickerSizes(details),
+          details.offers ?? [],
+        )
+      : undefined;
+  const sizeLengthMm = {
+    ...(product.sizeLengthMm ?? {}),
+    ...(fetchedSizeLengthMm ?? {}),
+  };
   const hasSizeDiamondWeights = Object.keys(sizeDiamondWeights).length > 0;
+  const hasSizeLengthMm = Object.keys(sizeLengthMm).length > 0;
   const defaultSize =
     product.sizeOptions.find((option) => {
       const amount = product.sizeStockAmounts?.[option.value];
@@ -435,6 +448,10 @@ export async function loadAdvantShopProductDetails(
       : undefined) ??
     product.diamondWeightLabel ??
     (hasSizeDiamondWeights ? Object.values(sizeDiamondWeights)[0] : undefined);
+  const lengthMmLabel =
+    (defaultSize && hasSizeLengthMm ? sizeLengthMm[defaultSize.value] : undefined) ??
+    product.lengthMmLabel ??
+    (hasSizeLengthMm ? Object.values(sizeLengthMm)[0] : undefined);
 
   return {
     ...product,
@@ -445,6 +462,8 @@ export async function loadAdvantShopProductDetails(
     price: product.price > 0 ? product.price : summary.price,
     diamondWeightLabel,
     sizeDiamondWeights: hasSizeDiamondWeights ? sizeDiamondWeights : undefined,
+    lengthMmLabel,
+    sizeLengthMm: hasSizeLengthMm ? sizeLengthMm : undefined,
     stoneWeight:
       parseDiamondWeightNumber(diamondWeightLabel) ?? product.stoneWeight,
     stockAmount: product.stockAmount ?? summary.stockAmount,
@@ -502,6 +521,40 @@ async function fetchDiamondWeightsForSizes(
         },
       );
       const label = parseDiamondWeightLabelFromProperties(
+        flattenAdvantShopProperties(response),
+      );
+      const sizeKey = size.name.trim();
+      if (label && sizeKey) map[sizeKey] = label;
+    } catch {
+      // sizeId/offerId на properties может не поддерживаться — тогда останется значение товара.
+    }
+  });
+
+  return Object.keys(map).length ? map : undefined;
+}
+
+async function fetchLengthMmForSizes(
+  productId: number,
+  sizes: { id: number; name: string }[],
+  offers: AdvantShopOffer[] = [],
+): Promise<Record<string, string> | undefined> {
+  if (!sizes.length) return undefined;
+
+  const map: Record<string, string> = {};
+  await mapPool(sizes, 4, async (size) => {
+    const offer = offers.find((entry) => entry.sizeId === size.id);
+    try {
+      const response = await advantshopClientFetch<AdvantShopPropertiesResponse>(
+        `/api/products/${productId}/properties`,
+        {
+          searchParams: {
+            type: "inDetails",
+            sizeId: size.id,
+            offerId: offer?.offerId,
+          },
+        },
+      );
+      const label = parseLengthMmLabelFromProperties(
         flattenAdvantShopProperties(response),
       );
       const sizeKey = size.name.trim();

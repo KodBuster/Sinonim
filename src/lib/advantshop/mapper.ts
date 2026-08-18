@@ -6,6 +6,10 @@ import {
   parseCaratWeightFromDescription,
   parseDiamondWeightNumber,
 } from "@/lib/product-weight";
+import {
+  formatLengthMmLabel,
+  isLengthMmPropertyName,
+} from "@/lib/product-length";
 import { resolveSetArtNos } from "@/lib/product-complect";
 import { buildSeoProductSlug } from "@/lib/product-slug";
 import { resolveProductImageUrl, resolveProductImages } from "./images";
@@ -219,6 +223,156 @@ function buildSizeDiamondWeights(
   }
 
   return Object.keys(map).length ? map : undefined;
+}
+
+type LengthMmEntry = {
+  label: string;
+  offerId?: number;
+  artNo?: string;
+};
+
+function collectLengthMmEntries(properties: AdvantShopProperty[]): LengthMmEntry[] {
+  const entries: LengthMmEntry[] = [];
+
+  const push = (
+    raw?: string | number | null,
+    offerId?: number | null,
+    artNo?: string | null,
+  ) => {
+    const label = formatLengthMmLabel(raw);
+    if (!label) return;
+    entries.push({
+      label,
+      offerId: offerId ?? undefined,
+      artNo: artNo?.trim() || undefined,
+    });
+  };
+
+  for (const property of properties) {
+    if (!isLengthMmPropertyName(propertyDisplayName(property))) continue;
+
+    const nested = [
+      ...(property.propertyValues ?? []),
+      ...(property.values ?? []),
+      ...(property.selectedPropertyValues ?? []),
+      ...(property.SelectedPropertyValues ?? []),
+    ];
+    if (nested.length) {
+      for (const item of nested) {
+        push(
+          item.propertyValue ?? item.value ?? item.Value,
+          item.offerId ?? item.OfferId,
+          item.artNo ?? item.offerArtNo,
+        );
+      }
+      continue;
+    }
+
+    push(
+      property.propertyValue ?? property.value,
+      property.offerId,
+      property.artNo ?? property.offerArtNo,
+    );
+  }
+
+  return entries;
+}
+
+function offerLengthMmLabel(offer?: AdvantShopOffer): string | undefined {
+  if (!offer) return undefined;
+
+  const fromField = formatLengthMmLabel(offer.length);
+  if (fromField) return fromField;
+
+  const props = [...(offer.properties ?? []), ...(offer.params ?? [])];
+  for (const property of props) {
+    if (!isLengthMmPropertyName(propertyDisplayName(property))) continue;
+    const selected = [
+      ...(property.selectedPropertyValues ?? []),
+      ...(property.SelectedPropertyValues ?? []),
+    ][0];
+    const label = formatLengthMmLabel(
+      property.propertyValue ??
+        property.value ??
+        selected?.propertyValue ??
+        selected?.value ??
+        selected?.Value,
+    );
+    if (label) return label;
+  }
+
+  return undefined;
+}
+
+function buildSizeLengthMm(
+  item: AdvantShopProductDetails,
+  sizes: { id: number; name: string }[],
+  properties: AdvantShopProperty[],
+): Record<string, string> | undefined {
+  if (!sizes.length) return undefined;
+
+  const entries = collectLengthMmEntries(properties);
+  const map: Record<string, string> = {};
+
+  for (const size of sizes) {
+    const sizeKey = size.name.trim();
+    if (!sizeKey) continue;
+    const offer = item.offers?.find((entry) => entry.sizeId === size.id);
+
+    const fromOffer = offerLengthMmLabel(offer);
+    if (fromOffer) {
+      map[sizeKey] = fromOffer;
+      continue;
+    }
+    if (!offer) continue;
+
+    const byOfferId = entries.find(
+      (entry) => entry.offerId != null && entry.offerId === offer.offerId,
+    );
+    if (byOfferId) {
+      map[sizeKey] = byOfferId.label;
+      continue;
+    }
+
+    const offerArtNo = offer.artNo?.trim().toLowerCase();
+    if (!offerArtNo) continue;
+    const byArtNo = entries.find(
+      (entry) => entry.artNo?.trim().toLowerCase() === offerArtNo,
+    );
+    if (byArtNo) map[sizeKey] = byArtNo.label;
+  }
+
+  return Object.keys(map).length ? map : undefined;
+}
+
+function pickDefaultLengthMm(
+  item: AdvantShopProductDetails,
+  sizeLengthMm: Record<string, string> | undefined,
+  properties: AdvantShopProperty[],
+): string | undefined {
+  const available = getAvailableSizePickerSizes(item);
+  for (const size of available) {
+    const label = sizeLengthMm?.[size.name.trim()];
+    if (label) return label;
+  }
+
+  if (sizeLengthMm) {
+    const first = Object.values(sizeLengthMm).find(Boolean);
+    if (first) return first;
+  }
+
+  const fromOffer = item.offers
+    ?.map((offer) => offerLengthMmLabel(offer))
+    .find(Boolean);
+  if (fromOffer) return fromOffer;
+
+  return collectLengthMmEntries(properties)[0]?.label;
+}
+
+export function parseLengthMmLabelFromProperties(
+  properties: AdvantShopProperty[],
+): string | undefined {
+  return collectLengthMmEntries(properties)[0]?.label;
 }
 
 function pickDefaultDiamondWeight(
@@ -591,6 +745,12 @@ export function mapProductDetails(
   const sizeStockAmounts = buildSizeStockAmounts(item, allSizes);
   const sizeWeightGrams = buildSizeWeightGrams(item, allSizes);
   const sizePrices = buildSizePrices(item, allSizes);
+  const sizeLengthMm =
+    category === "bracelets" ? buildSizeLengthMm(item, allSizes, properties) : undefined;
+  const lengthMmLabel =
+    category === "bracelets"
+      ? pickDefaultLengthMm(item, sizeLengthMm, properties)
+      : undefined;
   const legacySlug = item.urlPath;
   const setArtNos = resolveSetArtNos(properties);
   const { stockAmount, inStock } = getAdvantShopDetailsStockInfo(
@@ -636,6 +796,8 @@ export function mapProductDetails(
     sizePrices,
     diamondWeightLabel: diamondWeight?.label,
     sizeDiamondWeights,
+    lengthMmLabel,
+    sizeLengthMm,
     setArtNos: setArtNos.length ? setArtNos : undefined,
     stockAmount,
     inStock,
