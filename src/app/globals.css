@@ -193,6 +193,16 @@ body {
   z-index: 49 !important;
 }
 
+.mgo-mcw-widget.mgo-mcw_state-window-open {
+  z-index: 60 !important;
+}
+
+body.mango-chat-open #messenger-fab-root {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
 @media (min-width: 768px) {
   .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
     bottom: 6.25rem !important;

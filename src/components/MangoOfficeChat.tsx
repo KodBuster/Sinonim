@@ -27,11 +27,14 @@ function positionMangoAboveFab() {
   if (fabRect.height <= 0) return;
 
   const widgets = document.querySelectorAll<HTMLElement>(".mgo-mcw-widget");
+  let hasOpenWidget = false;
 
   widgets.forEach((widget) => {
-    // Mobile open state goes fullscreen — do not fight Mango styles.
+    // Open chat must sit above Messenger FAB (z-50), otherwise send/clicks are blocked.
     if (widget.classList.contains("mgo-mcw_state-window-open")) {
+      hasOpenWidget = true;
       clearPositionOverrides(widget);
+      widget.style.setProperty("z-index", "60", "important");
       return;
     }
 
@@ -60,6 +63,8 @@ function positionMangoAboveFab() {
     widget.style.setProperty("margin", "0", "important");
     widget.style.setProperty("z-index", "49", "important");
   });
+
+  document.body.classList.toggle("mango-chat-open", hasOpenWidget);
 }
 
 export function MangoOfficeChat() {
@@ -87,6 +92,7 @@ export function MangoOfficeChat() {
       window.clearInterval(interval);
       if (raf) window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", positionMangoAboveFab);
+      document.body.classList.remove("mango-chat-open");
     };
   }, []);
 
@@ -110,7 +116,7 @@ export function MangoOfficeChat() {
   p = d.getElementsByTagName('script')[0];
   p.parentNode.insertBefore(s, p);
 })(window, document, 'https://widgets.mango-office.ru/widgets/mango.js', 'mango-js', 'mgo');
-mgo({multichannel: {id: ${MANGO_WIDGET_ID}}});
+mgo({multichannel: {id: ${MANGO_WIDGET_ID}, domain: "synonym-jewelry.ru"}});
         `.trim(),
       }}
     />
