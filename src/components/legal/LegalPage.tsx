@@ -9,7 +9,7 @@ type LegalSection = {
 type LegalPageProps = {
   eyebrow: string;
   title: string;
-  intro: string;
+  intro: ReactNode;
   updatedAt: string;
   sections: LegalSection[];
 };
@@ -32,9 +32,9 @@ export function LegalPage({
             {title}
           </h1>
           <p className="text-brand-muted text-sm mb-6">Дата обновления: {updatedAt}</p>
-          <p className="text-brand-text leading-relaxed text-base md:text-lg">
+          <div className="text-brand-text leading-relaxed text-base md:text-lg">
             {intro}
-          </p>
+          </div>
         </div>
       </section>
 

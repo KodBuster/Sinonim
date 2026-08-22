@@ -6,6 +6,7 @@ import type { CartItem } from "@/lib/cart";
 import {
   getDeliveryFee,
   validateCheckoutForm,
+  validatePersonalDataConsent,
   type CheckoutFormData,
   type PaymentMethod,
 } from "@/lib/checkout";
@@ -17,6 +18,7 @@ type CreateOrderRequest = {
   customer: CheckoutFormData;
   items: CartItem[];
   subtotal: number;
+  personalDataConsent?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -30,6 +32,11 @@ export async function POST(request: Request) {
 
   if (!body.customer || !Array.isArray(body.items) || body.items.length === 0) {
     return NextResponse.json({ error: "Корзина пуста" }, { status: 400 });
+  }
+
+  const consentError = validatePersonalDataConsent(Boolean(body.personalDataConsent));
+  if (consentError) {
+    return NextResponse.json({ error: consentError }, { status: 400 });
   }
 
   const customer: CheckoutFormData = {

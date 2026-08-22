@@ -21,6 +21,7 @@ import {
   saveOrder,
   SHOWROOM,
   validateCheckoutForm,
+  validatePersonalDataConsent,
   type CheckoutFormData,
   type DeliveryMethod,
   type Order,
@@ -52,6 +53,7 @@ export function CheckoutForm() {
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [previewItem, setPreviewItem] = useState<CartItem | null>(null);
   const [yookassaEnabled, setYookassaEnabled] = useState(false);
+  const [personalDataConsent, setPersonalDataConsent] = useState(false);
   const checkoutTrackedRef = useRef(false);
 
   const deliveryFee = useMemo(
@@ -109,6 +111,11 @@ export function CheckoutForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const consentError = validatePersonalDataConsent(personalDataConsent);
+    if (consentError) {
+      setError(consentError);
+      return;
+    }
     const validationError = validateCheckoutForm(form);
     if (validationError) {
       setError(validationError);
@@ -136,6 +143,7 @@ export function CheckoutForm() {
           customer,
           items,
           subtotal: total,
+          personalDataConsent: true,
         }),
       });
 
@@ -534,6 +542,49 @@ export function CheckoutForm() {
                     className="w-full px-4 py-3 rounded-lg border border-brand-olive/20 bg-white text-brand-text placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-olive resize-none"
                   />
                 </div>
+
+                <div className="rounded-xl border border-brand-olive/20 bg-white p-4">
+                  <label
+                    htmlFor="checkout-pd-consent"
+                    className="flex cursor-pointer items-start gap-3"
+                  >
+                    <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center">
+                      <input
+                        id="checkout-pd-consent"
+                        type="checkbox"
+                        role="switch"
+                        checked={personalDataConsent}
+                        onChange={(e) => {
+                          setPersonalDataConsent(e.target.checked);
+                          setError(null);
+                          setOutOfStockItems([]);
+                        }}
+                        className="peer sr-only"
+                        required
+                        aria-required="true"
+                      />
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 rounded-full bg-brand-olive/20 transition-colors peer-checked:bg-brand-olive peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand-terracotta"
+                      />
+                      <span
+                        aria-hidden
+                        className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"
+                      />
+                    </span>
+                    <span className="text-sm text-brand-text leading-relaxed">
+                      Информированное добровольное согласие на передачу ПД.{" "}
+                      <Link
+                        href="/terms"
+                        className="text-brand-terracotta hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Текст согласия и публичная оферта
+                      </Link>
+                    </span>
+                  </label>
+                </div>
               </section>
 
               {error && (
@@ -625,7 +676,7 @@ export function CheckoutForm() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !personalDataConsent}
                   className="w-full px-6 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo disabled:opacity-60 text-white text-sm tracking-widest uppercase transition-colors"
                 >
                   {isSubmitting

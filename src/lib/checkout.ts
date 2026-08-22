@@ -105,6 +105,13 @@ export function validateCheckoutForm(data: CheckoutFormData): string | null {
   return null;
 }
 
+export function validatePersonalDataConsent(accepted: boolean): string | null {
+  if (!accepted) {
+    return "Для оформления заказа необходимо дать информированное добровольное согласие на передачу персональных данных";
+  }
+  return null;
+}
+
 export function saveOrder(order: Order): void {
   if (typeof window === "undefined") return;
   try {
