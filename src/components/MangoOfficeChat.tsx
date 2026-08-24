@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect } from "react";
 import { MANGO_WIDGET_ID } from "@/lib/mango-office";
 
@@ -67,7 +66,67 @@ function positionMangoAboveFab() {
   document.body.classList.toggle("mango-chat-open", hasOpenWidget);
 }
 
+const MANGO_LOAD_DELAY_MS = 3500;
+
+function loadMangoWidget() {
+  if (document.getElementById("mango-js")) return;
+
+  type MangoStub = {
+    (...config: unknown[]): void;
+    q?: IArguments[];
+    u?: string;
+    t?: number;
+  };
+  const w = window as Window & { MangoObject?: string; mgo?: MangoStub };
+
+  w.MangoObject = "mgo";
+  w.mgo =
+    w.mgo ||
+    function mangoStub() {
+      (w.mgo!.q = w.mgo!.q || []).push(arguments);
+    };
+  w.mgo.u = "https://widgets.mango-office.ru/widgets/mango.js";
+  w.mgo.t = Date.now();
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.id = "mango-js";
+  script.src = "https://widgets.mango-office.ru/widgets/mango.js";
+  script.charset = "utf-8";
+  const first = document.getElementsByTagName("script")[0];
+  first?.parentNode?.insertBefore(script, first);
+
+  w.mgo({
+    multichannel: { id: MANGO_WIDGET_ID, domain: "synonym-jewelry.ru" },
+  });
+}
+
 export function MangoOfficeChat() {
+  useEffect(() => {
+    let loaded = false;
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      loadMangoWidget();
+    };
+
+    const timeoutId = window.setTimeout(load, MANGO_LOAD_DELAY_MS);
+    const idleId =
+      "requestIdleCallback" in window
+        ? window.requestIdleCallback(load, { timeout: MANGO_LOAD_DELAY_MS })
+        : 0;
+
+    window.addEventListener("scroll", load, { once: true, passive: true });
+    window.addEventListener("pointerdown", load, { once: true });
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (idleId) window.cancelIdleCallback(idleId);
+      window.removeEventListener("scroll", load);
+      window.removeEventListener("pointerdown", load);
+    };
+  }, []);
+
   useEffect(() => {
     positionMangoAboveFab();
     const interval = window.setInterval(positionMangoAboveFab, 1000);
@@ -96,29 +155,5 @@ export function MangoOfficeChat() {
     };
   }, []);
 
-  return (
-    <Script
-      id="mango-office-chat"
-      strategy="afterInteractive"
-      dangerouslySetInnerHTML={{
-        __html: `
-(function(w, d, u, i, o, s, p) {
-  if (d.getElementById(i)) { return; }
-  w['MangoObject'] = o;
-  w[o] = w[o] || function() { (w[o].q = w[o].q || []).push(arguments) };
-  w[o].u = u;
-  w[o].t = 1 * new Date();
-  s = d.createElement('script');
-  s.async = 1;
-  s.id = i;
-  s.src = u;
-  s.charset = 'utf-8';
-  p = d.getElementsByTagName('script')[0];
-  p.parentNode.insertBefore(s, p);
-})(window, document, 'https://widgets.mango-office.ru/widgets/mango.js', 'mango-js', 'mgo');
-mgo({multichannel: {id: ${MANGO_WIDGET_ID}, domain: "synonym-jewelry.ru"}});
-        `.trim(),
-      }}
-    />
-  );
+  return null;
 }

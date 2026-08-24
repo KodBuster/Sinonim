@@ -1,5 +1,5 @@
-import { AutoplayVideo } from "./AutoplayVideo";
 import { HeroContent } from "./HeroContent";
+import { HeroMedia } from "./HeroMedia";
 
 export function Hero() {
   return (
@@ -11,11 +11,7 @@ export function Hero() {
           <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end px-4 pt-3 pb-1 lg:px-0 lg:py-16">
             <div className="relative w-full lg:max-w-lg">
               <div className="relative aspect-square overflow-hidden rounded-xl border border-brand-sand bg-white lg:rounded-2xl lg:shadow-lg">
-                <AutoplayVideo
-                  src="/images/video-hero_2.mp4"
-                  className="absolute inset-0 h-full w-full object-contain object-center lg:object-cover lg:object-top"
-                  aria-label="Кольцо с лабораторным бриллиантом в серебре"
-                />
+                <HeroMedia />
               </div>
             </div>
           </div>

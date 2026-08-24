@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   try {
     const response = await fetch(src, {
       headers,
-      next: { revalidate: 3600 },
+      next: { revalidate: 86400 },
     });
 
     const contentType = response.headers.get("content-type") ?? "";
@@ -44,7 +44,8 @@ export async function GET(request: Request) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+        "Cache-Control":
+          "public, max-age=2592000, stale-while-revalidate=31536000",
       },
     });
   } catch (error) {
