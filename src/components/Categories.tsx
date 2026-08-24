@@ -38,52 +38,54 @@ export async function Categories() {
             const isBracelets = cat.slug === "bracelets";
 
             return (
-              <Link
+              <ScrollReveal
                 key={cat.href}
-                href={cat.href}
-                className="group relative flex aspect-[7/4] overflow-hidden rounded-xl bg-brand-surface shadow-sm transition-shadow hover:shadow-md md:aspect-[8/5]"
+                delayMs={index * 90}
+                className="min-w-0"
               >
-                <ScrollReveal
-                  delayMs={index * 90}
-                  className="flex min-h-0 w-full flex-row"
+                <Link
+                  href={cat.href}
+                  className="group relative flex aspect-[7/4] overflow-hidden rounded-xl bg-brand-surface shadow-sm transition-shadow hover:shadow-md md:aspect-[8/5] touch-manipulation"
                 >
-                  <div className="flex min-w-0 flex-1 flex-col justify-center p-5 md:p-6">
-                    <h3 className="font-heading text-2xl md:text-3xl mb-1.5 text-brand-olive-dark">
-                      {cat.title}
-                    </h3>
-                    <p className="text-sm md:text-base text-brand-muted">
-                      {cat.countLabel}
-                    </p>
-                    <p className="text-base md:text-lg text-brand-olive-dark mt-1.5">
-                      {cat.priceFromLabel}
-                    </p>
-                  </div>
+                  <div className="flex min-h-0 w-full flex-row">
+                    <div className="flex min-w-0 flex-1 flex-col justify-center p-5 md:p-6">
+                      <h3 className="font-heading text-2xl md:text-3xl mb-1.5 text-brand-olive-dark">
+                        {cat.title}
+                      </h3>
+                      <p className="text-sm md:text-base text-brand-muted">
+                        {cat.countLabel}
+                      </p>
+                      <p className="text-base md:text-lg text-brand-olive-dark mt-1.5">
+                        {cat.priceFromLabel}
+                      </p>
+                    </div>
 
-                  <div
-                    className={`relative h-full shrink-0 overflow-hidden ${
-                      isBracelets
-                        ? "w-[59%] md:w-[63%] bg-brand-surface"
-                        : "w-[42%] md:w-[45%] bg-brand-surface"
-                    }`}
-                  >
-                    <Image
-                      src={cat.image}
-                      alt={cat.title}
-                      fill
-                      className={
+                    <div
+                      className={`relative h-full shrink-0 overflow-hidden ${
                         isBracelets
-                          ? "object-contain object-center transition-transform duration-500 group-hover:scale-[1.03]"
-                          : "object-cover transition-transform duration-500 group-hover:scale-105"
-                      }
-                      sizes={
-                        isBracelets
-                          ? "(max-width: 768px) 59vw, 31vw"
-                          : "(max-width: 768px) 42vw, 22vw"
-                      }
-                    />
+                          ? "w-[59%] md:w-[63%] bg-brand-surface"
+                          : "w-[42%] md:w-[45%] bg-brand-surface"
+                      }`}
+                    >
+                      <Image
+                        src={cat.image}
+                        alt={cat.title}
+                        fill
+                        className={
+                          isBracelets
+                            ? "object-contain object-center transition-transform duration-500 group-hover:scale-[1.03]"
+                            : "object-cover transition-transform duration-500 group-hover:scale-105"
+                        }
+                        sizes={
+                          isBracelets
+                            ? "(max-width: 768px) 59vw, 31vw"
+                            : "(max-width: 768px) 42vw, 22vw"
+                        }
+                      />
+                    </div>
                   </div>
-                </ScrollReveal>
-              </Link>
+                </Link>
+              </ScrollReveal>
             );
           })}
         </div>

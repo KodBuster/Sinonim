@@ -32,12 +32,16 @@ export function ScrollReveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -5% 0px" },
+      { threshold: 0.01, rootMargin: "80px 0px 80px 0px" },
     );
 
     observer.observe(element);
+    const fallback = window.setTimeout(() => setVisible(true), 600);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (

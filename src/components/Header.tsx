@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { CartLink } from "@/components/cart/CartLink";
 import { CompareLink } from "@/components/compare/CompareLink";
@@ -41,7 +42,7 @@ function SearchToggleButton({
   return (
     <button
       type="button"
-      className={`text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
+      className={`relative z-10 cursor-pointer touch-manipulation text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
       aria-label={searchOpen ? "Закрыть поиск" : "Поиск"}
       aria-expanded={searchOpen}
       aria-controls="header-search"
@@ -105,13 +106,24 @@ function Logo({ compact = false }: { compact?: boolean }) {
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [overlayReady, setOverlayReady] = useState(false);
   const { count: compareCount, isReady: compareReady } = useCompare();
 
   useEffect(() => {
-    if (!menuOpen) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      setOverlayReady(false);
+      return;
+    }
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    const overlayTimer = window.setTimeout(() => setOverlayReady(true), 400);
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -122,6 +134,7 @@ export function Header() {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleEscape);
+      window.clearTimeout(overlayTimer);
     };
   }, [menuOpen]);
 
@@ -155,7 +168,11 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-brand-surface/95 backdrop-blur-sm border-b border-brand-terracotta relative">
+    <header className="sticky top-0 z-50 isolate border-b border-brand-terracotta bg-brand-surface">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-brand-surface/95 backdrop-blur-sm"
+        aria-hidden
+      />
       <div className="hidden md:flex justify-between items-center px-6 lg:px-10 py-2 text-xs text-brand-muted border-b border-brand-sand">
         <div className="flex gap-6">
           <Link href="/shipping" className="hover:text-brand-terracotta transition-colors">
@@ -181,7 +198,7 @@ export function Header() {
           <div className="flex flex-1 items-center justify-start min-w-0">
             <button
               type="button"
-              className="py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
+              className="relative z-10 cursor-pointer touch-manipulation py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
               aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
@@ -224,82 +241,87 @@ export function Header() {
           </div>
         </div>
 
-        {menuOpen && (
-          <>
-            <button
-              type="button"
-              className="fixed inset-0 z-40 bg-black/30 lg:hidden"
-              aria-label="Закрыть меню"
-              onClick={closeMenu}
-            />
-            <nav
-              id="mobile-nav"
-              className="fixed inset-x-0 top-[calc(3rem+1px)] z-40 flex max-h-[calc(100dvh-3rem)] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden md:top-[calc(6rem+1px)] md:max-h-[calc(100dvh-6rem)]"
-            >
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6">
-              <ul className="flex flex-col gap-1">
-                {NAV_ITEMS.map((item) => (
-                  <li key={item.href}>
+        {mounted &&
+          menuOpen &&
+          createPortal(
+            <>
+              <button
+                type="button"
+                className={`fixed inset-0 z-[60] bg-black/30 lg:hidden ${
+                  overlayReady ? "pointer-events-auto" : "pointer-events-none"
+                }`}
+                aria-label="Закрыть меню"
+                onClick={closeMenu}
+              />
+              <nav
+                id="mobile-nav"
+                className="fixed inset-x-0 top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-[70] flex max-h-[calc(100dvh-3.25rem)] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden"
+              >
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-6">
+                  <ul className="flex flex-col gap-1">
+                    {NAV_ITEMS.map((item) => (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="block rounded-lg px-3 py-3 text-base tracking-wide text-brand-text hover:bg-brand-surface hover:text-brand-terracotta transition-colors"
+                          onClick={closeMenu}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-6 flex flex-col gap-3 border-t border-brand-sand pt-6 text-sm text-brand-muted">
                     <Link
-                      href={item.href}
-                      className="block rounded-lg px-3 py-3 text-base tracking-wide text-brand-text hover:bg-brand-surface hover:text-brand-terracotta transition-colors"
+                      href="/shop"
+                      className="hover:text-brand-terracotta transition-colors"
                       onClick={closeMenu}
                     >
-                      {item.label}
+                      Весь каталог
                     </Link>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 flex flex-col gap-3 border-t border-brand-sand pt-6 text-sm text-brand-muted">
-                <Link
-                  href="/shop"
-                  className="hover:text-brand-terracotta transition-colors"
-                  onClick={closeMenu}
-                >
-                  Весь каталог
-                </Link>
-                <Link
-                  href="/compare"
-                  className="hover:text-brand-terracotta transition-colors"
-                  onClick={closeMenu}
-                >
-                  Сравнение
-                  {compareReady && compareCount > 0 ? ` · ${compareCount}` : ""}
-                </Link>
-                <Link
-                  href="/shipping"
-                  className="hover:text-brand-terracotta transition-colors"
-                  onClick={closeMenu}
-                >
-                  Доставка и оплата
-                </Link>
-                <Link
-                  href="/showroom"
-                  className="hover:text-brand-terracotta transition-colors"
-                  onClick={closeMenu}
-                >
-                  Шоурум
-                </Link>
-                <Link
-                  href="/cooperation"
-                  className="hover:text-brand-terracotta transition-colors"
-                  onClick={closeMenu}
-                >
-                  Сотрудничество
-                </Link>
-                <MetrikaPhoneLink
-                  href={SITE_PHONE_TEL}
-                  className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors"
-                  onClick={closeMenu}
-                >
-                  {SITE_PHONE}
-                </MetrikaPhoneLink>
-              </div>
-              </div>
-            </nav>
-          </>
-        )}
+                    <Link
+                      href="/compare"
+                      className="hover:text-brand-terracotta transition-colors"
+                      onClick={closeMenu}
+                    >
+                      Сравнение
+                      {compareReady && compareCount > 0 ? ` · ${compareCount}` : ""}
+                    </Link>
+                    <Link
+                      href="/shipping"
+                      className="hover:text-brand-terracotta transition-colors"
+                      onClick={closeMenu}
+                    >
+                      Доставка и оплата
+                    </Link>
+                    <Link
+                      href="/showroom"
+                      className="hover:text-brand-terracotta transition-colors"
+                      onClick={closeMenu}
+                    >
+                      Шоурум
+                    </Link>
+                    <Link
+                      href="/cooperation"
+                      className="hover:text-brand-terracotta transition-colors"
+                      onClick={closeMenu}
+                    >
+                      Сотрудничество
+                    </Link>
+                    <MetrikaPhoneLink
+                      href={SITE_PHONE_TEL}
+                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors"
+                      onClick={closeMenu}
+                    >
+                      {SITE_PHONE}
+                    </MetrikaPhoneLink>
+                  </div>
+                </div>
+              </nav>
+            </>,
+            document.body,
+          )}
 
         <div className="hidden lg:flex items-center justify-between gap-4">
           <Logo />

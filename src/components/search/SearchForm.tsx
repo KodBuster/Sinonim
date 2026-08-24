@@ -200,8 +200,8 @@ export function SearchForm({
           aria-controls={open ? listId : undefined}
           aria-expanded={open}
           placeholder="Кольцо, серьги, артикул…"
-          className={`min-w-0 flex-1 rounded-lg border border-brand-olive/20 bg-white px-4 text-brand-text placeholder:text-brand-muted focus:border-brand-olive focus:outline-none focus:ring-2 focus:ring-brand-olive/20 ${
-            compact ? "py-2 text-sm" : "py-2.5 text-base"
+          className={`min-w-0 flex-1 rounded-lg border border-brand-olive/20 bg-white px-4 text-base text-brand-text placeholder:text-brand-muted focus:border-brand-olive focus:outline-none focus:ring-2 focus:ring-brand-olive/20 ${
+            compact ? "py-2" : "py-2.5"
           } ${inputClassName}`}
         />
         <button
