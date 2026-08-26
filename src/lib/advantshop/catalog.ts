@@ -304,10 +304,11 @@ async function mapCatalogItems(
   items: NonNullable<AdvantShopCatalogResponse["products"]>,
   category: CategorySlug,
   setMap: Record<string, string[]>,
-  includeOutOfStock = false,
+  includeOutOfStock = true,
 ): Promise<Product[]> {
   const stockMap = await loadStockInfoMap(items, category);
 
+  // Товары с остатком ≤ 0 тоже показываем — на карточке кнопка «Скоро будет».
   const visible = includeOutOfStock
     ? items
     : items.filter((item) => resolveListStockInfo(item, stockMap).inStock);
@@ -331,13 +332,13 @@ export async function fetchAdvantShopCategories() {
 export async function fetchAdvantShopProducts(options?: {
   category?: CategorySlug;
   sort?: string;
-  /** Если true — не скрывать товары с нулевым остатком (для проверки на чекауте). */
+  /** Если false — скрывать товары с нулевым остатком. По умолчанию показываем все. */
   includeOutOfStock?: boolean;
 }): Promise<Product[]> {
   const categoryMap = getCategoryUrlMap();
   const sort = SORT_MAP[options?.sort ?? "default"] ?? "NoSorting";
   const setMap = await getCachedSetMap();
-  const includeOutOfStock = Boolean(options?.includeOutOfStock);
+  const includeOutOfStock = options?.includeOutOfStock !== false;
 
   if (options?.category) {
     const categoryUrl = categoryMap[options.category];

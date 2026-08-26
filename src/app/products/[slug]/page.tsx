@@ -2,7 +2,6 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProductPage } from "@/components/product/ProductPage";
-import { ProductUnavailable } from "@/components/product/ProductUnavailable";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
 import { buildProductMetaDescription } from "@/lib/product-metadata";
@@ -25,17 +24,6 @@ export async function generateMetadata({ params }: PageProps) {
   const product = await getProductDetails(slug, { includeOutOfStock: true });
   if (!product) return {};
 
-  if (product.inStock === false) {
-    return buildPageMetadata({
-      title: "Изделие закончилось — Синоним",
-      description:
-        "К сожалению, это изделие закончилось. Подберите другое украшение в каталоге Синоним.",
-      path: `/products/${product.slug}`,
-      noIndex: true,
-      robotsFollow: true,
-    });
-  }
-
   const canonicalSlug = product.slug;
 
   return buildPageMetadata({
@@ -52,18 +40,6 @@ export default async function ProductRoute({ params }: PageProps) {
 
   if (!product) {
     notFound();
-  }
-
-  if (product.inStock === false) {
-    return (
-      <>
-        <Header />
-        <main>
-          <ProductUnavailable productName={product.name} />
-        </main>
-        <Footer />
-      </>
-    );
   }
 
   if (isLegacyProductSlug(slug, product)) {

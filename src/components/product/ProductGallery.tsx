@@ -782,7 +782,7 @@ function ProductGalleryModalFooter({
             disabled={!inStock}
             className="px-6 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo disabled:cursor-not-allowed disabled:opacity-50 text-white text-sm tracking-widest uppercase transition-colors whitespace-nowrap"
           >
-            {!inStock ? "Нет в наличии" : added ? "Добавлено ✓" : "Купить"}
+            {!inStock ? "Скоро будет" : added ? "Добавлено ✓" : "Купить"}
           </button>
           <FavoriteButton slug={slug} className={MODAL_ICON_BUTTON_CLASS} />
           <CompareButton slug={slug} className={MODAL_ICON_BUTTON_CLASS} />

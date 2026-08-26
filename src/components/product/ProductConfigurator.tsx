@@ -89,7 +89,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
         <p className="text-sm text-brand-muted">Лабораторный бриллиант</p>
         {product.inStock === false ? (
           <p className="mt-2 text-sm font-medium text-brand-terracotta">
-            Нет в наличии
+            Скоро будет
           </p>
         ) : null}
         {displayWeightGrams ? (
@@ -162,7 +162,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
           className="flex-1 px-6 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo disabled:cursor-not-allowed disabled:opacity-50 text-white text-sm tracking-widest uppercase transition-colors"
         >
           {product.inStock === false || !selectedSizeAvailable
-            ? "Нет в наличии"
+            ? "Скоро будет"
             : added
               ? "Добавлено ✓"
               : "В корзину"}

@@ -9,7 +9,7 @@ export function ProductUnavailable({ productName }: ProductUnavailableProps) {
     <section className="py-16 md:py-24">
       <div className="mx-auto max-w-2xl px-4 md:px-6 lg:px-10 text-center">
         <p className="text-sm tracking-widest uppercase text-brand-muted mb-4">
-          Нет в наличии
+          Скоро будет
         </p>
         <h1 className="font-heading text-3xl md:text-4xl text-brand-olive-dark mb-4">
           К сожалению, это изделие закончилось
