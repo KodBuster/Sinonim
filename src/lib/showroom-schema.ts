@@ -2,6 +2,7 @@ import {
   SHOWROOM,
   SHOWROOM_GEO,
   SHOWROOM_MAP_LINK,
+  SITE_EMAIL,
   SITE_PHONE_TEL,
 } from "@/lib/contacts";
 import { getOrganizationId, getShowroomId } from "@/lib/schema-ids";
@@ -22,6 +23,7 @@ export function buildShowroomJsonLd(): Record<string, unknown> {
     url: `${siteUrl}/showroom`,
     image: absoluteImageUrl("/images/show_room_2.jpg"),
     telephone: phone,
+    email: SITE_EMAIL,
     priceRange: "₽₽",
     address: {
       "@type": "PostalAddress",

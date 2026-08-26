@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { MetrikaPhoneLink } from "@/components/analytics/MetrikaPhoneLink";
-import { SITE_PHONE, SITE_PHONE_TEL } from "@/lib/contacts";
+import {
+  SITE_EMAIL,
+  SITE_EMAIL_MAILTO,
+  SITE_PHONE,
+  SITE_PHONE_TEL,
+} from "@/lib/contacts";
 
 const BENEFITS = [
   "Конкурентные цены",
@@ -60,13 +65,25 @@ export function PartnershipPage() {
       <section className="py-12 md:py-16">
         <div className="mx-auto max-w-3xl px-4 md:px-6 lg:px-10 text-center">
           <p className="text-brand-muted leading-relaxed mb-8">
-            Обсудим условия, ассортимент и запуск продаж. Позвоните или
-            приезжайте в шоурум в Москве.
+            Обсудим условия, ассортимент и запуск продаж. Напишите на{" "}
+            <a
+              href={SITE_EMAIL_MAILTO}
+              className="text-brand-terracotta hover:text-brand-terracotta-logo transition-colors"
+            >
+              {SITE_EMAIL}
+            </a>
+            , позвоните или приезжайте в шоурум в Москве.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
+            <a
+              href={SITE_EMAIL_MAILTO}
+              className="inline-flex items-center justify-center px-8 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo text-white text-sm tracking-widest uppercase transition-colors"
+            >
+              Написать
+            </a>
             <MetrikaPhoneLink
               href={SITE_PHONE_TEL}
-              className="inline-flex items-center justify-center px-8 py-3.5 bg-brand-terracotta hover:bg-brand-terracotta-logo text-white text-sm tracking-widest uppercase transition-colors"
+              className="inline-flex items-center justify-center px-8 py-3.5 border border-brand-olive/30 text-brand-olive-dark hover:border-brand-olive text-sm tracking-widest uppercase transition-colors"
             >
               {SITE_PHONE}
             </MetrikaPhoneLink>

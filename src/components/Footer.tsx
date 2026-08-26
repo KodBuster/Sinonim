@@ -1,7 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MetrikaPhoneLink } from "@/components/analytics/MetrikaPhoneLink";
-import { SITE_PHONE, SITE_PHONE_TEL, SHOWROOM } from "@/lib/contacts";
+import {
+  SHOWROOM,
+  SITE_EMAIL,
+  SITE_EMAIL_MAILTO,
+  SITE_PHONE,
+  SITE_PHONE_TEL,
+} from "@/lib/contacts";
 
 const FOOTER_LINKS = {
   catalog: [
@@ -90,10 +96,16 @@ export function Footer() {
             </p>
             <MetrikaPhoneLink
               href={SITE_PHONE_TEL}
-              className="block text-sm text-brand-terracotta hover:text-brand-terracotta-logo transition-colors mb-4"
+              className="block text-sm text-brand-terracotta hover:text-brand-terracotta-logo transition-colors mb-2"
             >
               {SITE_PHONE}
             </MetrikaPhoneLink>
+            <a
+              href={SITE_EMAIL_MAILTO}
+              className="block text-sm text-brand-terracotta hover:text-brand-terracotta-logo transition-colors mb-4"
+            >
+              {SITE_EMAIL}
+            </a>
             <p className="text-sm text-brand-muted mb-3">
               {SHOWROOM.hours}
             </p>

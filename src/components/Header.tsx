@@ -9,7 +9,7 @@ import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 import { MetrikaPhoneLink } from "@/components/analytics/MetrikaPhoneLink";
 import { SearchForm } from "@/components/search/SearchForm";
 import { useCompare } from "@/context/CompareContext";
-import { SITE_PHONE, SITE_PHONE_TEL } from "@/lib/contacts";
+import { SITE_EMAIL, SITE_EMAIL_MAILTO, SITE_PHONE, SITE_PHONE_TEL } from "@/lib/contacts";
 
 const NAV_ITEMS = [
   { label: "Кольца", href: "/shop/rings" },
@@ -185,12 +185,20 @@ export function Header() {
             Сотрудничество
           </Link>
         </div>
-        <MetrikaPhoneLink
-          href={SITE_PHONE_TEL}
-          className="hover:text-brand-terracotta transition-colors"
-        >
-          {SITE_PHONE}
-        </MetrikaPhoneLink>
+        <div className="flex items-center gap-4">
+          <a
+            href={SITE_EMAIL_MAILTO}
+            className="hover:text-brand-terracotta transition-colors"
+          >
+            {SITE_EMAIL}
+          </a>
+          <MetrikaPhoneLink
+            href={SITE_PHONE_TEL}
+            className="hover:text-brand-terracotta transition-colors"
+          >
+            {SITE_PHONE}
+          </MetrikaPhoneLink>
+        </div>
       </div>
 
       <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
@@ -309,6 +317,13 @@ export function Header() {
                     >
                       Сотрудничество
                     </Link>
+                    <a
+                      href={SITE_EMAIL_MAILTO}
+                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors break-all"
+                      onClick={closeMenu}
+                    >
+                      {SITE_EMAIL}
+                    </a>
                     <MetrikaPhoneLink
                       href={SITE_PHONE_TEL}
                       className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors"

@@ -7,6 +7,8 @@ import {
   SHOWROOM,
   SHOWROOM_MAP_EMBED_URL,
   SHOWROOM_MAP_LINK,
+  SITE_EMAIL,
+  SITE_EMAIL_MAILTO,
   SITE_PHONE,
   SITE_PHONE_TEL,
 } from "@/lib/contacts";
@@ -124,8 +126,18 @@ export function ShowroomPage() {
               >
                 {SITE_PHONE}
               </MetrikaPhoneLink>
+              <p className="text-brand-terracotta text-xs tracking-[0.2em] uppercase mt-5 mb-3">
+                Email
+              </p>
+              <a
+                href={SITE_EMAIL_MAILTO}
+                className="font-heading text-lg md:text-xl text-brand-olive-dark hover:text-brand-terracotta transition-colors break-all"
+              >
+                {SITE_EMAIL}
+              </a>
               <p className="text-brand-muted text-sm mt-3">
-                Позвоните, чтобы уточнить наличие или договориться о визите
+                Напишите или позвоните, чтобы уточнить наличие или договориться о
+                визите
               </p>
             </div>
 

@@ -1,5 +1,7 @@
 export const SITE_PHONE = "+7 (499)65-35-925";
 export const SITE_PHONE_TEL = "tel:+74996535925";
+export const SITE_EMAIL = "sales@synonym-jewelry.ru";
+export const SITE_EMAIL_MAILTO = `mailto:${SITE_EMAIL}`;
 
 const PHONE_DIGITS = "79037613697";
 const TELEGRAM_PHONE = "+79037613697";

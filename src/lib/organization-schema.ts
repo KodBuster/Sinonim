@@ -1,6 +1,7 @@
 import {
   MESSENGERS,
   SHOWROOM_MAP_LINK,
+  SITE_EMAIL,
   SITE_PHONE_TEL,
 } from "@/lib/contacts";
 import { getOrganizationId, getShowroomId } from "@/lib/schema-ids";
@@ -30,6 +31,7 @@ export function buildOrganizationJsonLd(): Record<string, unknown> {
     description:
       "Ювелирный бренд Синоним — украшения из серебра 925 с лабораторными бриллиантами.",
     telephone: SITE_PHONE_TEL.replace("tel:", ""),
+    email: SITE_EMAIL,
     address: {
       "@type": "PostalAddress",
       streetAddress: "ул. Гиляровского 40, офис 13",
@@ -41,6 +43,7 @@ export function buildOrganizationJsonLd(): Record<string, unknown> {
     contactPoint: {
       "@type": "ContactPoint",
       telephone: SITE_PHONE_TEL.replace("tel:", ""),
+      email: SITE_EMAIL,
       contactType: "customer service",
       areaServed: "RU",
       availableLanguage: "Russian",
