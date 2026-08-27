@@ -32,19 +32,8 @@ const NAV_ITEMS = [
   { label: "Блог", href: "/blog" },
 ];
 
-/** iOS Safari fires a ghost click ~300ms after tap — ignore rapid re-toggles. */
-const TAP_GUARD_MS = 450;
-
-function useTapGuard() {
-  const lockedUntil = useRef(0);
-
-  return useCallback(() => {
-    const now = Date.now();
-    if (now < lockedUntil.current) return false;
-    lockedUntil.current = now + TAP_GUARD_MS;
-    return true;
-  }, []);
-}
+const iconButtonClass =
+  "relative z-[2] inline-flex cursor-pointer touch-manipulation text-brand-olive-dark hover:text-brand-terracotta transition-colors";
 
 function IconSearch({ className = "size-6 lg:size-5" }: { className?: string }) {
   return (
@@ -55,19 +44,56 @@ function IconSearch({ className = "size-6 lg:size-5" }: { className?: string }) 
   );
 }
 
-function SearchToggleButton({
+function IconMenu() {
+  return (
+    <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconClose() {
+  return (
+    <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M18 6 6 18M6 6l12 12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** Mobile search uses Link — same pattern as working Favorites/Cart on iOS. */
+function MobileSearchLink({ className = "" }: { className?: string }) {
+  return (
+    <Link
+      href="/search"
+      className={`${iconButtonClass} ${className || "p-2 sm:p-2.5"}`}
+      aria-label="Поиск"
+    >
+      <IconSearch />
+    </Link>
+  );
+}
+
+function DesktopSearchToggle({
   searchOpen,
   onSearchToggle,
-  className = "",
 }: {
   searchOpen: boolean;
   onSearchToggle: () => void;
-  className?: string;
 }) {
   return (
     <button
       type="button"
-      className={`relative z-[2] cursor-pointer touch-manipulation text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
+      className={`${iconButtonClass} p-2 sm:p-2.5`}
       aria-label={searchOpen ? "Закрыть поиск" : "Поиск"}
       aria-expanded={searchOpen}
       aria-controls="header-search"
@@ -81,24 +107,18 @@ function SearchToggleButton({
 function HeaderActions({
   searchOpen,
   onSearchToggle,
-  showSearch = true,
-  showCompare = true,
 }: {
   searchOpen: boolean;
   onSearchToggle: () => void;
-  showSearch?: boolean;
-  showCompare?: boolean;
 }) {
   return (
     <>
-      {showSearch && (
-        <SearchToggleButton
-          searchOpen={searchOpen}
-          onSearchToggle={onSearchToggle}
-        />
-      )}
+      <DesktopSearchToggle
+        searchOpen={searchOpen}
+        onSearchToggle={onSearchToggle}
+      />
       <FavoritesLink />
-      {showCompare && <CompareLink />}
+      <CompareLink />
       <CartLink />
     </>
   );
@@ -108,7 +128,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       href="/"
-      className={`relative z-0 flex flex-col group shrink-0 min-w-0 pointer-events-auto ${
+      className={`relative z-0 flex flex-col group shrink-0 min-w-0 ${
         compact ? "items-center" : "items-center md:items-start"
       }`}
     >
@@ -130,11 +150,9 @@ function Logo({ compact = false }: { compact?: boolean }) {
 
 export function Header() {
   const headerRef = useRef<HTMLElement>(null);
-  const allowTap = useTapGuard();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [overlayReady, setOverlayReady] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(52);
   const { count: compareCount, isReady: compareReady } = useCompare();
 
@@ -160,15 +178,10 @@ export function Header() {
   }, [searchOpen, menuOpen]);
 
   useEffect(() => {
-    if (!menuOpen) {
-      setOverlayReady(false);
-      return;
-    }
+    if (!menuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    const overlayTimer = window.setTimeout(() => setOverlayReady(true), TAP_GUARD_MS);
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -179,7 +192,6 @@ export function Header() {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleEscape);
-      window.clearTimeout(overlayTimer);
     };
   }, [menuOpen]);
 
@@ -198,21 +210,16 @@ export function Header() {
   }, [searchOpen]);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
-  const toggleSearch = useCallback(() => {
-    if (!allowTap()) return;
-    setSearchOpen((open) => {
-      if (!open) setMenuOpen(false);
-      return !open;
-    });
-  }, [allowTap]);
-
-  const toggleMenu = useCallback(() => {
-    if (!allowTap()) return;
+  // Only open — never toggle. iOS ghost-click would otherwise open+close instantly.
+  const openMenu = useCallback(() => {
     setSearchOpen(false);
-    setMenuOpen((open) => !open);
-  }, [allowTap]);
+    setMenuOpen(true);
+  }, []);
+
+  const toggleDesktopSearch = useCallback(() => {
+    setSearchOpen((open) => !open);
+  }, []);
 
   return (
     <header
@@ -248,48 +255,30 @@ export function Header() {
       </div>
 
       <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
-        <div className="flex items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
-          <div className="relative z-[2] flex flex-1 items-center justify-start min-w-0">
-            <button
-              type="button"
-              className="relative z-[2] cursor-pointer touch-manipulation py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
-              aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
+          <div className="relative z-[2] flex items-center justify-start min-w-0">
+            <a
+              href="#mobile-nav"
+              role="button"
+              className={`${iconButtonClass} py-2 pl-3 pr-0.5 shrink-0`}
+              aria-label="Открыть меню"
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
-              onClick={toggleMenu}
+              onClick={(event) => {
+                event.preventDefault();
+                openMenu();
+              }}
             >
-              {menuOpen ? (
-                <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path
-                    d="M18 6 6 18M6 6l12 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              ) : (
-                <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path
-                    d="M4 7h16M4 12h16M4 17h16"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </button>
-            <SearchToggleButton
-              searchOpen={searchOpen}
-              onSearchToggle={toggleSearch}
-              className="py-2 px-0.5"
-            />
+              <IconMenu />
+            </a>
+            <MobileSearchLink className="py-2 px-0.5" />
           </div>
 
-          <div className="relative z-0 shrink-0 px-2 sm:px-3">
+          <div className="relative z-0 overflow-hidden px-2 sm:px-3">
             <Logo compact />
           </div>
 
-          <div className="relative z-[2] flex flex-1 items-center justify-end min-w-0">
+          <div className="relative z-[2] flex items-center justify-end min-w-0">
             <FavoritesLink className="touch-manipulation py-2 pl-2 pr-0.5" />
             <CartLink className="touch-manipulation py-2 pl-0.5 pr-3" />
           </div>
@@ -301,24 +290,28 @@ export function Header() {
             <>
               <button
                 type="button"
-                className={`fixed inset-x-0 bottom-0 z-[90] bg-black/30 lg:hidden ${
-                  overlayReady ? "pointer-events-auto" : "pointer-events-none"
-                }`}
+                className="fixed inset-x-0 bottom-0 z-[90] bg-black/30 lg:hidden pointer-events-auto"
                 style={{ top: headerHeight }}
                 aria-label="Закрыть меню"
                 onClick={closeMenu}
               />
               <nav
                 id="mobile-nav"
-                className="fixed inset-x-0 z-[95] flex max-h-[min(80dvh,calc(100dvh-var(--header-h,3.25rem)))] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden"
-                style={
-                  {
-                    top: headerHeight,
-                    ["--header-h"]: `${headerHeight}px`,
-                  } as CSSProperties
-                }
+                className="fixed inset-x-0 z-[95] flex max-h-[min(80dvh,calc(100dvh-3.25rem))] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden"
+                style={{ top: headerHeight } as CSSProperties}
               >
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-6 [-webkit-overflow-scrolling:touch]">
+                <div className="flex items-center justify-between gap-3 border-b border-brand-sand px-4 py-3">
+                  <p className="text-sm tracking-wide text-brand-muted">Меню</p>
+                  <button
+                    type="button"
+                    className={`${iconButtonClass} p-2`}
+                    aria-label="Закрыть меню"
+                    onClick={closeMenu}
+                  >
+                    <IconClose />
+                  </button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 [-webkit-overflow-scrolling:touch]">
                   <ul className="flex flex-col gap-1">
                     {NAV_ITEMS.map((item) => (
                       <li key={item.href}>
@@ -407,17 +400,24 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-2 shrink-0">
-            <HeaderActions searchOpen={searchOpen} onSearchToggle={toggleSearch} />
+            <HeaderActions
+              searchOpen={searchOpen}
+              onSearchToggle={toggleDesktopSearch}
+            />
           </div>
         </div>
 
         {searchOpen && (
           <div
             id="header-search"
-            className="relative z-[2] mt-2 border-t border-brand-olive/10 pt-2 md:mt-3 md:pt-3 lg:mt-0 lg:border-t-0 lg:pt-0 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
+            className="relative z-[2] hidden lg:block lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
           >
             <div className="mx-auto max-w-xl lg:max-w-2xl">
-              <SearchForm autoFocus compact onSubmit={closeSearch} />
+              <SearchForm
+                autoFocus
+                compact
+                onSubmit={() => setSearchOpen(false)}
+              />
             </div>
           </div>
         )}
