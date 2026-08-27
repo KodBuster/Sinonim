@@ -18,6 +18,8 @@ const HERO_VIDEOS = [
   "/images/braslet_video_7.mp4",
 ] as const;
 
+type Slot = "a" | "b";
+
 function prepareVideo(video: HTMLVideoElement) {
   video.muted = true;
   video.defaultMuted = true;
@@ -26,69 +28,195 @@ function prepareVideo(video: HTMLVideoElement) {
   video.setAttribute("webkit-playsinline", "");
 }
 
+function sameSrc(video: HTMLVideoElement, src: string) {
+  if (!video.currentSrc && !video.getAttribute("src")) return false;
+  return (
+    video.getAttribute("src") === src ||
+    video.currentSrc.endsWith(src) ||
+    video.currentSrc.includes(src)
+  );
+}
+
+function waitForPlaybackReady(video: HTMLVideoElement): Promise<void> {
+  if (video.readyState >= 2 && video.videoWidth > 0) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      if (video.readyState < 2 || video.videoWidth <= 0) return;
+      settled = true;
+      video.removeEventListener("loadeddata", done);
+      video.removeEventListener("canplay", done);
+      resolve();
+    };
+    video.addEventListener("loadeddata", done);
+    video.addEventListener("canplay", done);
+    // Safety: never block the carousel forever on a flaky network.
+    window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      video.removeEventListener("loadeddata", done);
+      video.removeEventListener("canplay", done);
+      resolve();
+    }, 8000);
+  });
+}
+
+async function playSafely(video: HTMLVideoElement) {
+  const x = window.scrollX;
+  const y = window.scrollY;
+  prepareVideo(video);
+  try {
+    await video.play();
+  } catch {
+    // Autoplay can fail until user gesture; keep last frame visible.
+  }
+  requestAnimationFrame(() => {
+    if (Math.abs(window.scrollY - y) > 2 || Math.abs(window.scrollX - x) > 2) {
+      window.scrollTo(x, y);
+    }
+  });
+}
+
 export function HeroMedia() {
-  const [ready, setReady] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [hasFrame, setHasFrame] = useState(false);
+  const [activeSlot, setActiveSlot] = useState<Slot>("a");
   const [index, setIndex] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const videoARef = useRef<HTMLVideoElement>(null);
+  const videoBRef = useRef<HTMLVideoElement>(null);
+  const indexRef = useRef(0);
+  const activeSlotRef = useRef<Slot>("a");
+  const switchingRef = useRef(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
-  const goTo = useCallback((next: number) => {
-    const length = HERO_VIDEOS.length;
-    setIndex((((next % length) + length) % length));
+  const getVideo = useCallback((slot: Slot) => {
+    return slot === "a" ? videoARef.current : videoBRef.current;
   }, []);
 
-  const goNext = useCallback(() => {
-    setIndex((current) => (current + 1) % HERO_VIDEOS.length);
-  }, []);
-
-  const goPrev = useCallback(() => {
-    setIndex((current) => (current - 1 + HERO_VIDEOS.length) % HERO_VIDEOS.length);
-  }, []);
-
-  useEffect(() => {
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !ready) return;
-
+  const loadSrc = useCallback(async (video: HTMLVideoElement, src: string) => {
     prepareVideo(video);
+    video.preload = "auto";
 
-    const restoreScrollIfJumped = (x: number, y: number) => {
-      requestAnimationFrame(() => {
-        if (Math.abs(window.scrollY - y) > 2 || Math.abs(window.scrollX - x) > 2) {
-          window.scrollTo(x, y);
-        }
-      });
+    if (!sameSrc(video, src) || video.readyState < 2) {
+      video.src = src;
+      video.load();
+      await waitForPlaybackReady(video);
+    }
+
+    try {
+      video.pause();
+      if (video.currentTime !== 0) video.currentTime = 0;
+    } catch {
+      // Ignore seek failures on some mobile browsers.
+    }
+  }, []);
+
+  const preloadNext = useCallback(
+    (afterIndex: number) => {
+      const nextSrc = HERO_VIDEOS[(afterIndex + 1) % HERO_VIDEOS.length];
+      const inactive: Slot = activeSlotRef.current === "a" ? "b" : "a";
+      const video = getVideo(inactive);
+      if (!video) return;
+      void loadSrc(video, nextSrc);
+    },
+    [getVideo, loadSrc],
+  );
+
+  const switchToIndex = useCallback(
+    async (nextIndex: number) => {
+      if (switchingRef.current) return;
+
+      const length = HERO_VIDEOS.length;
+      const normalized = ((nextIndex % length) + length) % length;
+      if (normalized === indexRef.current) return;
+
+      const active = activeSlotRef.current;
+      const inactive: Slot = active === "a" ? "b" : "a";
+      const nextSrc = HERO_VIDEOS[normalized];
+      const inactiveVideo = getVideo(inactive);
+      const activeVideo = getVideo(active);
+      if (!inactiveVideo || !activeVideo) return;
+
+      switchingRef.current = true;
+
+      try {
+        await loadSrc(inactiveVideo, nextSrc);
+        await playSafely(inactiveVideo);
+
+        // Reveal only after the next clip has a frame and is playing.
+        activeSlotRef.current = inactive;
+        indexRef.current = normalized;
+        setActiveSlot(inactive);
+        setIndex(normalized);
+
+        activeVideo.pause();
+        preloadNext(normalized);
+      } finally {
+        switchingRef.current = false;
+      }
+    },
+    [getVideo, loadSrc, preloadNext],
+  );
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    let cancelled = false;
+
+    const boot = async () => {
+      const first = getVideo("a");
+      if (!first) return;
+
+      await loadSrc(first, HERO_VIDEOS[0]);
+      if (cancelled) return;
+      await playSafely(first);
+      if (cancelled) return;
+      setHasFrame(true);
+      preloadNext(0);
     };
 
-    const tryPlay = () => {
-      const x = window.scrollX;
-      const y = window.scrollY;
-      void video.play().then(
-        () => restoreScrollIfJumped(x, y),
-        () => restoreScrollIfJumped(x, y),
-      );
-    };
-
-    video.load();
-    tryPlay();
-    video.addEventListener("loadeddata", tryPlay);
-    video.addEventListener("canplay", tryPlay);
+    void boot();
 
     const onVisible = () => {
-      if (!document.hidden) tryPlay();
+      if (document.hidden) return;
+      const current = getVideo(activeSlotRef.current);
+      if (current) void playSafely(current);
     };
     document.addEventListener("visibilitychange", onVisible);
 
     return () => {
-      video.removeEventListener("loadeddata", tryPlay);
-      video.removeEventListener("canplay", tryPlay);
+      cancelled = true;
       document.removeEventListener("visibilitychange", onVisible);
-      video.pause();
     };
-  }, [index, ready]);
+  }, [getVideo, hydrated, loadSrc, preloadNext]);
+
+  const goTo = useCallback(
+    (next: number) => {
+      void switchToIndex(next);
+    },
+    [switchToIndex],
+  );
+
+  const goNext = useCallback(() => {
+    void switchToIndex(indexRef.current + 1);
+  }, [switchToIndex]);
+
+  const goPrev = useCallback(() => {
+    void switchToIndex(indexRef.current - 1);
+  }, [switchToIndex]);
+
+  const handleEnded = useCallback(() => {
+    void switchToIndex(indexRef.current + 1);
+  }, [switchToIndex]);
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     const touch = event.touches[0];
@@ -111,11 +239,12 @@ export function HeroMedia() {
     else goPrev();
   };
 
-  const src = HERO_VIDEOS[index];
+  const videoClassName =
+    "absolute inset-0 h-full w-full object-cover object-center lg:object-cover lg:object-top";
 
   return (
     <div
-      className="absolute inset-0"
+      className="absolute inset-0 bg-[#f5f2ec]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -126,26 +255,40 @@ export function HeroMedia() {
         priority
         fetchPriority="high"
         sizes="(max-width: 1023px) 100vw, 512px"
-        className={`object-cover object-center lg:object-cover lg:object-top ${
-          ready ? "hidden" : ""
+        className={`object-cover object-center lg:object-cover lg:object-top transition-opacity duration-200 ${
+          hasFrame ? "opacity-0" : "opacity-100"
         }`}
       />
 
-      {ready ? (
-        <video
-          key={src}
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          preload="metadata"
-          disablePictureInPicture
-          className="absolute inset-0 h-full w-full object-cover object-center lg:object-cover lg:object-top"
-          aria-label={HERO_ALT}
-          onEnded={goNext}
-        >
-          <source src={src} type="video/mp4" />
-        </video>
+      {hydrated ? (
+        <>
+          <video
+            ref={videoARef}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            className={`${videoClassName} transition-opacity duration-200 ${
+              activeSlot === "a" ? "opacity-100 z-[1]" : "opacity-0 z-0"
+            }`}
+            aria-label={activeSlot === "a" ? HERO_ALT : undefined}
+            aria-hidden={activeSlot !== "a"}
+            onEnded={activeSlot === "a" ? handleEnded : undefined}
+          />
+          <video
+            ref={videoBRef}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            className={`${videoClassName} transition-opacity duration-200 ${
+              activeSlot === "b" ? "opacity-100 z-[1]" : "opacity-0 z-0"
+            }`}
+            aria-label={activeSlot === "b" ? HERO_ALT : undefined}
+            aria-hidden={activeSlot !== "b"}
+            onEnded={activeSlot === "b" ? handleEnded : undefined}
+          />
+        </>
       ) : null}
 
       <div
@@ -153,11 +296,11 @@ export function HeroMedia() {
         role="tablist"
         aria-label="Видео в карусели"
       >
-        {HERO_VIDEOS.map((_, i) => {
+        {HERO_VIDEOS.map((src, i) => {
           const isActive = i === index;
           return (
             <button
-              key={HERO_VIDEOS[i]}
+              key={src}
               type="button"
               role="tab"
               aria-selected={isActive}
