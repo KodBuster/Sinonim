@@ -226,14 +226,70 @@ body.mango-chat-open #messenger-fab-root {
   }
 }
 
-/* Mobile: soft size caps only — do not force position (breaks open animation) */
+/* Mobile: keep open chat fully inside the viewport so the close control is visible */
 @media (max-width: 767.98px) {
-  [class*="mgo-"][class*="panel"],
-  [class*="mgo-"][class*="window"],
-  [class*="mgo-"][class*="dialog"],
-  .mgo-mcw__window,
-  .mgo-mcw__chat-window {
-    max-width: calc(100vw - 16px) !important;
-    max-height: calc(100dvh - 24px) !important;
+  body.mango-chat-open {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  .mgo-mcw-widget.mgo-mcw_state-window-open {
+    position: fixed !important;
+    top: max(8px, env(safe-area-inset-top, 0px)) !important;
+    right: max(8px, env(safe-area-inset-right, 0px)) !important;
+    bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+    left: max(8px, env(safe-area-inset-left, 0px)) !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    transform: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+
+  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="mgo-"][class*="panel"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="mgo-"][class*="window"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="mgo-"][class*="dialog"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__window,
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__chat-window,
+  .mgo-mcw-widget.mgo-mcw_state-window-open iframe {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .mgo-mcw-widget.mgo-mcw_state-window-open iframe {
+    display: block !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Keep the header/close control reachable at the top of the frame */
+  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="close"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="Close"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [aria-label*="Закрыть"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [aria-label*="Close"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [title*="Закрыть"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open [title*="Close"] {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
   }
 }
