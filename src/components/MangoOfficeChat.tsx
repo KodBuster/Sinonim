@@ -1,15 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { MANGO_WIDGET_ID } from "@/lib/mango-office";
 
 const MANGO_LOAD_DELAY_MS = 800;
 
-function syncMangoOpenClass() {
-  const open = Boolean(
+function isMangoOpen() {
+  return Boolean(
     document.querySelector(".mgo-mcw-widget.mgo-mcw_state-window-open"),
   );
-  document.body.classList.toggle("mango-chat-open", open);
+}
+
+function syncMangoOpenClass() {
+  document.body.classList.toggle("mango-chat-open", isMangoOpen());
+}
+
+function closeMangoChat() {
+  const candidates = [
+    document.getElementById("mgo-mcw-widget-close-btn"),
+    document.getElementById("mgo-mcw-close-button"),
+    document.querySelector<HTMLElement>(".mgo-mcw__button-close"),
+    document.querySelector<HTMLElement>(".mgo-mcw__button_close"),
+  ];
+
+  for (const el of candidates) {
+    if (!el) continue;
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    el.click();
+    return;
+  }
 }
 
 function loadMangoWidget() {
@@ -46,6 +66,13 @@ function loadMangoWidget() {
 }
 
 export function MangoOfficeChat() {
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     let loaded = false;
     const load = () => {
@@ -75,11 +102,13 @@ export function MangoOfficeChat() {
   }, []);
 
   useEffect(() => {
-    syncMangoOpenClass();
-    // Observe class only — never rewrite Mango inline styles (breaks taps on iOS).
-    const observer = new MutationObserver(() => {
+    const sync = () => {
       syncMangoOpenClass();
-    });
+      setOpen(isMangoOpen());
+    };
+
+    sync();
+    const observer = new MutationObserver(sync);
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -93,5 +122,24 @@ export function MangoOfficeChat() {
     };
   }, []);
 
-  return null;
+  return mounted && open
+    ? createPortal(
+        <button
+          type="button"
+          aria-label="Закрыть чат"
+          onClick={closeMangoChat}
+          className="fixed z-[120] flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-black/10 bg-white text-brand-olive-dark shadow-lg [-webkit-tap-highlight-color:transparent] top-[max(12px,env(safe-area-inset-top))] right-[max(12px,env(safe-area-inset-right))]"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M18 6 6 18M6 6l12 12"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>,
+        document.body,
+      )
+    : null;
 }

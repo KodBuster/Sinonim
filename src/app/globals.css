@@ -209,7 +209,8 @@ body {
 }
 
 .mgo-mcw-widget.mgo-mcw_state-window-open {
-  z-index: 60 !important;
+  /* Above sticky site header (z-100), otherwise close control is covered */
+  z-index: 110 !important;
   pointer-events: auto !important;
 }
 
@@ -235,9 +236,9 @@ body.mango-chat-open #messenger-fab-root {
 
   .mgo-mcw-widget.mgo-mcw_state-window-open {
     position: fixed !important;
-    top: max(8px, env(safe-area-inset-top, 0px)) !important;
+    top: max(12px, env(safe-area-inset-top, 0px)) !important;
     right: max(8px, env(safe-area-inset-right, 0px)) !important;
-    bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
     left: max(8px, env(safe-area-inset-left, 0px)) !important;
     width: auto !important;
     height: auto !important;
@@ -245,18 +246,19 @@ body.mango-chat-open #messenger-fab-root {
     max-height: none !important;
     margin: 0 !important;
     transform: none !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     display: flex !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
+    z-index: 110 !important;
   }
 
-  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="mgo-"][class*="panel"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="mgo-"][class*="window"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="mgo-"][class*="dialog"],
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__wrapper,
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__window-container,
   .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__window,
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__widget-window,
   .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__chat-window,
-  .mgo-mcw-widget.mgo-mcw_state-window-open iframe {
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__chat-offline-form {
     position: relative !important;
     inset: auto !important;
     top: auto !important;
@@ -270,26 +272,28 @@ body.mango-chat-open #messenger-fab-root {
     margin: 0 !important;
     transform: none !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
-  .mgo-mcw-widget.mgo-mcw_state-window-open iframe {
-    display: block !important;
-    min-height: 0 !important;
-    flex: 1 1 auto !important;
-  }
-
-  /* Keep the header/close control reachable at the top of the frame */
-  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="close"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [class*="Close"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [aria-label*="Закрыть"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [aria-label*="Close"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [title*="Закрыть"],
-  .mgo-mcw-widget.mgo-mcw_state-window-open [title*="Close"] {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 2 !important;
+  /* Native Mango close — keep reachable under our custom close as fallback */
+  #mgo-mcw-widget-close-btn,
+  .mgo-mcw-widget.mgo-mcw_state-window-open .mgo-mcw__button-close {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: 44px !important;
+    height: 44px !important;
+    z-index: 5 !important;
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    background-size: 16px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border-radius: 999px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18) !important;
   }
 }
