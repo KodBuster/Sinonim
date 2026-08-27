@@ -5,7 +5,6 @@ import {
   FeaturedProducts,
   FeaturedProductsFallback,
 } from "@/components/FeaturedProducts";
-import { ScrollReveal } from "@/components/ScrollReveal";
 import { getCategoryStats } from "@/lib/catalog-stats";
 
 export async function Categories() {
@@ -34,58 +33,53 @@ export async function Categories() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-16 md:mb-20">
-          {categories.map((cat, index) => {
+          {categories.map((cat) => {
             const isBracelets = cat.slug === "bracelets";
 
             return (
-              <ScrollReveal
+              <Link
                 key={cat.href}
-                delayMs={index * 90}
-                className="min-w-0"
+                href={cat.href}
+                className="group relative flex aspect-[7/4] overflow-hidden rounded-xl bg-brand-surface shadow-sm transition-shadow hover:shadow-md md:aspect-[8/5] touch-manipulation cursor-pointer"
               >
-                <Link
-                  href={cat.href}
-                  className="group relative flex aspect-[7/4] overflow-hidden rounded-xl bg-brand-surface shadow-sm transition-shadow hover:shadow-md md:aspect-[8/5] touch-manipulation"
-                >
-                  <div className="flex min-h-0 w-full flex-row">
-                    <div className="flex min-w-0 flex-1 flex-col justify-center p-5 md:p-6">
-                      <h3 className="font-heading text-2xl md:text-3xl mb-1.5 text-brand-olive-dark">
-                        {cat.title}
-                      </h3>
-                      <p className="text-sm md:text-base text-brand-muted">
-                        {cat.countLabel}
-                      </p>
-                      <p className="text-base md:text-lg text-brand-olive-dark mt-1.5">
-                        {cat.priceFromLabel}
-                      </p>
-                    </div>
-
-                    <div
-                      className={`relative h-full shrink-0 overflow-hidden ${
-                        isBracelets
-                          ? "w-[59%] md:w-[63%] bg-brand-surface"
-                          : "w-[42%] md:w-[45%] bg-brand-surface"
-                      }`}
-                    >
-                      <Image
-                        src={cat.image}
-                        alt={cat.title}
-                        fill
-                        className={
-                          isBracelets
-                            ? "object-contain object-center transition-transform duration-500 group-hover:scale-[1.03]"
-                            : "object-cover transition-transform duration-500 group-hover:scale-105"
-                        }
-                        sizes={
-                          isBracelets
-                            ? "(max-width: 768px) 59vw, 31vw"
-                            : "(max-width: 768px) 42vw, 22vw"
-                        }
-                      />
-                    </div>
+                <div className="flex min-h-0 w-full flex-row">
+                  <div className="flex min-w-0 flex-1 flex-col justify-center p-5 md:p-6">
+                    <h3 className="font-heading text-2xl md:text-3xl mb-1.5 text-brand-olive-dark">
+                      {cat.title}
+                    </h3>
+                    <p className="text-sm md:text-base text-brand-muted">
+                      {cat.countLabel}
+                    </p>
+                    <p className="text-base md:text-lg text-brand-olive-dark mt-1.5">
+                      {cat.priceFromLabel}
+                    </p>
                   </div>
-                </Link>
-              </ScrollReveal>
+
+                  <div
+                    className={`relative h-full shrink-0 overflow-hidden ${
+                      isBracelets
+                        ? "w-[59%] md:w-[63%] bg-brand-surface"
+                        : "w-[42%] md:w-[45%] bg-brand-surface"
+                    }`}
+                  >
+                    <Image
+                      src={cat.image}
+                      alt={cat.title}
+                      fill
+                      className={
+                        isBracelets
+                          ? "object-contain object-center transition-transform duration-500 group-hover:scale-[1.03]"
+                          : "object-cover transition-transform duration-500 group-hover:scale-105"
+                      }
+                      sizes={
+                        isBracelets
+                          ? "(max-width: 768px) 59vw, 31vw"
+                          : "(max-width: 768px) 42vw, 22vw"
+                      }
+                    />
+                  </div>
+                </div>
+              </Link>
             );
           })}
         </div>

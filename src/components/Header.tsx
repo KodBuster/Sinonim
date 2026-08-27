@@ -1,6 +1,14 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type TouchEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { CartLink } from "@/components/cart/CartLink";
@@ -9,7 +17,12 @@ import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 import { MetrikaPhoneLink } from "@/components/analytics/MetrikaPhoneLink";
 import { SearchForm } from "@/components/search/SearchForm";
 import { useCompare } from "@/context/CompareContext";
-import { SITE_EMAIL, SITE_EMAIL_MAILTO, SITE_PHONE, SITE_PHONE_TEL } from "@/lib/contacts";
+import {
+  SITE_EMAIL,
+  SITE_EMAIL_MAILTO,
+  SITE_PHONE,
+  SITE_PHONE_TEL,
+} from "@/lib/contacts";
 
 const NAV_ITEMS = [
   { label: "Кольца", href: "/shop/rings" },
@@ -20,6 +33,34 @@ const NAV_ITEMS = [
   { label: "О бренде", href: "/about" },
   { label: "Блог", href: "/blog" },
 ];
+
+/** iOS Safari often drops click; touchend + click-guard is more reliable. */
+function useTapAction(action: () => void) {
+  const touchedRef = useRef(false);
+
+  const onTouchEnd = useCallback(
+    (event: TouchEvent<HTMLButtonElement>) => {
+      touchedRef.current = true;
+      event.preventDefault();
+      action();
+    },
+    [action],
+  );
+
+  const onClick = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      if (touchedRef.current) {
+        touchedRef.current = false;
+        event.preventDefault();
+        return;
+      }
+      action();
+    },
+    [action],
+  );
+
+  return { onTouchEnd, onClick };
+}
 
 function IconSearch({ className = "size-6 lg:size-5" }: { className?: string }) {
   return (
@@ -39,14 +80,16 @@ function SearchToggleButton({
   onSearchToggle: () => void;
   className?: string;
 }) {
+  const tap = useTapAction(onSearchToggle);
+
   return (
     <button
       type="button"
-      className={`relative z-10 cursor-pointer touch-manipulation text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
+      className={`relative z-[1] cursor-pointer touch-manipulation select-none text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
       aria-label={searchOpen ? "Закрыть поиск" : "Поиск"}
       aria-expanded={searchOpen}
       aria-controls="header-search"
-      onClick={onSearchToggle}
+      {...tap}
     >
       <IconSearch />
     </button>
@@ -83,7 +126,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       href="/"
-      className={`flex flex-col group shrink-0 min-w-0 ${
+      className={`relative z-0 flex flex-col group shrink-0 min-w-0 ${
         compact ? "items-center" : "items-center md:items-start"
       }`}
     >
@@ -104,15 +147,34 @@ function Logo({ compact = false }: { compact?: boolean }) {
 }
 
 export function Header() {
+  const headerRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [overlayReady, setOverlayReady] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(52);
   const { count: compareCount, isReady: compareReady } = useCompare();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header || typeof ResizeObserver === "undefined") return;
+
+    const update = () => {
+      setHeaderHeight(Math.ceil(header.getBoundingClientRect().height));
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [searchOpen, menuOpen]);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -123,7 +185,8 @@ export function Header() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const overlayTimer = window.setTimeout(() => setOverlayReady(true), 400);
+    // Не перехватывать тот же тап, которым открыли меню (iOS ghost click).
+    const overlayTimer = window.setTimeout(() => setOverlayReady(true), 450);
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -152,27 +215,28 @@ export function Header() {
     };
   }, [searchOpen]);
 
-  const closeMenu = () => setMenuOpen(false);
-  const closeSearch = () => setSearchOpen(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
-  const toggleSearch = () => {
+  const toggleSearch = useCallback(() => {
     setSearchOpen((open) => {
       if (!open) setMenuOpen(false);
       return !open;
     });
-  };
+  }, []);
 
-  const openMenu = () => {
+  const openMenu = useCallback(() => {
     setSearchOpen(false);
     setMenuOpen((open) => !open);
-  };
+  }, []);
+
+  const menuButtonTap = useTapAction(openMenu);
 
   return (
-    <header className="sticky top-0 z-50 isolate border-b border-brand-terracotta bg-brand-surface">
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-brand-surface/95 backdrop-blur-sm"
-        aria-hidden
-      />
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-[100] border-b border-brand-terracotta bg-brand-surface"
+    >
       <div className="hidden md:flex justify-between items-center px-6 lg:px-10 py-2 text-xs text-brand-muted border-b border-brand-sand">
         <div className="flex gap-6">
           <Link href="/shipping" className="hover:text-brand-terracotta transition-colors">
@@ -203,14 +267,14 @@ export function Header() {
 
       <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
         <div className="flex items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
-          <div className="flex flex-1 items-center justify-start min-w-0">
+          <div className="relative z-[1] flex flex-1 items-center justify-start min-w-0">
             <button
               type="button"
-              className="relative z-10 cursor-pointer touch-manipulation py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
+              className="relative z-[1] cursor-pointer touch-manipulation select-none py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
               aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
-              onClick={openMenu}
+              {...menuButtonTap}
             >
               {menuOpen ? (
                 <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -239,13 +303,13 @@ export function Header() {
             />
           </div>
 
-          <div className="shrink-0 px-2 sm:px-3">
+          <div className="relative z-0 shrink-0 px-2 sm:px-3">
             <Logo compact />
           </div>
 
-          <div className="flex flex-1 items-center justify-end min-w-0">
-            <FavoritesLink className="py-2 pl-2 pr-0.5" />
-            <CartLink className="py-2 pl-0.5 pr-3" />
+          <div className="relative z-[1] flex flex-1 items-center justify-end min-w-0">
+            <FavoritesLink className="touch-manipulation py-2 pl-2 pr-0.5" />
+            <CartLink className="touch-manipulation py-2 pl-0.5 pr-3" />
           </div>
         </div>
 
@@ -255,23 +319,30 @@ export function Header() {
             <>
               <button
                 type="button"
-                className={`fixed inset-0 z-[60] bg-black/30 lg:hidden ${
+                className={`fixed inset-x-0 bottom-0 z-[90] bg-black/30 lg:hidden ${
                   overlayReady ? "pointer-events-auto" : "pointer-events-none"
                 }`}
+                style={{ top: headerHeight }}
                 aria-label="Закрыть меню"
                 onClick={closeMenu}
               />
               <nav
                 id="mobile-nav"
-                className="fixed inset-x-0 top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-[70] flex max-h-[calc(100dvh-3.25rem)] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden"
+                className="fixed inset-x-0 z-[95] flex max-h-[min(80dvh,calc(100dvh-var(--header-h,3.25rem)))] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden"
+                style={
+                  {
+                    top: headerHeight,
+                    ["--header-h"]: `${headerHeight}px`,
+                  } as CSSProperties
+                }
               >
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-6">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-6 [-webkit-overflow-scrolling:touch]">
                   <ul className="flex flex-col gap-1">
                     {NAV_ITEMS.map((item) => (
                       <li key={item.href}>
                         <Link
                           href={item.href}
-                          className="block rounded-lg px-3 py-3 text-base tracking-wide text-brand-text hover:bg-brand-surface hover:text-brand-terracotta transition-colors"
+                          className="block rounded-lg px-3 py-3 text-base tracking-wide text-brand-text hover:bg-brand-surface hover:text-brand-terracotta transition-colors touch-manipulation"
                           onClick={closeMenu}
                         >
                           {item.label}
@@ -283,14 +354,14 @@ export function Header() {
                   <div className="mt-6 flex flex-col gap-3 border-t border-brand-sand pt-6 text-sm text-brand-muted">
                     <Link
                       href="/shop"
-                      className="hover:text-brand-terracotta transition-colors"
+                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       Весь каталог
                     </Link>
                     <Link
                       href="/compare"
-                      className="hover:text-brand-terracotta transition-colors"
+                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       Сравнение
@@ -298,35 +369,35 @@ export function Header() {
                     </Link>
                     <Link
                       href="/shipping"
-                      className="hover:text-brand-terracotta transition-colors"
+                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       Доставка и оплата
                     </Link>
                     <Link
                       href="/showroom"
-                      className="hover:text-brand-terracotta transition-colors"
+                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       Шоурум
                     </Link>
                     <Link
                       href="/cooperation"
-                      className="hover:text-brand-terracotta transition-colors"
+                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       Сотрудничество
                     </Link>
                     <a
                       href={SITE_EMAIL_MAILTO}
-                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors break-all"
+                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors break-all touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       {SITE_EMAIL}
                     </a>
                     <MetrikaPhoneLink
                       href={SITE_PHONE_TEL}
-                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors"
+                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors touch-manipulation py-1"
                       onClick={closeMenu}
                     >
                       {SITE_PHONE}
@@ -361,7 +432,7 @@ export function Header() {
         {searchOpen && (
           <div
             id="header-search"
-            className="mt-2 border-t border-brand-olive/10 pt-2 md:mt-3 md:pt-3 lg:mt-0 lg:border-t-0 lg:pt-0 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
+            className="relative z-[1] mt-2 border-t border-brand-olive/10 pt-2 md:mt-3 md:pt-3 lg:mt-0 lg:border-t-0 lg:pt-0 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
           >
             <div className="mx-auto max-w-xl lg:max-w-2xl">
               <SearchForm autoFocus compact onSubmit={closeSearch} />
