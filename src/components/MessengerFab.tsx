@@ -169,14 +169,14 @@ export function MessengerFab() {
     <div
       ref={rootRef}
       id="messenger-fab-root"
-      className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50"
+      className="pointer-events-none fixed bottom-5 right-5 z-50 md:bottom-6 md:right-6"
     >
       <div className="relative flex h-14 w-14 items-center justify-center">
         <div
           className={`absolute right-full top-1/2 mr-3 flex -translate-y-1/2 flex-row items-center gap-2 transition-all duration-300 ${
             open
-              ? "opacity-100 translate-x-0 pointer-events-auto"
-              : "opacity-0 translate-x-4 pointer-events-none"
+              ? "pointer-events-auto opacity-100 translate-x-0"
+              : "pointer-events-none opacity-0 translate-x-4"
           }`}
           aria-hidden={!open}
         >
@@ -253,7 +253,7 @@ export function MessengerFab() {
             if (now - openedAtRef.current < 450) return;
             setOpen(false);
           }}
-          className="relative z-[1] flex h-14 w-14 shrink-0 touch-manipulation items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
+          className="pointer-events-auto relative z-[1] flex h-14 w-14 shrink-0 touch-manipulation items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
           aria-expanded={open}
           aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
         >

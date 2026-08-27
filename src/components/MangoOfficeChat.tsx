@@ -3,7 +3,10 @@
 import { useEffect } from "react";
 import { MANGO_WIDGET_ID } from "@/lib/mango-office";
 
-const GAP_PX = 16;
+const GAP_PX = 20;
+/** Above Messenger FAB (z-50) so the green button receives taps on iOS. */
+const MANGO_BUTTON_Z = "55";
+const MANGO_OPEN_Z = "60";
 
 function clearPositionOverrides(el: HTMLElement) {
   [
@@ -15,7 +18,14 @@ function clearPositionOverrides(el: HTMLElement) {
     "transform",
     "z-index",
     "margin",
+    "pointer-events",
   ].forEach((prop) => el.style.removeProperty(prop));
+}
+
+function ensureTappable(el: HTMLElement) {
+  el.style.setProperty("pointer-events", "auto", "important");
+  el.style.setProperty("touch-action", "manipulation", "important");
+  el.style.setProperty("-webkit-tap-highlight-color", "transparent");
 }
 
 function positionMangoAboveFab() {
@@ -29,18 +39,22 @@ function positionMangoAboveFab() {
   let hasOpenWidget = false;
 
   widgets.forEach((widget) => {
-    // Open chat must sit above Messenger FAB (z-50), otherwise send/clicks are blocked.
+    const button =
+      widget.querySelector<HTMLElement>(
+        ".mgo-mcw__button_main, .mgo-mcw__button_chat, .mgo-mcw__button, .mgo-mcw__button-icon, button, a"
+      ) ?? widget;
+
+    ensureTappable(widget);
+    ensureTappable(button);
+
+    // Open chat must sit above Messenger FAB, otherwise send/clicks are blocked.
     if (widget.classList.contains("mgo-mcw_state-window-open")) {
       hasOpenWidget = true;
       clearPositionOverrides(widget);
-      widget.style.setProperty("z-index", "60", "important");
+      widget.style.setProperty("z-index", MANGO_OPEN_Z, "important");
+      ensureTappable(widget);
       return;
     }
-
-    const button =
-      widget.querySelector<HTMLElement>(
-        ".mgo-mcw__button_main, .mgo-mcw__button_chat, .mgo-mcw__button"
-      ) ?? widget;
 
     const buttonWidth = Math.max(button.getBoundingClientRect().width || 56, 40);
     const fabCenterX = fabRect.left + fabRect.width / 2;
@@ -60,13 +74,15 @@ function positionMangoAboveFab() {
     widget.style.setProperty("right", `${rightPx}px`, "important");
     widget.style.setProperty("transform", "none", "important");
     widget.style.setProperty("margin", "0", "important");
-    widget.style.setProperty("z-index", "49", "important");
+    widget.style.setProperty("z-index", MANGO_BUTTON_Z, "important");
+    ensureTappable(widget);
+    ensureTappable(button);
   });
 
   document.body.classList.toggle("mango-chat-open", hasOpenWidget);
 }
 
-const MANGO_LOAD_DELAY_MS = 1500;
+const MANGO_LOAD_DELAY_MS = 1200;
 
 function loadMangoWidget() {
   if (document.getElementById("mango-js")) return;
@@ -108,6 +124,10 @@ export function MangoOfficeChat() {
       if (loaded) return;
       loaded = true;
       loadMangoWidget();
+      // Widget mounts async — pin it once it appears.
+      window.setTimeout(positionMangoAboveFab, 400);
+      window.setTimeout(positionMangoAboveFab, 1200);
+      window.setTimeout(positionMangoAboveFab, 2500);
     };
 
     const timeoutId = window.setTimeout(load, MANGO_LOAD_DELAY_MS);
@@ -129,7 +149,8 @@ export function MangoOfficeChat() {
 
   useEffect(() => {
     positionMangoAboveFab();
-    const interval = window.setInterval(positionMangoAboveFab, 1000);
+    // Rarely enough not to interrupt iOS taps, often enough to follow FAB.
+    const interval = window.setInterval(positionMangoAboveFab, 2000);
     let raf = 0;
     const observer = new MutationObserver(() => {
       if (raf) return;
@@ -142,15 +163,17 @@ export function MangoOfficeChat() {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ["class", "style"],
     });
     window.addEventListener("resize", positionMangoAboveFab);
+    window.addEventListener("orientationchange", positionMangoAboveFab);
 
     return () => {
       observer.disconnect();
       window.clearInterval(interval);
       if (raf) window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", positionMangoAboveFab);
+      window.removeEventListener("orientationchange", positionMangoAboveFab);
       document.body.classList.remove("mango-chat-open");
     };
   }, []);

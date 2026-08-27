@@ -183,29 +183,43 @@ body {
   }
 }
 
-/* Fallback: Mango «Чат» above Messenger FAB (JS pins to #messenger-fab-root) */
+/* Mango «Чат» above Messenger FAB — z-index must beat FAB (50) or iOS steals taps */
 .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
-  bottom: 5.75rem !important;
+  bottom: 6rem !important;
   right: 1.25rem !important;
   top: auto !important;
   left: auto !important;
   transform: none !important;
-  z-index: 49 !important;
+  z-index: 55 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button,
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button_main,
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button_chat,
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button-icon,
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) button,
+.mgo-mcw-widget:not(.mgo-mcw_state-window-open) a {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  cursor: pointer !important;
 }
 
 .mgo-mcw-widget.mgo-mcw_state-window-open {
   z-index: 60 !important;
+  pointer-events: auto !important;
 }
 
 body.mango-chat-open #messenger-fab-root {
-  pointer-events: none;
+  pointer-events: none !important;
   opacity: 0;
   visibility: hidden;
 }
 
 @media (min-width: 768px) {
   .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
-    bottom: 6.25rem !important;
+    bottom: 6.5rem !important;
     right: 1.5rem !important;
   }
 }
