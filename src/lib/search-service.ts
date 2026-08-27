@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import {
-  fetchAdvantShopSearch,
   fetchAdvantShopSearchAutocomplete,
+  fetchAdvantShopSearchProductIds,
 } from "@/lib/advantshop/search";
 import { loadAdvantShopProductDetails } from "@/lib/advantshop/catalog";
 import {
@@ -25,11 +25,37 @@ import {
 import type { SearchAutocompleteResult } from "@/lib/search-types";
 import { getCatalogProducts } from "@/lib/products-service";
 
-const getCachedAdvantShopSearch = unstable_cache(
-  async (query: string, sort: string) => fetchAdvantShopSearch(query, { sort }),
-  ["advantshop-search", "by-product-id-v2"],
+const getCachedAdvantShopSearchIds = unstable_cache(
+  async (query: string, sort: string) =>
+    fetchAdvantShopSearchProductIds(query, { sort }),
+  ["advantshop-search-ids", "v1"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["search"] }
 );
+
+const REMOTE_SEARCH_TIMEOUT_MS = 6000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("search timeout")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+function resolveCatalogByIds(catalog: Product[], ids: string[]): Product[] {
+  const byId = new Map(catalog.map((product) => [product.id, product]));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((product): product is Product => Boolean(product));
+}
 
 /** Morphological / colloquial queries → catalog categories. */
 const SEARCH_CATEGORY_SYNONYMS: Record<string, CategorySlug[]> = {
@@ -319,10 +345,30 @@ export async function getSearchProducts(
 
   if (isAdvantShopConfigured()) {
     const catalog = await getCatalogProducts();
+    // Local-first: never depend on AdvantShop search for basic synonym/name hits.
     const localMatches = searchCatalogProductsByArtNo(catalog, trimmed);
     const textMatches = searchCatalogByText(catalog, trimmed);
-    const modificationMatches = await searchModificationArtProducts(catalog, trimmed);
-    const remoteMatches = await getCachedAdvantShopSearch(trimmed, sort);
+
+    let modificationMatches: Product[] = [];
+    try {
+      modificationMatches = await withTimeout(
+        searchModificationArtProducts(catalog, trimmed),
+        REMOTE_SEARCH_TIMEOUT_MS,
+      );
+    } catch {
+      modificationMatches = [];
+    }
+
+    let remoteMatches: Product[] = [];
+    try {
+      const remoteIds = await withTimeout(
+        getCachedAdvantShopSearchIds(trimmed, sort),
+        REMOTE_SEARCH_TIMEOUT_MS,
+      );
+      remoteMatches = resolveCatalogByIds(catalog, remoteIds);
+    } catch (error) {
+      console.error("[search] AdvantShop remote search failed:", error);
+    }
 
     const merged = new Map<string, Product>();
     for (const product of [

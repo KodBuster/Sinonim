@@ -31,7 +31,29 @@ export function MobileMenuPage() {
   return (
     <section className="py-6 md:py-10">
       <div className="mx-auto max-w-lg px-4 md:px-6">
-        <h1 className="font-heading text-3xl text-brand-olive-dark mb-6">Меню</h1>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h1 className="font-heading text-3xl text-brand-olive-dark">Меню</h1>
+          <Link
+            href="/"
+            aria-label="Закрыть меню"
+            className="touch-manipulation flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-olive/20 text-brand-olive-dark transition-colors hover:border-brand-olive hover:bg-brand-surface [-webkit-tap-highlight-color:transparent]"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M18 6 6 18M6 6l12 12"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+              />
+            </svg>
+          </Link>
+        </div>
 
         <ul className="flex flex-col gap-1 mb-8">
           {NAV_ITEMS.map((item) => (

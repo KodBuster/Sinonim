@@ -67,6 +67,24 @@ function mapAutocompleteCategory(
   };
 }
 
+function resolveProductsById(
+  catalog: Product[],
+  productIds: string[],
+  limit?: number,
+): Product[] {
+  const knownById = new Map(
+    catalog.map((product) => [product.id, product] as const),
+  );
+  const resolved: Product[] = [];
+  for (const id of productIds) {
+    const product = knownById.get(id);
+    if (!product) continue;
+    resolved.push(product);
+    if (limit != null && resolved.length >= limit) break;
+  }
+  return resolved;
+}
+
 export async function fetchAdvantShopSearchAutocomplete(
   query: string
 ): Promise<SearchAutocompleteResult> {
@@ -88,49 +106,49 @@ export async function fetchAdvantShopSearchAutocomplete(
     .filter((item): item is SearchAutocompleteCategory => item !== null)
     .slice(0, MAX_AUTOCOMPLETE_CATEGORIES);
 
-  const rawProducts = response.products ?? [];
-  const catalog = await fetchAdvantShopProducts();
-  const knownById = new Map(
-    catalog.map((product) => [product.id, product] as const),
-  );
+  const productIds = [
+    ...new Set((response.products ?? []).map((item) => String(item.productId))),
+  ];
 
-  const products = rawProducts
-    .map((item) => knownById.get(String(item.productId)))
-    .filter((product): product is Product => Boolean(product))
-    .slice(0, MAX_AUTOCOMPLETE_PRODUCTS)
-    .map((product) => ({
-      type: "product" as const,
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      artNo: product.artNo,
-      href: `/products/${product.slug}`,
-    }));
+  const catalog = await fetchAdvantShopProducts();
+  const products = resolveProductsById(
+    catalog,
+    productIds,
+    MAX_AUTOCOMPLETE_PRODUCTS,
+  ).map((product) => ({
+    type: "product" as const,
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    artNo: product.artNo,
+    href: `/products/${product.slug}`,
+  }));
 
   return { products, categories };
+}
+
+/** Product IDs from AdvantShop search — resolve against local catalog in search-service. */
+export async function fetchAdvantShopSearchProductIds(
+  query: string,
+  options?: { sort?: string }
+): Promise<string[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  const sorting = SORT_MAP[options?.sort ?? "default"] ?? "NoSorting";
+  const items = await fetchAllSearchProducts(trimmed, sorting);
+  return [...new Set(items.map((item) => String(item.productId)))];
 }
 
 export async function fetchAdvantShopSearch(
   query: string,
   options?: { sort?: string }
 ): Promise<Product[]> {
-  const trimmed = query.trim();
-  if (!trimmed) return [];
+  const ids = await fetchAdvantShopSearchProductIds(query, options);
+  if (!ids.length) return [];
 
-  const sorting = SORT_MAP[options?.sort ?? "default"] ?? "NoSorting";
-  const items = await fetchAllSearchProducts(trimmed, sorting);
-  if (!items.length) return [];
-
-  // Resolve by productId against the full catalog — urlPath/slug mismatch
-  // previously wiped valid AdvantShop hits (e.g. «кольцо»).
   const catalog = await fetchAdvantShopProducts();
-  const knownById = new Map(
-    catalog.map((product) => [product.id, product] as const),
-  );
-
-  return items
-    .map((item) => knownById.get(String(item.productId)))
-    .filter((product): product is Product => Boolean(product));
+  return resolveProductsById(catalog, ids);
 }
