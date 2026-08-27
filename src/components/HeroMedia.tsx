@@ -54,7 +54,6 @@ function waitForPlaybackReady(video: HTMLVideoElement): Promise<void> {
     };
     video.addEventListener("loadeddata", done);
     video.addEventListener("canplay", done);
-    // Safety: never block the carousel forever on a flaky network.
     window.setTimeout(() => {
       if (settled) return;
       settled = true;
@@ -62,6 +61,43 @@ function waitForPlaybackReady(video: HTMLVideoElement): Promise<void> {
       video.removeEventListener("canplay", done);
       resolve();
     }, 8000);
+  });
+}
+
+/** Wait until the browser has actually painted a video frame. */
+function waitForPaintedFrame(video: HTMLVideoElement): Promise<void> {
+  return new Promise((resolve) => {
+    const anyVideo = video as HTMLVideoElement & {
+      requestVideoFrameCallback?: (
+        cb: (now: number, meta: { mediaTime: number }) => void,
+      ) => number;
+    };
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    if (typeof anyVideo.requestVideoFrameCallback === "function") {
+      anyVideo.requestVideoFrameCallback(() => finish());
+    } else {
+      const onTimeUpdate = () => {
+        if (video.currentTime > 0 || video.readyState >= 3) {
+          video.removeEventListener("timeupdate", onTimeUpdate);
+          finish();
+        }
+      };
+      video.addEventListener("timeupdate", onTimeUpdate);
+    }
+
+    // Double rAF as a fallback paint barrier.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => finish());
+    });
+
+    window.setTimeout(finish, 400);
   });
 }
 
@@ -83,7 +119,6 @@ async function playSafely(video: HTMLVideoElement) {
 
 export function HeroMedia() {
   const [hydrated, setHydrated] = useState(false);
-  const [hasFrame, setHasFrame] = useState(false);
   const [activeSlot, setActiveSlot] = useState<Slot>("a");
   const [index, setIndex] = useState(0);
 
@@ -102,15 +137,16 @@ export function HeroMedia() {
     prepareVideo(video);
     video.preload = "auto";
 
-    if (!sameSrc(video, src) || video.readyState < 2) {
+    const alreadyReady = sameSrc(video, src) && video.readyState >= 2;
+    if (!alreadyReady) {
       video.src = src;
       video.load();
       await waitForPlaybackReady(video);
     }
 
     try {
-      video.pause();
-      if (video.currentTime !== 0) video.currentTime = 0;
+      if (!video.paused) video.pause();
+      if (video.currentTime > 0.05) video.currentTime = 0;
     } catch {
       // Ignore seek failures on some mobile browsers.
     }
@@ -146,16 +182,28 @@ export function HeroMedia() {
 
       try {
         await loadSrc(inactiveVideo, nextSrc);
-        await playSafely(inactiveVideo);
 
-        // Reveal only after the next clip has a frame and is playing.
+        // Start next under the current clip (both opaque, z-index decides).
+        // Never fade both layers — that flashes the white parent background.
+        await playSafely(inactiveVideo);
+        await waitForPaintedFrame(inactiveVideo);
+
         activeSlotRef.current = inactive;
         indexRef.current = normalized;
         setActiveSlot(inactive);
         setIndex(normalized);
 
-        activeVideo.pause();
-        preloadNext(normalized);
+        // Keep the previous frame underneath for a beat, then free the slot.
+        window.setTimeout(() => {
+          if (activeSlotRef.current === inactive) {
+            try {
+              activeVideo.pause();
+            } catch {
+              // ignore
+            }
+            preloadNext(normalized);
+          }
+        }, 120);
       } finally {
         switchingRef.current = false;
       }
@@ -180,7 +228,8 @@ export function HeroMedia() {
       if (cancelled) return;
       await playSafely(first);
       if (cancelled) return;
-      setHasFrame(true);
+      await waitForPaintedFrame(first);
+      if (cancelled) return;
       preloadNext(0);
     };
 
@@ -198,6 +247,23 @@ export function HeroMedia() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [getVideo, hydrated, loadSrc, preloadNext]);
+
+  // Near end of clip — switch early so we never show an empty ended frame.
+  useEffect(() => {
+    if (!hydrated) return;
+    const activeVideo = getVideo(activeSlot);
+    if (!activeVideo) return;
+
+    const onTimeUpdate = () => {
+      const { duration, currentTime, paused } = activeVideo;
+      if (paused || !Number.isFinite(duration) || duration <= 0) return;
+      if (duration - currentTime > 0.18) return;
+      void switchToIndex(indexRef.current + 1);
+    };
+
+    activeVideo.addEventListener("timeupdate", onTimeUpdate);
+    return () => activeVideo.removeEventListener("timeupdate", onTimeUpdate);
+  }, [activeSlot, getVideo, hydrated, switchToIndex]);
 
   const goTo = useCallback(
     (next: number) => {
@@ -240,14 +306,15 @@ export function HeroMedia() {
   };
 
   const videoClassName =
-    "absolute inset-0 h-full w-full object-cover object-center lg:object-cover lg:object-top";
+    "absolute inset-0 h-full w-full object-cover object-center lg:object-cover lg:object-top bg-transparent";
 
   return (
     <div
-      className="absolute inset-0 bg-[#f5f2ec]"
+      className="absolute inset-0 bg-black"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Always under videos — if a frame is late, poster shows instead of white. */}
       <Image
         src="/images/hero-poster.webp"
         alt={HERO_ALT}
@@ -255,9 +322,7 @@ export function HeroMedia() {
         priority
         fetchPriority="high"
         sizes="(max-width: 1023px) 100vw, 512px"
-        className={`object-cover object-center lg:object-cover lg:object-top transition-opacity duration-200 ${
-          hasFrame ? "opacity-0" : "opacity-100"
-        }`}
+        className="object-cover object-center lg:object-cover lg:object-top"
       />
 
       {hydrated ? (
@@ -268,8 +333,8 @@ export function HeroMedia() {
             playsInline
             preload="auto"
             disablePictureInPicture
-            className={`${videoClassName} transition-opacity duration-200 ${
-              activeSlot === "a" ? "opacity-100 z-[1]" : "opacity-0 z-0"
+            className={`${videoClassName} ${
+              activeSlot === "a" ? "z-[2]" : "z-[1]"
             }`}
             aria-label={activeSlot === "a" ? HERO_ALT : undefined}
             aria-hidden={activeSlot !== "a"}
@@ -281,8 +346,8 @@ export function HeroMedia() {
             playsInline
             preload="auto"
             disablePictureInPicture
-            className={`${videoClassName} transition-opacity duration-200 ${
-              activeSlot === "b" ? "opacity-100 z-[1]" : "opacity-0 z-0"
+            className={`${videoClassName} ${
+              activeSlot === "b" ? "z-[2]" : "z-[1]"
             }`}
             aria-label={activeSlot === "b" ? HERO_ALT : undefined}
             aria-hidden={activeSlot !== "b"}
