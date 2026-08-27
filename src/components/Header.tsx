@@ -6,8 +6,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type MouseEvent,
-  type TouchEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -34,32 +32,18 @@ const NAV_ITEMS = [
   { label: "Блог", href: "/blog" },
 ];
 
-/** iOS Safari often drops click; touchend + click-guard is more reliable. */
-function useTapAction(action: () => void) {
-  const touchedRef = useRef(false);
+/** iOS Safari fires a ghost click ~300ms after tap — ignore rapid re-toggles. */
+const TAP_GUARD_MS = 450;
 
-  const onTouchEnd = useCallback(
-    (event: TouchEvent<HTMLButtonElement>) => {
-      touchedRef.current = true;
-      event.preventDefault();
-      action();
-    },
-    [action],
-  );
+function useTapGuard() {
+  const lockedUntil = useRef(0);
 
-  const onClick = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      if (touchedRef.current) {
-        touchedRef.current = false;
-        event.preventDefault();
-        return;
-      }
-      action();
-    },
-    [action],
-  );
-
-  return { onTouchEnd, onClick };
+  return useCallback(() => {
+    const now = Date.now();
+    if (now < lockedUntil.current) return false;
+    lockedUntil.current = now + TAP_GUARD_MS;
+    return true;
+  }, []);
 }
 
 function IconSearch({ className = "size-6 lg:size-5" }: { className?: string }) {
@@ -80,16 +64,14 @@ function SearchToggleButton({
   onSearchToggle: () => void;
   className?: string;
 }) {
-  const tap = useTapAction(onSearchToggle);
-
   return (
     <button
       type="button"
-      className={`relative z-[1] cursor-pointer touch-manipulation select-none text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
+      className={`relative z-[2] cursor-pointer touch-manipulation text-brand-olive-dark hover:text-brand-terracotta transition-colors ${className || "p-2 sm:p-2.5"}`}
       aria-label={searchOpen ? "Закрыть поиск" : "Поиск"}
       aria-expanded={searchOpen}
       aria-controls="header-search"
-      {...tap}
+      onClick={onSearchToggle}
     >
       <IconSearch />
     </button>
@@ -126,7 +108,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       href="/"
-      className={`relative z-0 flex flex-col group shrink-0 min-w-0 ${
+      className={`relative z-0 flex flex-col group shrink-0 min-w-0 pointer-events-auto ${
         compact ? "items-center" : "items-center md:items-start"
       }`}
     >
@@ -148,6 +130,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
 
 export function Header() {
   const headerRef = useRef<HTMLElement>(null);
+  const allowTap = useTapGuard();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -185,8 +168,7 @@ export function Header() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Не перехватывать тот же тап, которым открыли меню (iOS ghost click).
-    const overlayTimer = window.setTimeout(() => setOverlayReady(true), 450);
+    const overlayTimer = window.setTimeout(() => setOverlayReady(true), TAP_GUARD_MS);
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -219,18 +201,18 @@ export function Header() {
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   const toggleSearch = useCallback(() => {
+    if (!allowTap()) return;
     setSearchOpen((open) => {
       if (!open) setMenuOpen(false);
       return !open;
     });
-  }, []);
+  }, [allowTap]);
 
-  const openMenu = useCallback(() => {
+  const toggleMenu = useCallback(() => {
+    if (!allowTap()) return;
     setSearchOpen(false);
     setMenuOpen((open) => !open);
-  }, []);
-
-  const menuButtonTap = useTapAction(openMenu);
+  }, [allowTap]);
 
   return (
     <header
@@ -267,14 +249,14 @@ export function Header() {
 
       <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
         <div className="flex items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
-          <div className="relative z-[1] flex flex-1 items-center justify-start min-w-0">
+          <div className="relative z-[2] flex flex-1 items-center justify-start min-w-0">
             <button
               type="button"
-              className="relative z-[1] cursor-pointer touch-manipulation select-none py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
+              className="relative z-[2] cursor-pointer touch-manipulation py-2 pl-3 pr-0.5 text-brand-olive-dark shrink-0"
               aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
-              {...menuButtonTap}
+              onClick={toggleMenu}
             >
               {menuOpen ? (
                 <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -307,7 +289,7 @@ export function Header() {
             <Logo compact />
           </div>
 
-          <div className="relative z-[1] flex flex-1 items-center justify-end min-w-0">
+          <div className="relative z-[2] flex flex-1 items-center justify-end min-w-0">
             <FavoritesLink className="touch-manipulation py-2 pl-2 pr-0.5" />
             <CartLink className="touch-manipulation py-2 pl-0.5 pr-3" />
           </div>
@@ -432,7 +414,7 @@ export function Header() {
         {searchOpen && (
           <div
             id="header-search"
-            className="relative z-[1] mt-2 border-t border-brand-olive/10 pt-2 md:mt-3 md:pt-3 lg:mt-0 lg:border-t-0 lg:pt-0 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
+            className="relative z-[2] mt-2 border-t border-brand-olive/10 pt-2 md:mt-3 md:pt-3 lg:mt-0 lg:border-t-0 lg:pt-0 lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
           >
             <div className="mx-auto max-w-xl lg:max-w-2xl">
               <SearchForm autoFocus compact onSubmit={closeSearch} />
