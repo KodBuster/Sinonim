@@ -10,7 +10,7 @@ export function Hero() {
 
           <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end px-0 pt-0 pb-1 lg:px-0 lg:py-16">
             <div className="relative w-full lg:max-w-lg">
-              <div className="relative aspect-square overflow-hidden rounded-none border-0 bg-black lg:rounded-2xl lg:border lg:border-brand-sand lg:shadow-lg">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-none border-0 bg-black lg:rounded-2xl lg:border lg:border-brand-sand lg:shadow-lg">
                 <HeroMedia />
               </div>
             </div>
