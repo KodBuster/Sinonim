@@ -1,20 +1,12 @@
 ﻿"use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { CartLink } from "@/components/cart/CartLink";
 import { CompareLink } from "@/components/compare/CompareLink";
 import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 import { MetrikaPhoneLink } from "@/components/analytics/MetrikaPhoneLink";
 import { SearchForm } from "@/components/search/SearchForm";
-import { useCompare } from "@/context/CompareContext";
 import {
   SITE_EMAIL,
   SITE_EMAIL_MAILTO,
@@ -57,20 +49,6 @@ function IconMenu() {
   );
 }
 
-function IconClose() {
-  return (
-    <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M18 6 6 18M6 6l12 12"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** Mobile search uses Link — same pattern as working Favorites/Cart on iOS. */
 function MobileSearchLink({ className = "" }: { className?: string }) {
   return (
     <Link
@@ -149,51 +127,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
 }
 
 export function Header() {
-  const headerRef = useRef<HTMLElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(52);
-  const { count: compareCount, isReady: compareReady } = useCompare();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header || typeof ResizeObserver === "undefined") return;
-
-    const update = () => {
-      setHeaderHeight(Math.ceil(header.getBoundingClientRect().height));
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(header);
-    window.addEventListener("resize", update);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", update);
-    };
-  }, [searchOpen, menuOpen]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
-    };
-
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [menuOpen]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -209,23 +143,12 @@ export function Header() {
     };
   }, [searchOpen]);
 
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
-
-  // Only open — never toggle. iOS ghost-click would otherwise open+close instantly.
-  const openMenu = useCallback(() => {
-    setSearchOpen(false);
-    setMenuOpen(true);
-  }, []);
-
   const toggleDesktopSearch = useCallback(() => {
     setSearchOpen((open) => !open);
   }, []);
 
   return (
-    <header
-      ref={headerRef}
-      className="sticky top-0 z-[100] border-b border-brand-terracotta bg-brand-surface"
-    >
+    <header className="sticky top-0 z-[100] border-b border-brand-terracotta bg-brand-surface">
       <div className="hidden md:flex justify-between items-center px-6 lg:px-10 py-2 text-xs text-brand-muted border-b border-brand-sand">
         <div className="flex gap-6">
           <Link href="/shipping" className="hover:text-brand-terracotta transition-colors">
@@ -257,20 +180,13 @@ export function Header() {
       <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
           <div className="relative z-[2] flex items-center justify-start min-w-0">
-            <a
-              href="#mobile-nav"
-              role="button"
+            <Link
+              href="/menu"
               className={`${iconButtonClass} py-2 pl-3 pr-0.5 shrink-0`}
               aria-label="Открыть меню"
-              aria-expanded={menuOpen}
-              aria-controls="mobile-nav"
-              onClick={(event) => {
-                event.preventDefault();
-                openMenu();
-              }}
             >
               <IconMenu />
-            </a>
+            </Link>
             <MobileSearchLink className="py-2 px-0.5" />
           </div>
 
@@ -283,106 +199,6 @@ export function Header() {
             <CartLink className="touch-manipulation py-2 pl-0.5 pr-3" />
           </div>
         </div>
-
-        {mounted &&
-          menuOpen &&
-          createPortal(
-            <>
-              <button
-                type="button"
-                className="fixed inset-x-0 bottom-0 z-[90] bg-black/30 lg:hidden pointer-events-auto"
-                style={{ top: headerHeight }}
-                aria-label="Закрыть меню"
-                onClick={closeMenu}
-              />
-              <nav
-                id="mobile-nav"
-                className="fixed inset-x-0 z-[95] flex max-h-[min(80dvh,calc(100dvh-3.25rem))] flex-col border-b border-brand-olive/10 bg-brand-surface shadow-lg lg:hidden"
-                style={{ top: headerHeight } as CSSProperties}
-              >
-                <div className="flex items-center justify-between gap-3 border-b border-brand-sand px-4 py-3">
-                  <p className="text-sm tracking-wide text-brand-muted">Меню</p>
-                  <button
-                    type="button"
-                    className={`${iconButtonClass} p-2`}
-                    aria-label="Закрыть меню"
-                    onClick={closeMenu}
-                  >
-                    <IconClose />
-                  </button>
-                </div>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3 pb-6 [-webkit-overflow-scrolling:touch]">
-                  <ul className="flex flex-col gap-1">
-                    {NAV_ITEMS.map((item) => (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          className="block rounded-lg px-3 py-3 text-base tracking-wide text-brand-text hover:bg-brand-surface hover:text-brand-terracotta transition-colors touch-manipulation"
-                          onClick={closeMenu}
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-6 flex flex-col gap-3 border-t border-brand-sand pt-6 text-sm text-brand-muted">
-                    <Link
-                      href="/shop"
-                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      Весь каталог
-                    </Link>
-                    <Link
-                      href="/compare"
-                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      Сравнение
-                      {compareReady && compareCount > 0 ? ` · ${compareCount}` : ""}
-                    </Link>
-                    <Link
-                      href="/shipping"
-                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      Доставка и оплата
-                    </Link>
-                    <Link
-                      href="/showroom"
-                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      Шоурум
-                    </Link>
-                    <Link
-                      href="/cooperation"
-                      className="hover:text-brand-terracotta transition-colors touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      Сотрудничество
-                    </Link>
-                    <a
-                      href={SITE_EMAIL_MAILTO}
-                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors break-all touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      {SITE_EMAIL}
-                    </a>
-                    <MetrikaPhoneLink
-                      href={SITE_PHONE_TEL}
-                      className="font-medium text-brand-olive-dark hover:text-brand-terracotta transition-colors touch-manipulation py-1"
-                      onClick={closeMenu}
-                    >
-                      {SITE_PHONE}
-                    </MetrikaPhoneLink>
-                  </div>
-                </div>
-              </nav>
-            </>,
-            document.body,
-          )}
 
         <div className="hidden lg:flex items-center justify-between gap-4">
           <Logo />

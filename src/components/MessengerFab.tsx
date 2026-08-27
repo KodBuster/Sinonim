@@ -102,6 +102,7 @@ export function MessengerFab() {
   const rootRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const pendingDesktopFocusRef = useRef(false);
+  const openedAtRef = useRef(0);
 
   useEffect(() => {
     const handleOpenRequest = (event: Event) => {
@@ -135,7 +136,8 @@ export function MessengerFab() {
   useEffect(() => {
     if (!open) return;
 
-    const handlePointerDown = (event: MouseEvent) => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (Date.now() - openedAtRef.current < 450) return;
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (rootRef.current?.contains(target)) return;
@@ -154,11 +156,11 @@ export function MessengerFab() {
       if (event.key === "Escape") setOpen(false);
     };
 
-    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [open]);
@@ -240,8 +242,18 @@ export function MessengerFab() {
         <button
           ref={toggleRef}
           type="button"
-          onClick={() => setOpen((value) => !value)}
-          className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
+          onClick={() => {
+            const now = Date.now();
+            if (!open) {
+              openedAtRef.current = now;
+              setOpen(true);
+              return;
+            }
+            // Ignore iOS ghost click that would instantly close the FAB.
+            if (now - openedAtRef.current < 450) return;
+            setOpen(false);
+          }}
+          className="relative z-[1] flex h-14 w-14 shrink-0 touch-manipulation items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
           aria-expanded={open}
           aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
         >

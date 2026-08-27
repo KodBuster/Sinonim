@@ -5,7 +5,7 @@ import type {
 } from "@/lib/search-types";
 import { advantshopClientFetch } from "./client";
 import {
-  fetchAdvantShopProductsBySlugs,
+  fetchAdvantShopProducts,
   resolveCategorySlugFromAdvantShopUrl,
 } from "./catalog";
 import type {
@@ -89,11 +89,9 @@ export async function fetchAdvantShopSearchAutocomplete(
     .slice(0, MAX_AUTOCOMPLETE_CATEGORIES);
 
   const rawProducts = response.products ?? [];
-  const knownProducts = await fetchAdvantShopProductsBySlugs(
-    rawProducts.map((item) => item.urlPath)
-  );
+  const catalog = await fetchAdvantShopProducts();
   const knownById = new Map(
-    knownProducts.map((product) => [product.id, product] as const),
+    catalog.map((product) => [product.id, product] as const),
   );
 
   const products = rawProducts
@@ -125,10 +123,11 @@ export async function fetchAdvantShopSearch(
   const items = await fetchAllSearchProducts(trimmed, sorting);
   if (!items.length) return [];
 
-  const slugs = items.map((item) => item.urlPath);
-  const knownProducts = await fetchAdvantShopProductsBySlugs(slugs);
+  // Resolve by productId against the full catalog — urlPath/slug mismatch
+  // previously wiped valid AdvantShop hits (e.g. «кольцо»).
+  const catalog = await fetchAdvantShopProducts();
   const knownById = new Map(
-    knownProducts.map((product) => [product.id, product] as const),
+    catalog.map((product) => [product.id, product] as const),
   );
 
   return items

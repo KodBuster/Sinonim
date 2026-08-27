@@ -66,7 +66,7 @@ function positionMangoAboveFab() {
   document.body.classList.toggle("mango-chat-open", hasOpenWidget);
 }
 
-const MANGO_LOAD_DELAY_MS = 3500;
+const MANGO_LOAD_DELAY_MS = 1500;
 
 function loadMangoWidget() {
   if (document.getElementById("mango-js")) return;
