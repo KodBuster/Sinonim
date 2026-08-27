@@ -5,17 +5,12 @@ import { useEffect, useState } from "react";
 import { AutoplayVideo } from "./AutoplayVideo";
 
 const HERO_ALT = "Кольцо с лабораторным бриллиантом в серебре";
-const DESKTOP_MQ = "(min-width: 1024px)";
 
 export function HeroMedia() {
   const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia(DESKTOP_MQ);
-    const sync = () => setShowVideo(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
+    setShowVideo(true);
   }, []);
 
   return (
