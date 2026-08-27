@@ -8,9 +8,9 @@ export function Hero() {
         <div className="grid lg:grid-cols-2 gap-4 lg:gap-12 items-center lg:min-h-[580px]">
           <HeroContent className="order-2 lg:order-1 px-4 md:px-6 lg:px-10 pt-4 pb-8 lg:py-16" />
 
-          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end px-4 pt-3 pb-1 lg:px-0 lg:py-16">
+          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end px-0 pt-0 pb-1 lg:px-0 lg:py-16">
             <div className="relative w-full lg:max-w-lg">
-              <div className="relative aspect-square overflow-hidden rounded-xl border border-brand-sand bg-white lg:rounded-2xl lg:shadow-lg">
+              <div className="relative aspect-square overflow-hidden rounded-none border-0 bg-white lg:rounded-2xl lg:border lg:border-brand-sand lg:shadow-lg">
                 <HeroMedia />
               </div>
             </div>

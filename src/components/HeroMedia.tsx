@@ -22,14 +22,14 @@ export function HeroMedia() {
         priority
         fetchPriority="high"
         sizes="(max-width: 1023px) 100vw, 512px"
-        className={`object-contain object-center lg:object-cover lg:object-top ${
+        className={`object-cover object-center lg:object-cover lg:object-top ${
           showVideo ? "hidden" : ""
         }`}
       />
       {showVideo ? (
         <AutoplayVideo
           src="/images/video-hero_2.mp4"
-          className="absolute inset-0 h-full w-full object-contain object-center lg:object-cover lg:object-top"
+          className="absolute inset-0 h-full w-full object-cover object-center lg:object-cover lg:object-top"
           aria-label={HERO_ALT}
         />
       ) : null}
