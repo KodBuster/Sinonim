@@ -16,11 +16,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "Синоним — выращенные бриллианты в серебре",
+    default: "Синоним — украшения с ограненными синтетическими алмазами",
     template: "%s",
   },
   description:
-    "Ювелирные украшения из серебра 925 с лабораторными бриллиантами. Шоурум в Москве.",
+    "Ювелирные украшения из серебра 925 с ограненными синтетическими алмазами. Шоурум в Москве.",
   verification: getSiteVerification(),
   icons: {
     icon: [

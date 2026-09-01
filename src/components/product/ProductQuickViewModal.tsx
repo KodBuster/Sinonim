@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CartItem } from "@/lib/cart";
-import { getProductCaratWeightLabel } from "@/lib/product-weight";
+import { getProductCaratWeight } from "@/lib/product-weight";
+import {
+  formatInsertMassLabel,
+  INSERT_WEIGHT_LABEL,
+  SYNTHETIC_DIAMOND_CAP,
+} from "@/lib/synthetic-diamond-labels";
 import { CATEGORIES, formatPrice, type ProductDetails } from "@/lib/products";
 
 type ProductQuickViewModalProps = {
@@ -99,8 +104,8 @@ export function ProductQuickViewModal({
   const categoryTitle = product
     ? CATEGORIES[product.category].title
     : null;
-  const caratLabel = product
-    ? getProductCaratWeightLabel(product, cartItem.size)
+  const insertMass = product
+    ? formatInsertMassLabel(getProductCaratWeight(product, cartItem.size))
     : null;
 
   return createPortal(
@@ -230,22 +235,18 @@ export function ProductQuickViewModal({
                       <dd className="text-brand-text text-right">{product.metal}</dd>
                     </div>
                     <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
-                      <dt className="text-brand-muted">Тип камня</dt>
-                      <dd className="text-brand-text text-right">Лабораторный бриллиант</dd>
+                      <dt className="text-brand-muted">Тип вставки</dt>
+                      <dd className="text-brand-text text-right">{SYNTHETIC_DIAMOND_CAP}</dd>
                     </div>
-                    {caratLabel && (
+                    {insertMass && (
                       <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
-                        <dt className="text-brand-muted">Вес бриллианта</dt>
-                        <dd className="text-brand-text text-right">{caratLabel} карат</dd>
+                        <dt className="text-brand-muted">{INSERT_WEIGHT_LABEL}</dt>
+                        <dd className="text-brand-text text-right">{insertMass}</dd>
                       </div>
                     )}
-                    <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
+                    <div className="flex justify-between gap-4">
                       <dt className="text-brand-muted">Огранка</dt>
                       <dd className="text-brand-text text-right">{product.cut}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-brand-muted">Чистота</dt>
-                      <dd className="text-brand-text text-right">{product.clarity}</dd>
                     </div>
                   </dl>
                 )}

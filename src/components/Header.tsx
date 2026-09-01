@@ -119,7 +119,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
       />
       {!compact && (
         <span className="hidden sm:block text-[10px] md:text-xs text-brand-muted tracking-wide mt-1 text-center md:text-left">
-          выращенные бриллианты в серебре
+          ограненные синтетические алмазы в серебре
         </span>
       )}
     </Link>

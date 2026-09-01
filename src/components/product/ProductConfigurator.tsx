@@ -6,7 +6,7 @@ import { CompareButton } from "@/components/compare/CompareButton";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics/metrika";
-import { formatPrice, type ProductDetails } from "@/lib/products";
+import { formatInsertMassLabel, SYNTHETIC_DIAMOND_CAP } from "@/lib/synthetic-diamond-labels";
 import { useProductSelection } from "./ProductSelectionContext";
 
 function formatWeightGrams(value: string): string {
@@ -25,7 +25,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
 
   const { selectedSize, setSelectedSize, selectedSizeLabel, artNo, price, diamondWeight, diamondWeightLabel } =
     useProductSelection();
-  const cartStoneLabel = `${diamondWeightLabel} карат`;
+  const cartStoneLabel = formatInsertMassLabel(diamondWeight);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
   const selectedSizeStock =
@@ -86,7 +86,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             </span>
           )}
         </div>
-        <p className="text-sm text-brand-muted">Лабораторный бриллиант</p>
+        <p className="text-sm text-brand-muted">{SYNTHETIC_DIAMOND_CAP}</p>
         {product.inStock === false ? (
           <p className="mt-2 text-sm font-medium text-brand-terracotta">
             Скоро будет

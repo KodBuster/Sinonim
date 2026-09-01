@@ -8,7 +8,7 @@ import { buildPageMetadata } from "@/lib/metadata";
 export const metadata = buildPageMetadata({
   title: "Синоним — вариант с видео",
   description:
-    "Украшения с лабораторными бриллиантами в серебре 925. Альтернативная главная страница.",
+    "Украшения с ограненными синтетическими алмазами в серебре 925. Альтернативная главная страница.",
   path: "/v2",
   noIndex: true,
 });

@@ -8,7 +8,7 @@ import { buildOrganizationJsonLd } from "@/lib/organization-schema";
 export const metadata = buildPageMetadata({
   title: "О бренде — Синоним",
   description:
-    "Бренд Синоним — украшения из серебра с лабораторными бриллиантами. Качество без компромиссов.",
+    "Бренд Синоним — украшения из серебра с ограненными синтетическими алмазами. Качество без компромиссов.",
   path: "/about",
 });
 

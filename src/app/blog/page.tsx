@@ -7,7 +7,7 @@ import { BLOG_ARTICLES } from "@/lib/blog";
 export const metadata = buildPageMetadata({
   title: "Блог — Синоним",
   description:
-    "Статьи, новости и видео о лабораторных бриллиантах и украшениях бренда Синоним.",
+    "Статьи, новости и видео об ограненных синтетических алмазах и украшениях бренда Синоним.",
   path: "/blog",
 });
 
@@ -25,7 +25,7 @@ export default function BlogHubPage() {
               Блог
             </h1>
             <p className="text-brand-text leading-relaxed text-base md:text-lg">
-              Статьи, новости и видеоролики о товарах, лабораторных бриллиантах
+              Статьи, новости и видеоролики о товарах и ограненных синтетических алмазах
               и ювелирных трендах.
             </p>
           </div>

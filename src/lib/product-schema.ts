@@ -1,35 +1,36 @@
 import { buildProductMetaDescription } from "@/lib/product-metadata";
-import { getProductCaratWeightLabel } from "@/lib/product-weight";
+import { getProductCaratWeight } from "@/lib/product-weight";
 import { CATEGORIES, type ProductDetails } from "@/lib/products";
 import { absoluteImageUrl } from "@/lib/seo-images";
 import { getSiteUrl } from "@/lib/site-url";
+import {
+  formatInsertMassLabel,
+  INSERT_WEIGHT_LABEL,
+  SYNTHETIC_DIAMOND_CAP,
+  WITH_SYNTHETIC_DIAMOND,
+} from "@/lib/synthetic-diamond-labels";
 
 function buildProductSchemaName(product: ProductDetails): string {
-  const carat = getProductCaratWeightLabel(product);
+  const mass = formatInsertMassLabel(getProductCaratWeight(product));
   const metal = product.metal?.trim() || "Серебро 925";
 
-  return `${product.name} с лабораторным бриллиантом ${carat} карат — ${metal}`;
+  return `${product.name} ${WITH_SYNTHETIC_DIAMOND}, ${mass} — ${metal}`;
 }
 
 function buildProductAdditionalProperties(
   product: ProductDetails,
 ): Record<string, unknown>[] {
-  const carat = getProductCaratWeightLabel(product);
+  const mass = formatInsertMassLabel(getProductCaratWeight(product));
   const properties: Record<string, unknown>[] = [
     {
       "@type": "PropertyValue",
-      name: "Каратность",
-      value: `${carat} карат`,
+      name: "Тип вставки",
+      value: SYNTHETIC_DIAMOND_CAP,
     },
     {
       "@type": "PropertyValue",
-      name: "Цвет",
-      value: product.color,
-    },
-    {
-      "@type": "PropertyValue",
-      name: "Чистота",
-      value: product.clarity,
+      name: INSERT_WEIGHT_LABEL,
+      value: mass,
     },
     {
       "@type": "PropertyValue",

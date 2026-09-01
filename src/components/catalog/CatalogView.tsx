@@ -113,7 +113,7 @@ export function CatalogView({
     : "Все украшения";
   const pageDescription = category
     ? CATEGORIES[category].description
-    : "Каталог украшений из серебра 925 с лабораторными бриллиантами";
+    : "Каталог украшений из серебра 925 с ограненными синтетическими алмазами";
 
   return (
     <section className="py-8 md:py-12">

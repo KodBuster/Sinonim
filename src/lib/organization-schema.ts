@@ -29,7 +29,7 @@ export function buildOrganizationJsonLd(): Record<string, unknown> {
     url: siteUrl,
     logo: absoluteImageUrl("/images/logo_20260527190756.png"),
     description:
-      "Ювелирный бренд Синоним — украшения из серебра 925 с лабораторными бриллиантами.",
+      "Ювелирный бренд Синоним — украшения из серебра 925 с ограненными синтетическими алмазами.",
     telephone: SITE_PHONE_TEL.replace("tel:", ""),
     email: SITE_EMAIL,
     address: {

@@ -12,13 +12,13 @@ export function HeroContent({ className = "" }: HeroContentProps) {
         className="hero-unroll hidden lg:block text-brand-terracotta text-sm tracking-[0.25em] uppercase mb-4"
         style={{ animationDelay: "0ms" }}
       >
-        Лабораторные бриллианты · Серебро 925
+        ограненные синтетические алмазы · Серебро 925
       </p>
       <h1
         className="hero-unroll font-heading text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-6 text-brand-olive-dark"
         style={{ animationDelay: "120ms" }}
       >
-        Лабораторные <SparkleWord>бриллианты</SparkleWord>
+        Ограненные <SparkleWord>синтетические алмазы</SparkleWord>
         <br />
         <span className="text-brand-text">в серебре 925</span>
       </h1>
@@ -26,8 +26,8 @@ export function HeroContent({ className = "" }: HeroContentProps) {
         className="hero-unroll text-brand-muted text-base md:text-lg max-w-md leading-relaxed mb-8"
         style={{ animationDelay: "240ms" }}
       >
-        Украшения с выращенными бриллиантами в серебре — та же сияющая
-        огранка и забота об экологии.
+        Украшения с ограненными синтетическими алмазами в серебре — аккуратная
+        огранка, сдержанный блеск и удобная повседневная носка.
       </p>
       <div
         className="hero-unroll flex flex-wrap gap-4"

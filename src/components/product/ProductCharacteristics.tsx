@@ -1,7 +1,12 @@
 "use client";
 
 import { getProductLengthMmLabel } from "@/lib/product-length";
-import { getProductCaratWeightLabel } from "@/lib/product-weight";
+import {
+  formatInsertMassLabel,
+  INSERT_WEIGHT_LABEL,
+  SYNTHETIC_DIAMOND_CAP,
+} from "@/lib/synthetic-diamond-labels";
+import { getProductCaratWeight } from "@/lib/product-weight";
 import type { ProductDetails } from "@/lib/products";
 import { useProductSelection } from "./ProductSelectionContext";
 
@@ -12,9 +17,9 @@ type ProductCharacteristicsProps = {
 export function ProductCharacteristics({ product }: ProductCharacteristicsProps) {
   const { selectedSize } = useProductSelection();
   const isBracelet = product.category === "bracelets";
-  const diamondWeight = isBracelet
+  const insertMass = isBracelet
     ? getProductLengthMmLabel(product, selectedSize)
-    : getProductCaratWeightLabel(product, selectedSize);
+    : formatInsertMassLabel(getProductCaratWeight(product, selectedSize));
 
   return (
     <div className="bg-brand-surface rounded-xl p-6 md:p-8">
@@ -27,26 +32,18 @@ export function ProductCharacteristics({ product }: ProductCharacteristicsProps)
           <dd className="text-brand-text text-right">{product.metal}</dd>
         </div>
         <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
-          <dt className="text-brand-muted">Тип камня</dt>
-          <dd className="text-brand-text text-right">Лабораторный бриллиант</dd>
+          <dt className="text-brand-muted">Тип вставки</dt>
+          <dd className="text-brand-text text-right">{SYNTHETIC_DIAMOND_CAP}</dd>
         </div>
         <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
           <dt className="text-brand-muted">Огранка</dt>
           <dd className="text-brand-text text-right">{product.cut}</dd>
         </div>
-        <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
-          <dt className="text-brand-muted">Вес бриллианта</dt>
-          <dd className="text-brand-text text-right">
-            {diamondWeight ? `${diamondWeight} карат` : "—"}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-4 border-b border-brand-sand pb-3">
-          <dt className="text-brand-muted">Цвет</dt>
-          <dd className="text-brand-text text-right">{product.color}</dd>
-        </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-brand-muted">Чистота</dt>
-          <dd className="text-brand-text text-right">{product.clarity}</dd>
+          <dt className="text-brand-muted">{INSERT_WEIGHT_LABEL}</dt>
+          <dd className="text-brand-text text-right">
+            {insertMass || "—"}
+          </dd>
         </div>
       </dl>
     </div>

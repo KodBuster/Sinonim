@@ -29,7 +29,7 @@ export function isDiamondWeightPropertyName(name: string): boolean {
     .replace(/^свойство:\s*/u, "")
     .replace(/\s+/g, " ")
     .trim();
-  return normalized.includes("вес бриллианта");
+  return normalized.includes("масса вставки");
 }
 
 export function formatDiamondWeightLabel(

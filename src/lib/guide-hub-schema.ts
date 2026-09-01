@@ -12,7 +12,7 @@ export function buildGuideHubJsonLd(): Record<string, unknown>[] {
       "@id": `${guideUrl}#collection`,
       name: "Гид покупателя — Синоним",
       description:
-        "Полезные статьи о лабораторных бриллиантах, уходе за серебром и выборе подарка.",
+        "Полезные статьи об ограненных синтетических алмазах, уходе за серебром и выборе подарка.",
       url: guideUrl,
       inLanguage: "ru-RU",
       mainEntity: {

@@ -57,9 +57,9 @@ export type ProductDetails = Product & {
   sizeWeightGrams?: Record<string, string>;
   /** Цена оффера по ключу размера (value из sizeOptions). */
   sizePrices?: Record<string, number>;
-  /** Подпись «Вес бриллианта» из свойства AdvantShop (не из описания). */
+  /** Подпись «Масса вставки» из свойства AdvantShop (не из описания). */
   diamondWeightLabel?: string;
-  /** Вес бриллианта по ключу размера (артикул модификации). */
+  /** Масса вставки по ключу размера (артикул модификации). */
   sizeDiamondWeights?: Record<string, string>;
   /** Длина (мм) из AdvantShop — для браслетов в блоке «Характеристики». */
   lengthMmLabel?: string;
@@ -76,22 +76,22 @@ export const CATEGORIES: Record<
   rings: {
     title: "Кольца",
     titlePlural: "Кольца",
-    description: "Кольца из серебра 925 с лабораторными бриллиантами",
+    description: "Кольца из серебра 925 с ограненными синтетическими алмазами",
   },
   earrings: {
     title: "Серьги",
     titlePlural: "Серьги",
-    description: "Серьги-пусеты и подвесные модели с выращенными бриллиантами",
+    description: "Серьги-пусеты и подвесные модели с ограненными синтетическими алмазами",
   },
   pendants: {
     title: "Колье",
     titlePlural: "Колье",
-    description: "Колье из серебра с лабораторными камнями",
+    description: "Колье из серебра с ограненными синтетическими алмазами",
   },
   bracelets: {
     title: "Браслеты",
     titlePlural: "Браслеты",
-    description: "Теннисные и цепные браслеты с бриллиантами",
+    description: "Теннисные и цепные браслеты с ограненными синтетическими алмазами",
   },
   gifts: {
     title: "Подарки",
@@ -408,7 +408,7 @@ export function getProductDetails(slug: string): ProductDetails | undefined {
     ...product,
     description:
       product.description ??
-      `${product.name} — украшение из серебра 925 пробы с лабораторным бриллиантом. Камень сертифицирован, огранка круглая brillant. Идеально для повседневной носки и особых моментов.`,
+      `${product.name} — украшение из серебра 925 пробы с ограненным синтетическим алмазом. Огранка круглая brillant. Идеально для повседневной носки и особых моментов.`,
     images,
     color: product.color ?? "2",
     clarity: product.clarity ?? "5",

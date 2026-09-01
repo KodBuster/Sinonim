@@ -8,7 +8,7 @@ import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics/metrika";
 import { formatPrice } from "@/lib/products";
-import type { CategorySlug } from "@/lib/products";
+import { formatInsertMassLabel } from "@/lib/synthetic-diamond-labels";
 import { useProductSelection } from "./ProductSelectionContext";
 
 type GallerySlide =
@@ -733,7 +733,7 @@ function ProductGalleryModalFooter({
   const { addItem } = useCart();
   const { selectedSize, selectedSizeLabel, artNo, price: selectedPrice, diamondWeight, diamondWeightLabel } =
     useProductSelection();
-  const cartStoneLabel = `${diamondWeightLabel} карат`;
+  const cartStoneLabel = formatInsertMassLabel(diamondWeight);
 
   const handleBuy = () => {
     if (!inStock) return;

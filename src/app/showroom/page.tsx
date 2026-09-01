@@ -8,7 +8,7 @@ import { buildShowroomJsonLd } from "@/lib/showroom-schema";
 export const metadata = buildPageMetadata({
   title: "Шоурум — Синоним",
   description:
-    "Шоурум Синоним в Москве: 129110, ул. Гиляровского 40, офис 13. Примерьте украшения с лабораторными бриллиантами.",
+    "Шоурум Синоним в Москве: 129110, ул. Гиляровского 40, офис 13. Примерьте украшения с ограненными синтетическими алмазами.",
   path: "/showroom",
   ogImage: "/images/show_room_2.jpg",
 });

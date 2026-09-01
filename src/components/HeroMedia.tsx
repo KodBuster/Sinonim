@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-const HERO_ALT = "Кольцо с лабораторным бриллиантом в серебре";
+const HERO_ALT = "Кольцо с ограненным синтетическим алмазом в серебре";
 
 const HERO_VIDEOS = [
   "/images/video-hero_2.mp4",

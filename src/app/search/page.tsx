@@ -19,7 +19,7 @@ export async function generateMetadata({
   const baseMetadata = buildPageMetadata({
     title: hasQuery ? `Поиск: ${query} — Синоним` : "Поиск — Синоним",
     description:
-      "Поиск украшений из серебра 925 с лабораторными бриллиантами в каталоге Синоним.",
+      "Поиск украшений из серебра 925 с ограненными синтетическими алмазами в каталоге Синоним.",
     path: "/search",
     noIndex: hasQuery,
     robotsFollow: hasQuery,

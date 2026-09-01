@@ -2,7 +2,8 @@
 import { ProductViewTracker } from "@/components/analytics/ProductViewTracker";
 import { CATEGORIES, type ProductDetails } from "@/lib/products";
 import type { Product } from "@/lib/products";
-import { getProductCaratWeightLabel } from "@/lib/product-weight";
+import { getProductCaratWeight } from "@/lib/product-weight";
+import { formatInsertMassLabel } from "@/lib/synthetic-diamond-labels";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { ProductCharacteristics } from "./ProductCharacteristics";
 import { ProductComplectSection } from "./ProductComplectSection";
@@ -25,13 +26,13 @@ export function ProductPage({
 }: ProductPageProps) {
   const related = relatedProducts;
   const categoryTitle = CATEGORIES[product.category].title;
-  const diamondWeight = getProductCaratWeightLabel(product);
+  const insertMass = formatInsertMassLabel(getProductCaratWeight(product));
   const videoUrl = resolveProductVideoUrl([
     product.artNo,
     ...Object.values(product.sizeArtNos ?? {}),
     ...(product.offerArtNos ?? []),
   ]);
-  const cartStoneLabel = `${diamondWeight} карат`;
+  const cartStoneLabel = insertMass;
   return (
     <section className="py-8 md:py-12">
       <ProductViewTracker
@@ -39,7 +40,7 @@ export function ProductPage({
         name={product.name}
         price={product.price}
         category={product.category}
-        variant={`${diamondWeight} карат`}
+        variant={insertMass}
       />
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10">
         <nav className="text-sm text-brand-muted mb-6" aria-label="Хлебные крошки">
@@ -122,7 +123,7 @@ export function ProductPage({
               </li>
               <li>
                 <Link href="/guide/lab-grown-diamonds" className="text-brand-terracotta hover:underline">
-                  Лабораторный vs природный бриллиант
+                  Об ограненных синтетических алмазах
                 </Link>
               </li>
               <li>

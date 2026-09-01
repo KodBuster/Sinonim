@@ -18,7 +18,7 @@ export async function PriceOverview() {
     >
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10">
         <p className="text-brand-text leading-relaxed max-w-3xl text-sm md:text-base">
-          Украшения из серебра 925 с выращенными бриллиантами: {summary}.
+          Украшения из серебра 925 с ограненными синтетическими алмазами: {summary}.
           Точная цена зависит от каратности камня, огранки и модели.
         </p>
       </div>

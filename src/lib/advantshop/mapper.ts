@@ -697,7 +697,7 @@ export function mapProductDetails(
   const description =
     item.description ||
     item.briefDescription ||
-    `${item.name} — украшение из серебра 925 пробы с лабораторным бриллиантом.`;
+    `${item.name} — украшение из серебра 925 пробы с ограненным синтетическим алмазом.`;
 
   const rawImages = collectImages(item.photos);
   const images = resolveProductImages(rawImages);

@@ -5,7 +5,7 @@ export function WarrantyFaq() {
   return (
     <FaqSection
       title="Отвечаем на вопросы"
-      subtitle="О лабораторных бриллиантах, качестве и гарантии"
+      subtitle="Об ограненных синтетических алмазах, качестве и гарантии"
       items={WARRANTY_FAQ_ITEMS}
     />
   );
