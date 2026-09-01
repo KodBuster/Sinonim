@@ -7,7 +7,7 @@ import { CompareButton } from "@/components/compare/CompareButton";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics/metrika";
-import { formatPrice } from "@/lib/products";
+import { formatPrice, type CategorySlug } from "@/lib/products";
 import { formatInsertMassLabel } from "@/lib/synthetic-diamond-labels";
 import { useProductSelection } from "./ProductSelectionContext";
 

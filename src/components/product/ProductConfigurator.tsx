@@ -7,6 +7,7 @@ import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics/metrika";
 import { formatInsertMassLabel, SYNTHETIC_DIAMOND_CAP } from "@/lib/synthetic-diamond-labels";
+import { formatPrice, type ProductDetails } from "@/lib/products";
 import { useProductSelection } from "./ProductSelectionContext";
 
 function formatWeightGrams(value: string): string {
