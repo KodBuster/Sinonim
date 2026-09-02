@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ProductDetails } from "@/lib/products";
+import { normalizeProductDescription } from "@/lib/product-description";
 
 type ProductDescriptionProps = {
   product: ProductDetails;
@@ -12,12 +13,14 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
   const [canToggle, setCanToggle] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
 
+  const description = normalizeProductDescription(product.description);
+
   useEffect(() => {
     const el = textRef.current;
     if (!el || expanded) return;
-    // Полный текст всегда в HTML; clamp только визуальный — для SEO безопасно.
+    // Полный текст всегда в DOM; clamp только визуальный — для SEO безопасно.
     setCanToggle(el.scrollHeight > el.clientHeight + 1);
-  }, [product.description, expanded]);
+  }, [description, expanded]);
 
   return (
     <div className="bg-brand-surface rounded-xl p-6 md:p-8">
@@ -31,7 +34,7 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
           expanded ? "" : "line-clamp-4"
         }`}
       >
-        {product.description}
+        {description}
       </p>
       {canToggle ? (
         <button

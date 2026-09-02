@@ -12,6 +12,7 @@ import {
 } from "@/lib/product-length";
 import { resolveSetArtNos } from "@/lib/product-complect";
 import { buildSeoProductSlug } from "@/lib/product-slug";
+import { normalizeProductDescription } from "@/lib/product-description";
 import { resolveProductImageUrl, resolveProductImages } from "./images";
 import {
   getAdvantShopDetailsStockInfo,
@@ -694,10 +695,11 @@ export function mapProductDetails(
   const offerPrice = pickOfferPrice(item.offers);
   const basePrice = pickPositivePrice(catalogPrice, offerPrice) ?? 0;
 
-  const description =
+  const description = normalizeProductDescription(
     item.description ||
-    item.briefDescription ||
-    `${item.name} — украшение из серебра 925 пробы с ограненным синтетическим алмазом.`;
+      item.briefDescription ||
+      `${item.name} - украшение из серебра 925 пробы с ограненным синтетическим алмазом.`,
+  );
 
   const rawImages = collectImages(item.photos);
   const images = resolveProductImages(rawImages);

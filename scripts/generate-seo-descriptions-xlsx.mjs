@@ -19,7 +19,7 @@ const EXISTING_PATH = path.join(
 const OUT_PATH = process.env.SEO_OUT_PATH || EXISTING_PATH;
 
 /**
- * ПП РФ №657 от 30.05.2026 (с 01.09.2026):
+ * ПП РФ �-657 от 30.05.2026 (с 01.09.2026):
  * — для синтетики: только «ограненный синтетический алмаз» (+ слово «синтетический»);
  * — запрещены «бриллиант» и производные для искусственных вставок;
  * — нельзя указывать качественно-цветовые характеристики;
@@ -49,7 +49,8 @@ const PP657_REPLACEMENTS = [
   [/рядом с бриллиантами/gi, "рядом с ограненными синтетическими алмазами"],
   [/вокруг бриллианта/gi, "вокруг камня"],
   [/рядом с бриллиантом/gi, "рядом с ограненным синтетическим алмазом"],
-  [/лабораторных бриллиантов/gi, "ограненных синтетических алмазов"],
+  [/с ограненный синтетический алмаз/gi, "с ограненным синтетическим алмазом"],
+  [/с ограненные синтетические алмазы/gi, "с ограненными синтетическими алмазами"],
 ];
 
 const PP657_FORBIDDEN_PATTERNS = [
@@ -117,7 +118,10 @@ function replaceCaratsWithGramsInText(text) {
 }
 
 function finalizeSeoText(text) {
-  return replaceCaratsWithGramsInText(applyPp657Compliance(text));
+  return replaceCaratsWithGramsInText(applyPp657Compliance(text)).replace(
+    /[—–]/g,
+    "-",
+  );
 }
 
 function validatePp657Compliance(text, context = "") {
@@ -131,11 +135,13 @@ function validatePp657Compliance(text, context = "") {
 
 function insertLabel(stoneCount, { withPreposition = false } = {}) {
   if (stoneCount <= 1) {
-    const label = "ограненный синтетический алмаз";
-    return withPreposition ? `с ${label}` : label;
+    return withPreposition
+      ? "с ограненным синтетическим алмазом"
+      : "ограненный синтетический алмаз";
   }
-  const label = "ограненные синтетические алмазы";
-  return withPreposition ? `с ${label}` : label;
+  return withPreposition
+    ? "с ограненными синтетическими алмазами"
+    : "ограненные синтетические алмазы";
 }
 
 function formatPrice(n) {
@@ -180,7 +186,7 @@ function sizeRange(sizeOptions) {
   if (!sizeOptions?.length) return null;
   const labels = sizeOptions.map((s) => s.label || s.value);
   if (labels.length === 1) return labels[0];
-  return `${labels[0]}–${labels[labels.length - 1]}`;
+  return `${labels[0]}-${labels[labels.length - 1]}`;
 }
 
 function inferRingStyle(stoneCount, carat) {
@@ -483,7 +489,7 @@ async function main() {
   for (const [k, v] of Object.entries(counts)) meta.addRow([`категория: ${k}`, v]);
   meta.addRow(["всего товаров", rows.length]);
   meta.addRow(["сгенерировано", rows.length]);
-  meta.addRow(["нарушения ПП №657", violations.length]);
+  meta.addRow(["нарушения ПП �-657", violations.length]);
   meta.addRow([]);
   meta.addRow([
     "примечание",
@@ -491,7 +497,7 @@ async function main() {
   ]);
   meta.addRow([
     "терминология",
-    "ПП РФ №657: только «ограненный синтетический алмаз»; без «бриллиант», цвета/чистоты и сравнений с природными",
+    "ПП РФ �-657: только «ограненный синтетический алмаз»; без «бриллиант», цвета/чистоты и сравнений с природными",
   ]);
   meta.addRow([
     "вес камня",
