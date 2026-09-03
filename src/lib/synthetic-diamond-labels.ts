@@ -19,3 +19,12 @@ export function formatInsertMassGrams(caratWeight: number): string {
 export function formatInsertMassLabel(caratWeight: number): string {
   return `${formatInsertMassGrams(caratWeight)} г`;
 }
+
+/**
+ * Масса ограненного синтетического алмаза из названия товара, например «0,512 г».
+ */
+export function extractInsertMassFromName(name: string): string | null {
+  const match = name.match(/(\d+[.,]\d+)\s*г(?:р(?:амм)?\.?)?/i);
+  if (!match?.[1]) return null;
+  return `${match[1].replace(".", ",")} г`;
+}

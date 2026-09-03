@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import type { CartItem } from "@/lib/cart";
 import { getProductCaratWeight } from "@/lib/product-weight";
 import {
+  extractInsertMassFromName,
   formatInsertMassLabel,
   INSERT_WEIGHT_LABEL,
   SYNTHETIC_DIAMOND_CAP,
@@ -105,7 +106,8 @@ export function ProductQuickViewModal({
     ? CATEGORIES[product.category].title
     : null;
   const insertMass = product
-    ? formatInsertMassLabel(getProductCaratWeight(product, cartItem.size))
+    ? extractInsertMassFromName(product.name) ??
+      formatInsertMassLabel(getProductCaratWeight(product, cartItem.size))
     : null;
 
   return createPortal(

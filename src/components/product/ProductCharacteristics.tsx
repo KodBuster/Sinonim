@@ -1,7 +1,7 @@
 "use client";
 
-import { getProductLengthMmLabel } from "@/lib/product-length";
 import {
+  extractInsertMassFromName,
   formatInsertMassLabel,
   INSERT_WEIGHT_LABEL,
   SYNTHETIC_DIAMOND_CAP,
@@ -16,10 +16,9 @@ type ProductCharacteristicsProps = {
 
 export function ProductCharacteristics({ product }: ProductCharacteristicsProps) {
   const { selectedSize } = useProductSelection();
-  const isBracelet = product.category === "bracelets";
-  const insertMass = isBracelet
-    ? getProductLengthMmLabel(product, selectedSize)
-    : formatInsertMassLabel(getProductCaratWeight(product, selectedSize));
+  const insertMass =
+    extractInsertMassFromName(product.name) ??
+    formatInsertMassLabel(getProductCaratWeight(product, selectedSize));
 
   return (
     <div className="bg-brand-surface rounded-xl p-6 md:p-8">

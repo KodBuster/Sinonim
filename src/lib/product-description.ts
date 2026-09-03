@@ -31,3 +31,43 @@ export function normalizeProductDescription(text: string): string {
 
   return result;
 }
+
+export type DescriptionSegment =
+  | { type: "visible"; text: string }
+  | { type: "seoHidden"; text: string };
+
+/**
+ * Разбивает описание на обычный текст и SEO-фрагменты в двойных квадратных скобках [[...]].
+ * Скрытый текст остаётся в DOM (для индексации), визуально белый.
+ */
+export function splitDescriptionForSeoDisplay(
+  text: string,
+): DescriptionSegment[] {
+  const normalized = normalizeProductDescription(text);
+  if (!normalized) return [];
+
+  const segments: DescriptionSegment[] = [];
+  const pattern = /\[\[([\s\S]*?)\]\]/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(normalized)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({
+        type: "visible",
+        text: normalized.slice(lastIndex, match.index),
+      });
+    }
+    const hidden = match[1]?.trim();
+    if (hidden) {
+      segments.push({ type: "seoHidden", text: `[[${hidden}]]` });
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < normalized.length) {
+    segments.push({ type: "visible", text: normalized.slice(lastIndex) });
+  }
+
+  return segments.length ? segments : [{ type: "visible", text: normalized }];
+}
