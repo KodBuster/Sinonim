@@ -6,7 +6,7 @@ import { CartLink } from "@/components/cart/CartLink";
 import { CompareLink } from "@/components/compare/CompareLink";
 import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 import { MetrikaPhoneLink } from "@/components/analytics/MetrikaPhoneLink";
-import { SearchForm } from "@/components/search/SearchForm";
+import { SearchFormNative } from "@/components/search/SearchResults";
 import {
   SITE_EMAIL,
   SITE_EMAIL_MAILTO,
@@ -229,10 +229,9 @@ export function Header() {
             className="relative z-[2] hidden lg:block lg:absolute lg:left-0 lg:right-0 lg:top-full lg:border-b lg:border-brand-olive/10 lg:bg-brand-surface lg:px-10 lg:py-4 lg:shadow-sm"
           >
             <div className="mx-auto max-w-xl lg:max-w-2xl">
-              <SearchForm
+              <SearchFormNative
                 autoFocus
                 compact
-                onSubmit={() => setSearchOpen(false)}
               />
             </div>
           </div>

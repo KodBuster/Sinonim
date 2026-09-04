@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { SearchView } from "@/components/search/SearchView";
+import { SearchResults } from "@/components/search/SearchResults";
 import { buildPageMetadata } from "@/lib/metadata";
+import { getSearchProducts } from "@/lib/search-service";
 import { getSiteUrl } from "@/lib/site-url";
 
 type PageProps = {
@@ -37,20 +37,32 @@ export async function generateMetadata({
   };
 }
 
-function SearchFallback() {
-  return (
-    <div className="py-20 text-center text-brand-muted">Загрузка…</div>
-  );
-}
+export default async function SearchPage({ searchParams }: PageProps) {
+  const { q } = await searchParams;
+  const query = q?.trim() ?? "";
 
-export default function SearchPage() {
+  let products: Awaited<ReturnType<typeof getSearchProducts>> = [];
+  let error: string | undefined;
+
+  if (query) {
+    try {
+      products = await getSearchProducts(query);
+    } catch (err) {
+      console.error("Search page error:", err);
+      error =
+        err instanceof Error
+          ? err.message === "terminated" || err.message.includes("fetch failed")
+            ? "Поиск не ответил вовремя. Попробуйте обновить страницу."
+            : err.message
+          : "Не удалось выполнить поиск";
+    }
+  }
+
   return (
     <>
       <Header />
       <main>
-        <Suspense fallback={<SearchFallback />}>
-          <SearchView />
-        </Suspense>
+        <SearchResults query={query} products={products} error={error} />
       </main>
       <Footer />
     </>
