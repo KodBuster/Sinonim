@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CATEGORIES, type CategorySlug, type Product } from "@/lib/products";
@@ -8,6 +8,7 @@ import {
   filterProducts,
   parseFiltersFromSearchParams,
   countActiveFilters,
+  buildFilterQuery,
 } from "@/lib/catalog-utils";
 import { CatalogFilters, SortSelect } from "./CatalogFilters";
 import { ProductCard } from "./ProductCard";
@@ -49,7 +50,6 @@ export function CatalogView({
   initialError,
 }: CatalogViewProps) {
   const searchParams = useSearchParams();
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [catalogProducts, setCatalogProducts] = useState(initialProducts);
   const [catalogError, setCatalogError] = useState(initialError);
   const [loading, setLoading] = useState(false);
@@ -59,6 +59,18 @@ export function CatalogView({
     new URLSearchParams(searchParams.toString()),
     category
   );
+  // URL-driven panel — Links work on iOS 16 where button onClick often does not.
+  const filtersOpen = searchParams.get("panel") === "filters";
+
+  const openFiltersHref = useMemo(() => {
+    const query = buildFilterQuery(filters, {}, { panel: true });
+    return `${basePath}${query}`;
+  }, [basePath, filters]);
+
+  const closeFiltersHref = useMemo(() => {
+    const query = buildFilterQuery(filters, {}, { panel: false });
+    return `${basePath}${query}`;
+  }, [basePath, filters]);
 
   useEffect(() => {
     setCatalogProducts(initialProducts);
@@ -160,11 +172,11 @@ export function CatalogView({
 
         <div className={`relative flex transition-[gap] duration-300 ${filtersOpen ? "lg:gap-6" : "gap-0"}`}>
           {filtersOpen && (
-            <button
-              type="button"
+            <Link
+              href={closeFiltersHref}
+              scroll={false}
               className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] transition-opacity duration-300 lg:hidden"
               aria-label="Закрыть фильтры"
-              onClick={() => setFiltersOpen(false)}
             />
           )}
 
@@ -183,7 +195,8 @@ export function CatalogView({
               <CatalogFilters
                 filters={filters}
                 basePath={basePath}
-                onClose={() => setFiltersOpen(false)}
+                keepPanelOpen={filtersOpen}
+                closeHref={closeFiltersHref}
               />
             </div>
           </aside>
@@ -191,12 +204,12 @@ export function CatalogView({
           <div className="min-w-0 flex-1">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
+                <Link
+                  href={filtersOpen ? closeFiltersHref : openFiltersHref}
+                  scroll={false}
                   aria-expanded={filtersOpen}
                   aria-controls="catalog-filters"
-                  onClick={() => setFiltersOpen((open) => !open)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-brand-olive/20 bg-brand-surface px-4 py-2.5 text-sm text-brand-text transition-colors hover:border-brand-olive"
+                  className="inline-flex touch-manipulation items-center gap-2 rounded-lg border border-brand-olive/20 bg-brand-surface px-4 py-2.5 text-sm text-brand-text transition-colors hover:border-brand-olive [-webkit-tap-highlight-color:transparent]"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path
@@ -212,7 +225,7 @@ export function CatalogView({
                       {activeFilterCount}
                     </span>
                   )}
-                </button>
+                </Link>
 
                 <p className="text-sm text-brand-muted">
                   {loading
@@ -250,7 +263,7 @@ export function CatalogView({
                 <button
                   type="button"
                   onClick={retryLoad}
-                  className="inline-flex bg-brand-terracotta px-6 py-3 text-sm tracking-widest uppercase text-white transition-colors hover:bg-brand-terracotta-logo"
+                  className="inline-flex touch-manipulation bg-brand-terracotta px-6 py-3 text-sm tracking-widest uppercase text-white transition-colors hover:bg-brand-terracotta-logo"
                 >
                   Попробовать снова
                 </button>

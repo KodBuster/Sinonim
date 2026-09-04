@@ -17,7 +17,8 @@ import {
 type CatalogFiltersProps = {
   filters: Filters;
   basePath: string;
-  onClose?: () => void;
+  keepPanelOpen?: boolean;
+  closeHref?: string;
 };
 
 function FilterSection({
@@ -52,8 +53,7 @@ function CheckboxItem({
     <Link
       href={href}
       scroll={false}
-      onClick={(e) => e.stopPropagation()}
-      className="flex items-center gap-3 py-1.5 group"
+      className="flex touch-manipulation items-center gap-3 py-1.5 group [-webkit-tap-highlight-color:transparent]"
     >
       <span
         className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
@@ -89,32 +89,43 @@ function formatSizeLabel(size: number): string {
   return Number.isInteger(size) ? String(size) : size.toFixed(1).replace(".", ",");
 }
 
-export function CatalogFilters({ filters, basePath, onClose }: CatalogFiltersProps) {
+export function CatalogFilters({
+  filters,
+  basePath,
+  keepPanelOpen = false,
+  closeHref,
+}: CatalogFiltersProps) {
   const activeCount = countActiveFilters(filters);
   const showSizeFilter = shouldShowSizeFilter(filters.category);
+  const panelOpts = keepPanelOpen ? { panel: true } : undefined;
 
   const togglePrice = (id: string) => {
     const next = filters.priceRanges.includes(id)
       ? filters.priceRanges.filter((p) => p !== id)
       : [...filters.priceRanges, id];
-    return buildFilterQuery(filters, { priceRanges: next });
+    return buildFilterQuery(filters, { priceRanges: next }, panelOpts);
   };
 
   const toggleSize = (id: string) => {
     const next = filters.sizes.includes(id)
       ? filters.sizes.filter((size) => size !== id)
       : [...filters.sizes, id];
-    return buildFilterQuery(filters, { sizes: next });
+    return buildFilterQuery(filters, { sizes: next }, panelOpts);
   };
 
   const toggleComplects = () =>
-    buildFilterQuery(filters, { complectsOnly: !filters.complectsOnly });
+    buildFilterQuery(
+      filters,
+      { complectsOnly: !filters.complectsOnly },
+      panelOpts,
+    );
 
   const categoryHref = (slug: CategorySlug | null) => {
     const path = slug ? `/shop/${slug}` : "/shop";
     const query = buildFilterQuery(
       { ...filters, category: slug ?? undefined },
-      {}
+      {},
+      panelOpts,
     );
     return `${path}${query}`;
   };
@@ -123,18 +134,18 @@ export function CatalogFilters({ filters, basePath, onClose }: CatalogFiltersPro
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6 lg:mb-8">
         <h2 className="font-heading text-xl text-brand-olive-dark">Фильтры</h2>
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-brand-muted transition-colors hover:text-brand-terracotta"
+        {closeHref ? (
+          <Link
+            href={closeHref}
+            scroll={false}
+            className="touch-manipulation p-2 text-brand-muted transition-colors hover:text-brand-terracotta [-webkit-tap-highlight-color:transparent]"
             aria-label="Закрыть фильтры"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-          </button>
-        )}
+          </Link>
+        ) : null}
       </div>
 
       <FilterSection title="Категория">
@@ -192,8 +203,7 @@ export function CatalogFilters({ filters, basePath, onClose }: CatalogFiltersPro
                   key={id}
                   href={`${basePath}${toggleSize(id)}`}
                   scroll={false}
-                  onClick={(e) => e.stopPropagation()}
-                  className={`rounded-lg border px-2 py-2 text-center text-sm transition-colors ${
+                  className={`touch-manipulation rounded-lg border px-2 py-2 text-center text-sm transition-colors [-webkit-tap-highlight-color:transparent] ${
                     filters.sizes.includes(id)
                       ? "border-brand-olive bg-brand-surface text-brand-olive-dark font-medium"
                       : "border-brand-olive/20 bg-brand-surface text-brand-text hover:border-brand-olive"
@@ -217,7 +227,7 @@ export function CatalogFilters({ filters, basePath, onClose }: CatalogFiltersPro
         <Link
           href={basePath}
           scroll={false}
-          className="mt-4 text-sm text-brand-terracotta hover:text-brand-terracotta-logo transition-colors"
+          className="mt-4 touch-manipulation text-sm text-brand-terracotta hover:text-brand-terracotta-logo transition-colors"
         >
           Сбросить фильтры ({activeCount})
         </Link>

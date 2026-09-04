@@ -130,12 +130,14 @@ export function SearchForm({
     : [];
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
     if (activeIndex >= 0 && flatSuggestions[activeIndex]) {
+      event.preventDefault();
       navigateToSuggestion(flatSuggestions[activeIndex]);
       return;
     }
-    navigateToSearch(value);
+    // Native GET submit — most reliable on iOS Safari 16.
+    onSubmit?.();
+    setOpen(false);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

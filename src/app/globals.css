@@ -189,9 +189,15 @@ body {
   right: 1.25rem !important;
   top: auto !important;
   left: auto !important;
+  width: 64px !important;
+  height: 64px !important;
+  max-width: 64px !important;
+  max-height: 64px !important;
   transform: none !important;
   z-index: 55 !important;
-  pointer-events: auto !important;
+  /* Critical on iOS: container must NOT steal taps across the page */
+  pointer-events: none !important;
+  overflow: visible !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent;
 }

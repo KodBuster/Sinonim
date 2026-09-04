@@ -91,7 +91,8 @@ export function parseFiltersFromSearchParams(
 
 export function buildFilterQuery(
   filters: CatalogFilters,
-  updates: Partial<CatalogFilters>
+  updates: Partial<CatalogFilters>,
+  options?: { panel?: boolean }
 ): string {
   const next = { ...filters, ...updates };
   const query = new URLSearchParams();
@@ -103,6 +104,9 @@ export function buildFilterQuery(
   }
   if (next.sort && next.sort !== "default") {
     query.set("sort", next.sort);
+  }
+  if (options?.panel) {
+    query.set("panel", "filters");
   }
 
   const str = query.toString();
