@@ -1,11 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 /**
  * Terracotta FAB → /messengers page.
  * iOS Safari 16: expand/toggle/hash/checkbox all failed; plain page links work
  * (same as catalog filters and size chips).
  */
 export function MessengerFab() {
+  const pathname = usePathname();
+  if (pathname === "/messengers") return null;
+
   return (
     <div
       id="messenger-fab-root"
