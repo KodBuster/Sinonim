@@ -74,13 +74,12 @@ export function SearchForm({
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
-  const readQuery = () => inputRef.current?.value ?? suggestQuery;
-
   const syncFindHref = () => {
     const anchor = findRef.current;
     if (!anchor) return;
-    const q = readQuery().trim();
-    anchor.setAttribute("href", q ? searchHref(q) : "/search");
+    const q = (inputRef.current?.value ?? "").trim();
+    // Native <a href> — same mechanism as working size chips.
+    anchor.href = q ? searchHref(q) : "/search";
   };
 
   useEffect(() => {
@@ -88,7 +87,6 @@ export function SearchForm({
     if (inputRef.current) {
       inputRef.current.value = defaultQuery;
     }
-    // Defer so findRef is mounted.
     window.setTimeout(syncFindHref, 0);
   }, [defaultQuery]);
 
@@ -129,38 +127,41 @@ export function SearchForm({
     };
   }, [suggestQuery, enableAutocomplete]);
 
-  const hardNavigateSearch = (query: string) => {
-    const trimmed = query.trim();
-    if (!trimmed) return;
-    onSubmit?.();
-    setOpen(false);
-    window.location.href = searchHref(trimmed);
-  };
-
-  const navigateToSuggestion = (suggestion: SearchAutocompleteSuggestion) => {
-    onSubmit?.();
-    setOpen(false);
-    window.location.href = suggestion.href;
-  };
-
   const flatSuggestions = suggestions
     ? flattenAutocompleteSuggestions(suggestions)
     : [];
 
+  const leaveTo = (href: string) => {
+    onSubmit?.();
+    setOpen(false);
+    window.location.href = href;
+  };
+
+  /** Keyboard / iOS search-key submit. */
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     if (activeIndex >= 0 && flatSuggestions[activeIndex]) {
-      navigateToSuggestion(flatSuggestions[activeIndex]);
+      leaveTo(flatSuggestions[activeIndex].href);
       return;
     }
-    hardNavigateSearch(readQuery());
+
+    const q = String(new FormData(event.currentTarget).get("q") ?? "").trim();
+    if (!q) {
+      inputRef.current?.focus();
+      return;
+    }
+    leaveTo(searchHref(q));
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (!enableAutocomplete || !open) {
-      if (event.key === "Escape") setOpen(false);
+    if (event.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
       return;
     }
+
+    if (!enableAutocomplete || !open) return;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -173,12 +174,6 @@ export function SearchForm({
     if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((index) => (index > 0 ? index - 1 : -1));
-      return;
-    }
-
-    if (event.key === "Escape") {
-      setOpen(false);
-      setActiveIndex(-1);
     }
   };
 
@@ -201,47 +196,35 @@ export function SearchForm({
             syncFindHref();
           }}
           onFocus={() => {
-            if (readQuery().trim().length >= MIN_AUTOCOMPLETE_LENGTH) {
+            if (
+              enableAutocomplete &&
+              (inputRef.current?.value.trim().length ?? 0) >= MIN_AUTOCOMPLETE_LENGTH
+            ) {
               setOpen(true);
             }
           }}
-          onBlur={() => {
-            window.setTimeout(() => {
-              setOpen(false);
-              setActiveIndex(-1);
-            }, 150);
-          }}
+          // Critical: no onBlur setState — it cancels the following tap on iOS.
           onKeyDown={handleKeyDown}
           autoFocus={autoFocus}
           enterKeyHint="search"
           autoComplete="off"
-          aria-autocomplete="list"
+          aria-autocomplete={enableAutocomplete ? "list" : undefined}
           aria-controls={open ? listId : undefined}
-          aria-expanded={open}
+          aria-expanded={enableAutocomplete ? open : undefined}
           placeholder="Кольцо, серьги, артикул…"
           className={`min-w-0 flex-1 rounded-lg border border-brand-olive/20 bg-white px-4 text-base text-brand-text placeholder:text-brand-muted focus:border-brand-olive focus:outline-none focus:ring-2 focus:ring-brand-olive/20 ${
             compact ? "py-2" : "py-2.5"
           } ${inputClassName}`}
         />
+        {/*
+          Plain <a> with NO onClick — identical to size chips that work on iOS 16.
+          href is kept in sync from the live input value.
+        */}
         <a
           ref={findRef}
           href={defaultQuery.trim() ? searchHref(defaultQuery) : "/search"}
           onTouchStart={syncFindHref}
           onMouseDown={syncFindHref}
-          onClick={(event) => {
-            syncFindHref();
-            const q = readQuery().trim();
-            if (!q) {
-              event.preventDefault();
-              inputRef.current?.focus();
-              return;
-            }
-            onSubmit?.();
-            setOpen(false);
-            // Force full page load with DOM value (same idea as filters + hard nav).
-            event.preventDefault();
-            window.location.href = searchHref(q);
-          }}
           className={`inline-flex shrink-0 touch-manipulation items-center justify-center rounded-lg bg-brand-terracotta px-4 font-medium text-white transition-colors hover:bg-brand-terracotta-logo [-webkit-tap-highlight-color:transparent] ${
             compact ? "py-2 text-sm" : "py-2.5 text-base"
           }`}
@@ -258,8 +241,13 @@ export function SearchForm({
           open={open}
           activeIndex={activeIndex}
           listId={listId}
-          onSelect={navigateToSuggestion}
-          onShowAll={() => hardNavigateSearch(readQuery())}
+          onSelect={(suggestion: SearchAutocompleteSuggestion) =>
+            leaveTo(suggestion.href)
+          }
+          onShowAll={() => {
+            const q = (inputRef.current?.value ?? suggestQuery).trim();
+            if (q) leaveTo(searchHref(q));
+          }}
         />
       ) : null}
     </form>
