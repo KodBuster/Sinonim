@@ -12,6 +12,8 @@ import {
   trackContactTelegram,
 } from "@/lib/analytics/metrika";
 
+const FAB_HASH = "#messengers";
+
 function IconMax() {
   return (
     <svg width="28" height="28" viewBox="0 0 1000 1000" fill="currentColor" aria-hidden>
@@ -97,24 +99,58 @@ const FAB_ITEMS: Array<{
   ...MESSENGERS.filter((item) => item.id === "max" || item.id === "telegram"),
 ];
 
-const FAB_TOGGLE_ID = "messenger-fab-toggle";
+function readFabOpenFromHash() {
+  return window.location.hash === FAB_HASH;
+}
+
+function clearFabHash() {
+  const { pathname, search } = window.location;
+  window.history.replaceState(null, "", `${pathname}${search}`);
+}
+
+function openFabHash() {
+  if (window.location.hash !== FAB_HASH) {
+    window.location.hash = FAB_HASH;
+  }
+}
 
 export function MessengerFab() {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const checkboxRef = useRef<HTMLInputElement>(null);
+  const toggleRef = useRef<HTMLAnchorElement>(null);
   const pendingDesktopFocusRef = useRef(false);
   const openedAtRef = useRef(0);
 
   const setFabOpen = (next: boolean) => {
-    if (checkboxRef.current) {
-      checkboxRef.current.checked = next;
-    }
     if (next) {
       openedAtRef.current = Date.now();
+      openFabHash();
+      setOpen(true);
+      return;
     }
-    setOpen(next);
+    clearFabHash();
+    setOpen(false);
   };
+
+  useEffect(() => {
+    const syncFromHash = () => {
+      const next = readFabOpenFromHash();
+      if (next) {
+        openedAtRef.current = Date.now();
+        setOpen(true);
+        return;
+      }
+      // #messengers-close or empty — close without jumping to top
+      if (window.location.hash === "#messengers-close") {
+        clearFabHash();
+      }
+      setOpen(false);
+    };
+
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+    return () => window.removeEventListener("hashchange", syncFromHash);
+  }, []);
 
   useEffect(() => {
     const handleOpenRequest = (event: Event) => {
@@ -139,7 +175,7 @@ export function MessengerFab() {
 
     pendingDesktopFocusRef.current = false;
     const timer = window.setTimeout(() => {
-      checkboxRef.current?.focus({ preventScroll: true });
+      toggleRef.current?.focus({ preventScroll: true });
     }, 320);
 
     return () => window.clearTimeout(timer);
@@ -181,7 +217,7 @@ export function MessengerFab() {
     <div
       ref={rootRef}
       id="messenger-fab-root"
-      className="pointer-events-none fixed bottom-5 right-5 z-[60] md:bottom-6 md:right-6"
+      className="pointer-events-none fixed bottom-5 right-5 z-[120] md:bottom-6 md:right-6"
     >
       <div className="relative flex h-14 w-14 items-center justify-center">
         <div
@@ -193,7 +229,6 @@ export function MessengerFab() {
           }`}
           aria-hidden={!open}
         >
-          {/* Слева направо: Telegram → MAX → Позвонить → FAB */}
           {[...FAB_ITEMS].reverse().map((item, index) => {
             const Icon = ICONS[item.id];
             const isPhone = item.id === "phone";
@@ -253,58 +288,33 @@ export function MessengerFab() {
         </div>
 
         {/*
-          Full-size opacity-0 checkbox on top — native control, reliable on iOS 16.
-          (sr-only 1×1px radios/labels were flaky; size chips needed real links.)
+          Plain <a href="#messengers"> — same iOS-safe pattern as size / filter links.
+          Open/close is driven only by hashchange (no onClick).
         */}
-        <div className="pointer-events-auto relative h-14 w-14 shrink-0">
-          <input
-            ref={checkboxRef}
-            id={FAB_TOGGLE_ID}
-            type="checkbox"
-            defaultChecked={false}
-            aria-expanded={open}
-            aria-controls="messenger-fab-menu"
-            aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
-            className="absolute inset-0 z-[2] h-full w-full cursor-pointer appearance-none opacity-0 touch-manipulation [-webkit-tap-highlight-color:transparent]"
-            onChange={(event) => {
-              const next = event.target.checked;
-              if (next) {
-                openedAtRef.current = Date.now();
-                setOpen(true);
-                return;
-              }
-              // Ignore iOS ghost toggle that would instantly close the FAB.
-              if (Date.now() - openedAtRef.current < 450) {
-                event.target.checked = true;
-                return;
-              }
-              setOpen(false);
-            }}
-          />
+        <a
+          ref={toggleRef}
+          href={open ? "#messengers-close" : FAB_HASH}
+          id="messenger-fab-toggle"
+          className="pointer-events-auto relative z-[1] flex h-14 w-14 shrink-0 touch-manipulation items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta [-webkit-tap-highlight-color:transparent]"
+          aria-expanded={open}
+          aria-controls="messenger-fab-menu"
+          aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
+        >
           <span
-            className="pointer-events-none relative z-[1] flex h-14 w-14 items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300"
-            aria-hidden
+            className={`absolute transition-all duration-300 ${
+              open ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"
+            }`}
           >
-            <span
-              className={`absolute transition-all duration-300 ${
-                open
-                  ? "scale-0 rotate-90 opacity-0"
-                  : "scale-100 rotate-0 opacity-100"
-              }`}
-            >
-              <IconChat />
-            </span>
-            <span
-              className={`absolute transition-all duration-300 ${
-                open
-                  ? "scale-100 rotate-0 opacity-100"
-                  : "scale-0 -rotate-90 opacity-0"
-              }`}
-            >
-              <IconClose />
-            </span>
+            <IconChat />
           </span>
-        </div>
+          <span
+            className={`absolute transition-all duration-300 ${
+              open ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
+            }`}
+          >
+            <IconClose />
+          </span>
+        </a>
       </div>
     </div>
   );

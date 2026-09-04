@@ -183,21 +183,21 @@ body {
   }
 }
 
-/* Mango «Чат» above Messenger FAB — CSS only (no JS style fights on iOS) */
+/* Mango «Чат»: left side, away from terracotta FAB (right). Shrink hit-box. */
 .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
-  bottom: 6rem !important;
-  right: 1.25rem !important;
+  bottom: 1.25rem !important;
+  left: 1.25rem !important;
+  right: auto !important;
   top: auto !important;
-  left: auto !important;
-  width: 64px !important;
-  height: 64px !important;
-  max-width: 64px !important;
-  max-height: 64px !important;
+  width: 56px !important;
+  height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
   transform: none !important;
   z-index: 55 !important;
   /* Critical on iOS: container must NOT steal taps across the page */
   pointer-events: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent;
 }
@@ -228,8 +228,9 @@ body.mango-chat-open #messenger-fab-root {
 
 @media (min-width: 768px) {
   .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
-    bottom: 6.5rem !important;
-    right: 1.5rem !important;
+    bottom: 1.5rem !important;
+    left: 1.5rem !important;
+    right: auto !important;
   }
 }
 
