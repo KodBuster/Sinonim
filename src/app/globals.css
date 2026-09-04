@@ -183,35 +183,49 @@ body {
   }
 }
 
-/* Mango «Чат»: left side, away from terracotta FAB (right). Shrink hit-box. */
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
-  bottom: 1.25rem !important;
-  left: 1.25rem !important;
-  right: auto !important;
-  top: auto !important;
-  width: 56px !important;
-  height: 56px !important;
-  max-width: 56px !important;
-  max-height: 56px !important;
-  transform: none !important;
-  z-index: 55 !important;
-  /* Critical on iOS: container must NOT steal taps across the page */
-  pointer-events: none !important;
-  overflow: hidden !important;
-  touch-action: manipulation !important;
-  -webkit-tap-highlight-color: transparent;
+/* Mobile: hide closed Mango widget — it steals taps from the terracotta FAB. */
+@media (max-width: 767.98px) {
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
+    display: none !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
 }
 
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button,
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button_main,
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button_chat,
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button-icon,
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) button,
-.mgo-mcw-widget:not(.mgo-mcw_state-window-open) a {
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-  cursor: pointer !important;
-  -webkit-tap-highlight-color: transparent;
+/* Desktop: Mango «Чат» bottom-left, away from terracotta FAB (right). */
+@media (min-width: 768px) {
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
+    bottom: 1.5rem !important;
+    left: 1.5rem !important;
+    right: auto !important;
+    top: auto !important;
+    width: 56px !important;
+    height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+    transform: none !important;
+    z-index: 55 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button,
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button_main,
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button_chat,
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) .mgo-mcw__button-icon,
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) button,
+  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) a {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 .mgo-mcw-widget.mgo-mcw_state-window-open {
@@ -224,14 +238,6 @@ body.mango-chat-open #messenger-fab-root {
   pointer-events: none !important;
   opacity: 0;
   visibility: hidden;
-}
-
-@media (min-width: 768px) {
-  .mgo-mcw-widget:not(.mgo-mcw_state-window-open) {
-    bottom: 1.5rem !important;
-    left: 1.5rem !important;
-    right: auto !important;
-  }
 }
 
 /* Mobile: keep open chat fully inside the viewport so the close control is visible */

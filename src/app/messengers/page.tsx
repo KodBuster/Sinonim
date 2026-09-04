@@ -1,0 +1,25 @@
+import type { Metadata } from "next";
+import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
+import { MessengersPage } from "@/components/MessengersPage";
+import { buildPageMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Написать нам — Синоним",
+  description:
+    "Свяжитесь с Синоним в MAX, Telegram или по телефону. Консультация по украшениям с ограненными синтетическими алмазами.",
+  path: "/messengers",
+  noIndex: true,
+});
+
+export default function MessengersRoute() {
+  return (
+    <>
+      <Header />
+      <main>
+        <MessengersPage />
+      </main>
+      <Footer />
+    </>
+  );
+}

@@ -74,6 +74,11 @@ export function MangoOfficeChat() {
   }, []);
 
   useEffect(() => {
+    // Mobile: do not load Mango — closed widget steals taps from the FAB.
+    if (window.matchMedia("(max-width: 767.98px)").matches) {
+      return;
+    }
+
     let loaded = false;
     const load = () => {
       if (loaded) return;

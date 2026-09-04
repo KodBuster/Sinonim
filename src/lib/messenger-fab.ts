@@ -4,10 +4,7 @@ export type MessengerFabOpenDetail = {
   focusOnDesktop?: boolean;
 };
 
-export function openMessengerFab(options?: MessengerFabOpenDetail) {
-  window.dispatchEvent(
-    new CustomEvent<MessengerFabOpenDetail>(MESSENGER_FAB_OPEN_EVENT, {
-      detail: { focusOnDesktop: true, ...options },
-    }),
-  );
+/** Opens contact options via full navigation (iOS-safe). */
+export function openMessengerFab(_options?: MessengerFabOpenDetail) {
+  window.location.href = "/messengers";
 }
