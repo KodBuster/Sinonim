@@ -50,6 +50,10 @@ async function fetchAutocomplete(
   };
 }
 
+function searchHref(query: string) {
+  return `/search?q=${encodeURIComponent(query.trim())}`;
+}
+
 export function SearchForm({
   autoFocus = false,
   defaultQuery = "",
@@ -110,13 +114,13 @@ export function SearchForm({
     };
   }, [value, enableAutocomplete]);
 
-  const navigateToSearch = (query: string) => {
+  const goSearch = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) return;
     onSubmit?.();
     setOpen(false);
-    // Hard navigation — router.push is unreliable on iOS Safari 16 form submit.
-    window.location.assign(`/search?q=${encodeURIComponent(trimmed)}`);
+    // Hard navigation — App Router / iOS Safari form submit is unreliable.
+    window.location.assign(searchHref(trimmed));
   };
 
   const navigateToSuggestion = (suggestion: SearchAutocompleteSuggestion) => {
@@ -130,14 +134,13 @@ export function SearchForm({
     : [];
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (activeIndex >= 0 && flatSuggestions[activeIndex]) {
-      event.preventDefault();
       navigateToSuggestion(flatSuggestions[activeIndex]);
       return;
     }
-    // Native GET submit — most reliable on iOS Safari 16.
-    onSubmit?.();
-    setOpen(false);
+    const fromInput = inputRef.current?.value ?? value;
+    goSearch(fromInput);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -168,6 +171,9 @@ export function SearchForm({
       return;
     }
   };
+
+  const trimmedValue = value.trim();
+  const findHref = trimmedValue ? searchHref(trimmedValue) : "/search";
 
   return (
     <form
@@ -207,14 +213,27 @@ export function SearchForm({
             compact ? "py-2" : "py-2.5"
           } ${inputClassName}`}
         />
-        <button
-          type="submit"
-          className={`shrink-0 rounded-lg bg-brand-terracotta px-4 font-medium text-white transition-colors hover:bg-brand-terracotta-logo ${
+        {/* <a> works on iOS 16 where <button type="submit"> often does not. */}
+        <a
+          href={findHref}
+          onClick={(event) => {
+            if (!trimmedValue) {
+              event.preventDefault();
+              inputRef.current?.focus();
+              return;
+            }
+            onSubmit?.();
+            setOpen(false);
+            // Force full navigation even if Next.js Link-like interception happens.
+            event.preventDefault();
+            window.location.assign(findHref);
+          }}
+          className={`inline-flex shrink-0 items-center justify-center rounded-lg bg-brand-terracotta px-4 font-medium text-white transition-colors hover:bg-brand-terracotta-logo ${
             compact ? "py-2 text-sm" : "py-2.5 text-base"
           }`}
         >
           Найти
-        </button>
+        </a>
       </div>
 
       {enableAutocomplete ? (
@@ -226,7 +245,7 @@ export function SearchForm({
           activeIndex={activeIndex}
           listId={listId}
           onSelect={navigateToSuggestion}
-          onShowAll={() => navigateToSearch(value)}
+          onShowAll={() => goSearch(value)}
         />
       ) : null}
     </form>

@@ -64,14 +64,17 @@ export function SearchAutocompleteList({
         className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-brand-olive/15 bg-white shadow-lg"
       >
         <p className="px-4 py-3 text-sm text-brand-muted">Ничего не найдено</p>
-        <button
-          type="button"
+        <a
+          href={`/search?q=${encodeURIComponent(query.trim())}`}
           onMouseDown={(event) => event.preventDefault()}
-          onClick={onShowAll}
-          className="w-full border-t border-brand-sand px-4 py-3 text-left text-sm text-brand-terracotta hover:bg-brand-surface transition-colors"
+          onClick={(event) => {
+            event.preventDefault();
+            onShowAll();
+          }}
+          className="block w-full border-t border-brand-sand px-4 py-3 text-left text-sm text-brand-terracotta hover:bg-brand-surface transition-colors"
         >
           Искать «{query}» во всём каталоге
-        </button>
+        </a>
       </div>
     );
   }
@@ -179,14 +182,17 @@ export function SearchAutocompleteList({
         </div>
       ) : null}
 
-      <button
-        type="button"
+      <a
+        href={`/search?q=${encodeURIComponent(query.trim())}`}
         onMouseDown={(event) => event.preventDefault()}
-        onClick={onShowAll}
-        className="w-full border-t border-brand-sand px-4 py-3 text-left text-sm text-brand-terracotta hover:bg-brand-surface transition-colors"
+        onClick={(event) => {
+          event.preventDefault();
+          onShowAll();
+        }}
+        className="block w-full border-t border-brand-sand px-4 py-3 text-left text-sm text-brand-terracotta hover:bg-brand-surface transition-colors"
       >
         {loading ? "Загрузка…" : `Показать все результаты для «${query}»`}
-      </button>
+      </a>
     </div>
   );
 }
