@@ -97,17 +97,29 @@ const FAB_ITEMS: Array<{
   ...MESSENGERS.filter((item) => item.id === "max" || item.id === "telegram"),
 ];
 
+const FAB_TOGGLE_ID = "messenger-fab-toggle";
+
 export function MessengerFab() {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const toggleRef = useRef<HTMLButtonElement>(null);
+  const checkboxRef = useRef<HTMLInputElement>(null);
   const pendingDesktopFocusRef = useRef(false);
   const openedAtRef = useRef(0);
+
+  const setFabOpen = (next: boolean) => {
+    if (checkboxRef.current) {
+      checkboxRef.current.checked = next;
+    }
+    if (next) {
+      openedAtRef.current = Date.now();
+    }
+    setOpen(next);
+  };
 
   useEffect(() => {
     const handleOpenRequest = (event: Event) => {
       const detail = (event as CustomEvent<MessengerFabOpenDetail>).detail;
-      setOpen(true);
+      setFabOpen(true);
 
       if (
         detail?.focusOnDesktop !== false &&
@@ -127,7 +139,7 @@ export function MessengerFab() {
 
     pendingDesktopFocusRef.current = false;
     const timer = window.setTimeout(() => {
-      toggleRef.current?.focus({ preventScroll: true });
+      checkboxRef.current?.focus({ preventScroll: true });
     }, 320);
 
     return () => window.clearTimeout(timer);
@@ -144,16 +156,16 @@ export function MessengerFab() {
       if (
         target instanceof Element &&
         target.closest(
-          ".mgo-mcw-widget, .mgo-mcw__button, .mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel'], [class*='mgo-mcw']"
+          ".mgo-mcw-widget, .mgo-mcw__button, .mgo-widget-call_button, .mgo-widget-online-button, .mgo-widget-callback_button, [class*='mgo-widget-call'], [class*='mgo-multichannel'], [class*='mgo-mcw']",
         )
       ) {
         return;
       }
-      setOpen(false);
+      setFabOpen(false);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") setFabOpen(false);
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -169,10 +181,11 @@ export function MessengerFab() {
     <div
       ref={rootRef}
       id="messenger-fab-root"
-      className="pointer-events-none fixed bottom-5 right-5 z-50 md:bottom-6 md:right-6"
+      className="pointer-events-none fixed bottom-5 right-5 z-[60] md:bottom-6 md:right-6"
     >
       <div className="relative flex h-14 w-14 items-center justify-center">
         <div
+          id="messenger-fab-menu"
           className={`absolute right-full top-1/2 mr-3 flex -translate-y-1/2 flex-row items-center gap-2 transition-all duration-300 ${
             open
               ? "pointer-events-auto opacity-100 translate-x-0"
@@ -202,7 +215,7 @@ export function MessengerFab() {
                   } else if (item.id === "max" || item.id === "telegram") {
                     MESSENGER_GOALS[item.id]();
                   }
-                  setOpen(false);
+                  setFabOpen(false);
                 }}
               >
                 {isMax ? (
@@ -239,39 +252,59 @@ export function MessengerFab() {
           })}
         </div>
 
-        <button
-          ref={toggleRef}
-          type="button"
-          onClick={() => {
-            const now = Date.now();
-            if (!open) {
-              openedAtRef.current = now;
-              setOpen(true);
-              return;
-            }
-            // Ignore iOS ghost click that would instantly close the FAB.
-            if (now - openedAtRef.current < 450) return;
-            setOpen(false);
-          }}
-          className="pointer-events-auto relative z-[1] flex h-14 w-14 shrink-0 touch-manipulation items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300 hover:bg-brand-terracotta-logo hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
-          aria-expanded={open}
-          aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
-        >
+        {/*
+          Full-size opacity-0 checkbox on top — native control, reliable on iOS 16.
+          (sr-only 1×1px radios/labels were flaky; size chips needed real links.)
+        */}
+        <div className="pointer-events-auto relative h-14 w-14 shrink-0">
+          <input
+            ref={checkboxRef}
+            id={FAB_TOGGLE_ID}
+            type="checkbox"
+            defaultChecked={false}
+            aria-expanded={open}
+            aria-controls="messenger-fab-menu"
+            aria-label={open ? "Закрыть мессенджеры" : "Написать в мессенджер"}
+            className="absolute inset-0 z-[2] h-full w-full cursor-pointer appearance-none opacity-0 touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            onChange={(event) => {
+              const next = event.target.checked;
+              if (next) {
+                openedAtRef.current = Date.now();
+                setOpen(true);
+                return;
+              }
+              // Ignore iOS ghost toggle that would instantly close the FAB.
+              if (Date.now() - openedAtRef.current < 450) {
+                event.target.checked = true;
+                return;
+              }
+              setOpen(false);
+            }}
+          />
           <span
-            className={`absolute transition-all duration-300 ${
-              open ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"
-            }`}
+            className="pointer-events-none relative z-[1] flex h-14 w-14 items-center justify-center rounded-full bg-brand-terracotta text-white shadow-xl transition-all duration-300"
+            aria-hidden
           >
-            <IconChat />
+            <span
+              className={`absolute transition-all duration-300 ${
+                open
+                  ? "scale-0 rotate-90 opacity-0"
+                  : "scale-100 rotate-0 opacity-100"
+              }`}
+            >
+              <IconChat />
+            </span>
+            <span
+              className={`absolute transition-all duration-300 ${
+                open
+                  ? "scale-100 rotate-0 opacity-100"
+                  : "scale-0 -rotate-90 opacity-0"
+              }`}
+            >
+              <IconClose />
+            </span>
           </span>
-          <span
-            className={`absolute transition-all duration-300 ${
-              open ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
-            }`}
-          >
-            <IconClose />
-          </span>
-        </button>
+        </div>
       </div>
     </div>
   );
