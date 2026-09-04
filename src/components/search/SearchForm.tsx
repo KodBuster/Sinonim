@@ -30,7 +30,7 @@ type SearchFormProps = {
 
 async function fetchAutocomplete(
   query: string,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<SearchAutocompleteResult> {
   const params = new URLSearchParams({ q: query });
   const response = await fetch(`/api/search/autocomplete?${params.toString()}`, {
@@ -64,23 +64,38 @@ export function SearchForm({
   enableAutocomplete = true,
 }: SearchFormProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const findRef = useRef<HTMLAnchorElement>(null);
   const listId = useId();
-  const [value, setValue] = useState(defaultQuery);
+  const [suggestQuery, setSuggestQuery] = useState(defaultQuery);
   const [suggestions, setSuggestions] = useState<SearchAutocompleteResult | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
+  const readQuery = () => inputRef.current?.value ?? suggestQuery;
+
+  const syncFindHref = () => {
+    const anchor = findRef.current;
+    if (!anchor) return;
+    const q = readQuery().trim();
+    anchor.setAttribute("href", q ? searchHref(q) : "/search");
+  };
+
   useEffect(() => {
-    setValue(defaultQuery);
+    setSuggestQuery(defaultQuery);
+    if (inputRef.current) {
+      inputRef.current.value = defaultQuery;
+    }
+    // Defer so findRef is mounted.
+    window.setTimeout(syncFindHref, 0);
   }, [defaultQuery]);
 
   useEffect(() => {
     if (!enableAutocomplete) return;
 
-    const trimmed = value.trim();
+    const trimmed = suggestQuery.trim();
     if (trimmed.length < MIN_AUTOCOMPLETE_LENGTH) {
       setSuggestions(null);
       setLoading(false);
@@ -112,21 +127,20 @@ export function SearchForm({
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [value, enableAutocomplete]);
+  }, [suggestQuery, enableAutocomplete]);
 
-  const goSearch = (query: string) => {
+  const hardNavigateSearch = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) return;
     onSubmit?.();
     setOpen(false);
-    // Hard navigation — App Router / iOS Safari form submit is unreliable.
-    window.location.assign(searchHref(trimmed));
+    window.location.href = searchHref(trimmed);
   };
 
   const navigateToSuggestion = (suggestion: SearchAutocompleteSuggestion) => {
     onSubmit?.();
     setOpen(false);
-    window.location.assign(suggestion.href);
+    window.location.href = suggestion.href;
   };
 
   const flatSuggestions = suggestions
@@ -139,22 +153,19 @@ export function SearchForm({
       navigateToSuggestion(flatSuggestions[activeIndex]);
       return;
     }
-    const fromInput = inputRef.current?.value ?? value;
-    goSearch(fromInput);
+    hardNavigateSearch(readQuery());
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!enableAutocomplete || !open) {
-      if (event.key === "Escape") {
-        setOpen(false);
-      }
+      if (event.key === "Escape") setOpen(false);
       return;
     }
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setActiveIndex((index) =>
-        index < flatSuggestions.length - 1 ? index + 1 : index
+        index < flatSuggestions.length - 1 ? index + 1 : index,
       );
       return;
     }
@@ -168,12 +179,8 @@ export function SearchForm({
     if (event.key === "Escape") {
       setOpen(false);
       setActiveIndex(-1);
-      return;
     }
   };
-
-  const trimmedValue = value.trim();
-  const findHref = trimmedValue ? searchHref(trimmedValue) : "/search";
 
   return (
     <form
@@ -188,10 +195,13 @@ export function SearchForm({
           ref={inputRef}
           type="search"
           name="q"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
+          defaultValue={defaultQuery}
+          onInput={(event) => {
+            setSuggestQuery(event.currentTarget.value);
+            syncFindHref();
+          }}
           onFocus={() => {
-            if (value.trim().length >= MIN_AUTOCOMPLETE_LENGTH) {
+            if (readQuery().trim().length >= MIN_AUTOCOMPLETE_LENGTH) {
               setOpen(true);
             }
           }}
@@ -213,22 +223,26 @@ export function SearchForm({
             compact ? "py-2" : "py-2.5"
           } ${inputClassName}`}
         />
-        {/* <a> works on iOS 16 where <button type="submit"> often does not. */}
         <a
-          href={findHref}
+          ref={findRef}
+          href={defaultQuery.trim() ? searchHref(defaultQuery) : "/search"}
+          onTouchStart={syncFindHref}
+          onMouseDown={syncFindHref}
           onClick={(event) => {
-            if (!trimmedValue) {
+            syncFindHref();
+            const q = readQuery().trim();
+            if (!q) {
               event.preventDefault();
               inputRef.current?.focus();
               return;
             }
             onSubmit?.();
             setOpen(false);
-            // Force full navigation even if Next.js Link-like interception happens.
+            // Force full page load with DOM value (same idea as filters + hard nav).
             event.preventDefault();
-            window.location.assign(findHref);
+            window.location.href = searchHref(q);
           }}
-          className={`inline-flex shrink-0 items-center justify-center rounded-lg bg-brand-terracotta px-4 font-medium text-white transition-colors hover:bg-brand-terracotta-logo ${
+          className={`inline-flex shrink-0 touch-manipulation items-center justify-center rounded-lg bg-brand-terracotta px-4 font-medium text-white transition-colors hover:bg-brand-terracotta-logo [-webkit-tap-highlight-color:transparent] ${
             compact ? "py-2 text-sm" : "py-2.5 text-base"
           }`}
         >
@@ -238,14 +252,14 @@ export function SearchForm({
 
       {enableAutocomplete ? (
         <SearchAutocompleteList
-          query={value.trim()}
+          query={suggestQuery.trim()}
           result={suggestions}
           loading={loading}
           open={open}
           activeIndex={activeIndex}
           listId={listId}
           onSelect={navigateToSuggestion}
-          onShowAll={() => goSearch(value)}
+          onShowAll={() => hardNavigateSearch(readQuery())}
         />
       ) : null}
     </form>

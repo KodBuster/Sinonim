@@ -2,18 +2,27 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
-import { getProductSizeLabel, getProductSizePrice, type ProductDetails } from "@/lib/products";
-import { getProductCaratWeight, getProductCaratWeightLabel } from "@/lib/product-weight";
+import { usePathname, useSearchParams } from "next/navigation";
+import {
+  getProductSizeLabel,
+  getProductSizePrice,
+  type ProductDetails,
+} from "@/lib/products";
+import {
+  getProductCaratWeight,
+  getProductCaratWeightLabel,
+} from "@/lib/product-weight";
 
 type ProductSelectionContextValue = {
   selectedSize: string | null;
   setSelectedSize: (size: string | null) => void;
   selectedSizeLabel: string | null;
+  sizeHref: (size: string) => string;
   artNo?: string;
   price: number;
   diamondWeight: number;
@@ -21,12 +30,12 @@ type ProductSelectionContextValue = {
 };
 
 const ProductSelectionContext = createContext<ProductSelectionContextValue | null>(
-  null
+  null,
 );
 
 function resolveArtNo(
   product: ProductDetails,
-  selectedSize: string | null
+  selectedSize: string | null,
 ): string | undefined {
   if (selectedSize && product.sizeArtNos?.[selectedSize]) {
     return product.sizeArtNos[selectedSize];
@@ -43,6 +52,11 @@ function pickDefaultSelectedSize(product: ProductDetails): string | null {
   return (inStock ?? product.sizeOptions[0]).value;
 }
 
+function isValidSize(product: ProductDetails, size: string | null): boolean {
+  if (!size) return false;
+  return product.sizeOptions.some((option) => option.value === size);
+}
+
 export function ProductSelectionProvider({
   product,
   children,
@@ -50,8 +64,30 @@ export function ProductSelectionProvider({
   product: ProductDetails;
   children: ReactNode;
 }) {
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    pickDefaultSelectedSize(product),
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const sizeParam = searchParams.get("size");
+  const defaultSize = pickDefaultSelectedSize(product);
+  const selectedSize = isValidSize(product, sizeParam)
+    ? sizeParam
+    : defaultSize;
+
+  const sizeHref = useCallback(
+    (size: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("size", size);
+      const query = params.toString();
+      return query ? `${pathname}?${query}` : pathname;
+    },
+    [pathname, searchParams],
+  );
+
+  // Kept for non-Link callers; selection itself is URL-driven (iOS-safe).
+  const setSelectedSize = useCallback(
+    (_size: string | null) => {
+      // no-op: size chips navigate via Link href
+    },
+    [],
   );
 
   const value = useMemo(
@@ -59,12 +95,13 @@ export function ProductSelectionProvider({
       selectedSize,
       setSelectedSize,
       selectedSizeLabel: getProductSizeLabel(product, selectedSize) ?? null,
+      sizeHref,
       artNo: resolveArtNo(product, selectedSize),
       price: getProductSizePrice(product, selectedSize),
       diamondWeight: getProductCaratWeight(product, selectedSize),
       diamondWeightLabel: getProductCaratWeightLabel(product, selectedSize),
     }),
-    [product, selectedSize]
+    [product, selectedSize, setSelectedSize, sizeHref],
   );
 
   return (
@@ -78,7 +115,7 @@ export function useProductSelection() {
   const context = useContext(ProductSelectionContext);
   if (!context) {
     throw new Error(
-      "useProductSelection must be used within ProductSelectionProvider"
+      "useProductSelection must be used within ProductSelectionProvider",
     );
   }
   return context;

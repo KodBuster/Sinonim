@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+﻿import { Suspense } from "react";
+import Link from "next/link";
 import { ProductViewTracker } from "@/components/analytics/ProductViewTracker";
 import { CATEGORIES, type ProductDetails } from "@/lib/products";
 import type { Product } from "@/lib/products";
@@ -72,7 +73,8 @@ export function ProductPage({
           </ol>
         </nav>
 
-        <ProductSelectionProvider product={product}>
+        <Suspense fallback={null}>
+          <ProductSelectionProvider product={product}>
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 mb-16 md:mb-20">
             <ProductGallery
               images={product.images}
@@ -133,7 +135,8 @@ export function ProductPage({
               </li>
             </ul>
           </div>
-        </ProductSelectionProvider>
+          </ProductSelectionProvider>
+        </Suspense>
 
         {complectProducts.length > 0 && product.setArtNos?.length ? (
           <ProductComplectSection products={complectProducts} />

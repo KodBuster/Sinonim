@@ -24,7 +24,7 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
     (variant) => Math.abs(variant.weight - product.stoneWeight) < 0.001,
   ) ?? product.stoneVariants[0];
 
-  const { selectedSize, setSelectedSize, selectedSizeLabel, artNo, price, diamondWeight, diamondWeightLabel } =
+  const { selectedSize, selectedSizeLabel, sizeHref, artNo, price, diamondWeight } =
     useProductSelection();
   const cartStoneLabel = formatInsertMassLabel(diamondWeight);
   const [added, setAdded] = useState(false);
@@ -125,12 +125,12 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 const sizeStock = product.sizeStockAmounts?.[size.value];
                 const sizeAvailable =
                   sizeStock === undefined || sizeStock > 0;
-                const inputId = `size-${product.slug}-${size.value}`;
                 return (
-                  <label
+                  <a
                     key={size.value}
-                    htmlFor={inputId}
-                    className={`touch-manipulation cursor-pointer rounded-lg border px-2 py-2.5 text-center text-sm transition-colors [-webkit-tap-highlight-color:transparent] ${
+                    href={sizeHref(size.value)}
+                    aria-current={isSelected ? "true" : undefined}
+                    className={`touch-manipulation rounded-lg border px-2 py-2.5 text-center text-sm transition-colors [-webkit-tap-highlight-color:transparent] ${
                       isSelected
                         ? "border-brand-olive-logo bg-brand-olive-logo text-white font-medium"
                         : sizeAvailable
@@ -138,17 +138,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                           : "border-brand-olive/10 bg-brand-surface text-brand-muted"
                     }`}
                   >
-                    <input
-                      id={inputId}
-                      type="radio"
-                      name={`product-size-${product.slug}`}
-                      value={size.value}
-                      checked={isSelected}
-                      onChange={() => setSelectedSize(size.value)}
-                      className="sr-only"
-                    />
                     {size.label}
-                  </label>
+                  </a>
                 );
               })}
             </div>
