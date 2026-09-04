@@ -31,7 +31,7 @@ export function BlogArticleLayout({
       </section>
 
       <section className="pb-12 md:pb-16">
-        <div className="mx-auto max-w-3xl px-4 md:px-6 lg:px-10 space-y-5 text-brand-text leading-relaxed text-sm md:text-base">
+        <div className="mx-auto max-w-3xl px-4 md:px-6 lg:px-10 space-y-5 text-brand-text leading-relaxed text-sm md:text-base [&_h2]:font-heading [&_h2]:text-xl [&_h2]:md:text-2xl [&_h2]:text-brand-olive-dark [&_h2]:pt-2 [&_h3]:font-heading [&_h3]:text-lg [&_h3]:text-brand-olive-dark [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-olive/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-brand-olive-dark">
           {children}
         </div>
       </section>
