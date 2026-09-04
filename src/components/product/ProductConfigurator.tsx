@@ -125,12 +125,21 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                 const sizeStock = product.sizeStockAmounts?.[size.value];
                 const sizeAvailable =
                   sizeStock === undefined || sizeStock > 0;
-                const inputId = `size-${product.slug}-${size.value}`;
                 return (
-                  <label
+                  <button
                     key={size.value}
-                    htmlFor={inputId}
-                    className={`relative touch-manipulation cursor-pointer rounded-lg border px-2 py-2.5 text-center text-sm transition-colors [-webkit-tap-highlight-color:transparent] ${
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    aria-label={`Размер ${size.label}`}
+                    onClick={() => setSelectedSize(size.value)}
+                    onPointerUp={(event) => {
+                      // iOS 16 sometimes drops click; pointerup is reliable.
+                      if (event.pointerType === "touch") {
+                        setSelectedSize(size.value);
+                      }
+                    }}
+                    className={`touch-manipulation rounded-lg border px-2 py-2.5 text-center text-sm transition-colors [-webkit-tap-highlight-color:transparent] ${
                       isSelected
                         ? "border-brand-olive-logo bg-brand-olive-logo text-white font-medium"
                         : sizeAvailable
@@ -138,18 +147,8 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
                           : "border-brand-olive/10 bg-brand-surface text-brand-muted"
                     }`}
                   >
-                    <input
-                      id={inputId}
-                      type="radio"
-                      name={`product-size-${product.slug}`}
-                      value={size.value}
-                      checked={isSelected}
-                      onChange={() => setSelectedSize(size.value)}
-                      className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0"
-                      aria-label={`Размер ${size.label}`}
-                    />
-                    <span className="pointer-events-none">{size.label}</span>
-                  </label>
+                    {size.label}
+                  </button>
                 );
               })}
             </div>

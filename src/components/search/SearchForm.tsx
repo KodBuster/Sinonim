@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 import {
   flattenAutocompleteSuggestions,
   type SearchAutocompleteResult,
@@ -60,7 +59,6 @@ export function SearchForm({
   compact = false,
   enableAutocomplete = true,
 }: SearchFormProps) {
-  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
   const [value, setValue] = useState(defaultQuery);
@@ -117,13 +115,14 @@ export function SearchForm({
     if (!trimmed) return;
     onSubmit?.();
     setOpen(false);
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+    // Hard navigation — router.push is unreliable on iOS Safari 16 form submit.
+    window.location.assign(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
   const navigateToSuggestion = (suggestion: SearchAutocompleteSuggestion) => {
     onSubmit?.();
     setOpen(false);
-    router.push(suggestion.href);
+    window.location.assign(suggestion.href);
   };
 
   const flatSuggestions = suggestions
@@ -170,6 +169,8 @@ export function SearchForm({
 
   return (
     <form
+      action="/search"
+      method="get"
       onSubmit={handleSubmit}
       className={`relative ${className}`}
       role="search"

@@ -18,6 +18,10 @@ const HERO_VIDEOS = [
   "/images/braslet_video_7.mp4",
 ] as const;
 
+/** Hard fallback if ended/timeupdate never fire on iOS. */
+const FALLBACK_ADVANCE_MS = 12_000;
+const SWITCH_LOCK_MS = 2500;
+
 type Slot = "a" | "b";
 
 function prepareVideo(video: HTMLVideoElement) {
@@ -26,27 +30,16 @@ function prepareVideo(video: HTMLVideoElement) {
   video.playsInline = true;
   video.setAttribute("playsinline", "");
   video.setAttribute("webkit-playsinline", "");
+  video.setAttribute("muted", "");
 }
 
-function sameSrc(video: HTMLVideoElement, src: string) {
-  if (!video.currentSrc && !video.getAttribute("src")) return false;
-  return (
-    video.getAttribute("src") === src ||
-    video.currentSrc.endsWith(src) ||
-    video.currentSrc.includes(src)
-  );
-}
-
-function waitForPlaybackReady(video: HTMLVideoElement): Promise<void> {
-  if (video.readyState >= 2 && video.videoWidth > 0) {
-    return Promise.resolve();
-  }
+function waitForCanPlay(video: HTMLVideoElement, timeoutMs = 5000): Promise<void> {
+  if (video.readyState >= 2) return Promise.resolve();
 
   return new Promise((resolve) => {
     let settled = false;
     const done = () => {
       if (settled) return;
-      if (video.readyState < 2 || video.videoWidth <= 0) return;
       settled = true;
       video.removeEventListener("loadeddata", done);
       video.removeEventListener("canplay", done);
@@ -54,67 +47,17 @@ function waitForPlaybackReady(video: HTMLVideoElement): Promise<void> {
     };
     video.addEventListener("loadeddata", done);
     video.addEventListener("canplay", done);
-    window.setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      video.removeEventListener("loadeddata", done);
-      video.removeEventListener("canplay", done);
-      resolve();
-    }, 8000);
-  });
-}
-
-/** Wait until the browser has actually painted a video frame. */
-function waitForPaintedFrame(video: HTMLVideoElement): Promise<void> {
-  return new Promise((resolve) => {
-    const anyVideo = video as HTMLVideoElement & {
-      requestVideoFrameCallback?: (
-        cb: (now: number, meta: { mediaTime: number }) => void,
-      ) => number;
-    };
-
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      resolve();
-    };
-
-    if (typeof anyVideo.requestVideoFrameCallback === "function") {
-      anyVideo.requestVideoFrameCallback(() => finish());
-    } else {
-      const onTimeUpdate = () => {
-        if (video.currentTime > 0 || video.readyState >= 3) {
-          video.removeEventListener("timeupdate", onTimeUpdate);
-          finish();
-        }
-      };
-      video.addEventListener("timeupdate", onTimeUpdate);
-    }
-
-    // Double rAF as a fallback paint barrier.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => finish());
-    });
-
-    window.setTimeout(finish, 400);
+    window.setTimeout(done, timeoutMs);
   });
 }
 
 async function playSafely(video: HTMLVideoElement) {
-  const x = window.scrollX;
-  const y = window.scrollY;
   prepareVideo(video);
   try {
     await video.play();
   } catch {
-    // Autoplay can fail until user gesture; keep last frame visible.
+    // Autoplay can fail until user gesture.
   }
-  requestAnimationFrame(() => {
-    if (Math.abs(window.scrollY - y) > 2 || Math.abs(window.scrollX - x) > 2) {
-      window.scrollTo(x, y);
-    }
-  });
 }
 
 export function HeroMedia() {
@@ -127,40 +70,70 @@ export function HeroMedia() {
   const indexRef = useRef(0);
   const activeSlotRef = useRef<Slot>("a");
   const switchingRef = useRef(false);
+  const fallbackTimerRef = useRef(0);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const getVideo = useCallback((slot: Slot) => {
     return slot === "a" ? videoARef.current : videoBRef.current;
   }, []);
 
+  const clearFallbackTimer = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      window.clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = 0;
+    }
+  }, []);
+
   const loadSrc = useCallback(async (video: HTMLVideoElement, src: string) => {
     prepareVideo(video);
     video.preload = "auto";
 
-    const alreadyReady = sameSrc(video, src) && video.readyState >= 2;
-    if (!alreadyReady) {
+    const current = video.getAttribute("src") || "";
+    if (current !== src && !video.currentSrc.endsWith(src)) {
       video.src = src;
       video.load();
-      await waitForPlaybackReady(video);
     }
+
+    await waitForCanPlay(video);
 
     try {
       if (!video.paused) video.pause();
-      if (video.currentTime > 0.05) video.currentTime = 0;
     } catch {
-      // Ignore seek failures on some mobile browsers.
+      // ignore
+    }
+
+    // Seeking is flaky on iOS — never block the carousel on it.
+    try {
+      if (Number.isFinite(video.duration) && video.currentTime > 0.05) {
+        video.currentTime = 0;
+      }
+    } catch {
+      // ignore
     }
   }, []);
 
-  const preloadNext = useCallback(
-    (afterIndex: number) => {
-      const nextSrc = HERO_VIDEOS[(afterIndex + 1) % HERO_VIDEOS.length];
-      const inactive: Slot = activeSlotRef.current === "a" ? "b" : "a";
-      const video = getVideo(inactive);
-      if (!video) return;
-      void loadSrc(video, nextSrc);
+  const scheduleFallback = useCallback(
+    (fromIndex: number, durationMs?: number) => {
+      clearFallbackTimer();
+      const delay = Math.max(
+        4000,
+        Math.min(
+          FALLBACK_ADVANCE_MS,
+          Number.isFinite(durationMs) && (durationMs ?? 0) > 0
+            ? Math.round((durationMs as number) * 1000) - 200
+            : FALLBACK_ADVANCE_MS,
+        ),
+      );
+      fallbackTimerRef.current = window.setTimeout(() => {
+        if (indexRef.current !== fromIndex) return;
+        void switchToIndexRef.current(fromIndex + 1);
+      }, delay);
     },
-    [getVideo, loadSrc],
+    [clearFallbackTimer],
+  );
+
+  const switchToIndexRef = useRef<(nextIndex: number) => Promise<void>>(
+    async () => undefined,
   );
 
   const switchToIndex = useCallback(
@@ -169,7 +142,7 @@ export function HeroMedia() {
 
       const length = HERO_VIDEOS.length;
       const normalized = ((nextIndex % length) + length) % length;
-      if (normalized === indexRef.current) return;
+      if (normalized === indexRef.current && hydrated) return;
 
       const active = activeSlotRef.current;
       const inactive: Slot = active === "a" ? "b" : "a";
@@ -179,37 +152,41 @@ export function HeroMedia() {
       if (!inactiveVideo || !activeVideo) return;
 
       switchingRef.current = true;
+      const unlock = window.setTimeout(() => {
+        switchingRef.current = false;
+      }, SWITCH_LOCK_MS);
 
       try {
         await loadSrc(inactiveVideo, nextSrc);
-
-        // Start next under the current clip (both opaque, z-index decides).
-        // Never fade both layers — that flashes the white parent background.
         await playSafely(inactiveVideo);
-        await waitForPaintedFrame(inactiveVideo);
 
         activeSlotRef.current = inactive;
         indexRef.current = normalized;
         setActiveSlot(inactive);
         setIndex(normalized);
 
-        // Keep the previous frame underneath for a beat, then free the slot.
         window.setTimeout(() => {
-          if (activeSlotRef.current === inactive) {
-            try {
-              activeVideo.pause();
-            } catch {
-              // ignore
-            }
-            preloadNext(normalized);
+          try {
+            activeVideo.pause();
+          } catch {
+            // ignore
           }
-        }, 120);
+        }, 80);
+
+        const duration = inactiveVideo.duration;
+        scheduleFallback(
+          normalized,
+          Number.isFinite(duration) ? duration : undefined,
+        );
       } finally {
+        window.clearTimeout(unlock);
         switchingRef.current = false;
       }
     },
-    [getVideo, loadSrc, preloadNext],
+    [getVideo, hydrated, loadSrc, scheduleFallback],
   );
+
+  switchToIndexRef.current = switchToIndex;
 
   useEffect(() => {
     setHydrated(true);
@@ -228,9 +205,12 @@ export function HeroMedia() {
       if (cancelled) return;
       await playSafely(first);
       if (cancelled) return;
-      await waitForPaintedFrame(first);
-      if (cancelled) return;
-      preloadNext(0);
+
+      // Warm next clip in background (non-blocking).
+      const next = getVideo("b");
+      if (next) void loadSrc(next, HERO_VIDEOS[1 % HERO_VIDEOS.length]);
+
+      scheduleFallback(0, first.duration);
     };
 
     void boot();
@@ -244,11 +224,11 @@ export function HeroMedia() {
 
     return () => {
       cancelled = true;
+      clearFallbackTimer();
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [getVideo, hydrated, loadSrc, preloadNext]);
+  }, [clearFallbackTimer, getVideo, hydrated, loadSrc, scheduleFallback]);
 
-  // Near end of clip — switch early so we never show an empty ended frame.
   useEffect(() => {
     if (!hydrated) return;
     const activeVideo = getVideo(activeSlot);
@@ -257,13 +237,28 @@ export function HeroMedia() {
     const onTimeUpdate = () => {
       const { duration, currentTime, paused } = activeVideo;
       if (paused || !Number.isFinite(duration) || duration <= 0) return;
-      if (duration - currentTime > 0.18) return;
+      if (duration - currentTime > 0.25) return;
       void switchToIndex(indexRef.current + 1);
     };
 
+    const onEnded = () => {
+      void switchToIndex(indexRef.current + 1);
+    };
+
+    const onLoadedMetadata = () => {
+      scheduleFallback(indexRef.current, activeVideo.duration);
+    };
+
     activeVideo.addEventListener("timeupdate", onTimeUpdate);
-    return () => activeVideo.removeEventListener("timeupdate", onTimeUpdate);
-  }, [activeSlot, getVideo, hydrated, switchToIndex]);
+    activeVideo.addEventListener("ended", onEnded);
+    activeVideo.addEventListener("loadedmetadata", onLoadedMetadata);
+
+    return () => {
+      activeVideo.removeEventListener("timeupdate", onTimeUpdate);
+      activeVideo.removeEventListener("ended", onEnded);
+      activeVideo.removeEventListener("loadedmetadata", onLoadedMetadata);
+    };
+  }, [activeSlot, getVideo, hydrated, scheduleFallback, switchToIndex]);
 
   const goTo = useCallback(
     (next: number) => {
@@ -278,10 +273,6 @@ export function HeroMedia() {
 
   const goPrev = useCallback(() => {
     void switchToIndex(indexRef.current - 1);
-  }, [switchToIndex]);
-
-  const handleEnded = useCallback(() => {
-    void switchToIndex(indexRef.current + 1);
   }, [switchToIndex]);
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -314,7 +305,6 @@ export function HeroMedia() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Always under videos — if a frame is late, poster shows instead of white. */}
       <Image
         src="/images/hero-poster.webp"
         alt={HERO_ALT}
@@ -338,7 +328,6 @@ export function HeroMedia() {
             }`}
             aria-label={activeSlot === "a" ? HERO_ALT : undefined}
             aria-hidden={activeSlot !== "a"}
-            onEnded={activeSlot === "a" ? handleEnded : undefined}
           />
           <video
             ref={videoBRef}
@@ -351,7 +340,6 @@ export function HeroMedia() {
             }`}
             aria-label={activeSlot === "b" ? HERO_ALT : undefined}
             aria-hidden={activeSlot !== "b"}
-            onEnded={activeSlot === "b" ? handleEnded : undefined}
           />
         </>
       ) : null}
@@ -371,10 +359,10 @@ export function HeroMedia() {
               aria-selected={isActive}
               aria-label={`Видео ${i + 1}`}
               onClick={() => goTo(i)}
-              className={`pointer-events-auto h-2 touch-manipulation rounded-full transition-all [-webkit-tap-highlight-color:transparent] ${
+              className={`pointer-events-auto h-2.5 min-w-[10px] touch-manipulation rounded-full transition-all [-webkit-tap-highlight-color:transparent] ${
                 isActive
                   ? "w-6 bg-white shadow-sm"
-                  : "w-2 bg-white/55 hover:bg-white/80"
+                  : "w-2.5 bg-white/55 hover:bg-white/80"
               }`}
             />
           );

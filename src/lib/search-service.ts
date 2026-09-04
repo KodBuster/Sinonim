@@ -344,7 +344,14 @@ export async function getSearchProducts(
   const sort = options?.sort ?? "default";
 
   if (isAdvantShopConfigured()) {
-    const catalog = await getCatalogProducts();
+    let catalog: Product[] = [];
+    try {
+      catalog = await withTimeout(getCatalogProducts(), REMOTE_SEARCH_TIMEOUT_MS);
+    } catch (error) {
+      console.error("[search] catalog load failed, using static fallback:", error);
+      return searchStaticProducts(trimmed, sort);
+    }
+
     // Local-first: never depend on AdvantShop search for basic synonym/name hits.
     const localMatches = searchCatalogProductsByArtNo(catalog, trimmed);
     const textMatches = searchCatalogByText(catalog, trimmed);
