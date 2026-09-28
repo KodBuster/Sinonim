@@ -86,6 +86,35 @@ function SocialIcon({ id }: { id: (typeof SOCIAL_LINKS)[number]["id"] }) {
   return <IconVk />;
 }
 
+function SocialLinksBlock({ className = "" }: { className?: string }) {
+  return (
+    <div className={className}>
+      <h4 className="text-brand-terracotta text-xs tracking-[0.2em] uppercase mb-4">
+        Мы в соцсетях
+      </h4>
+      <div className="flex items-center gap-1">
+        {SOCIAL_LINKS.map((link) => (
+          <a
+            key={link.id}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={link.label}
+            title={link.label}
+            className="inline-flex size-12 items-center justify-center text-brand-text hover:text-brand-terracotta transition-colors"
+          >
+            <SocialIcon id={link.id} />
+          </a>
+        ))}
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-brand-muted">
+        Instagram принадлежит Meta Platforms Inc., деятельность которой в РФ
+        признана экстремистской и запрещена
+      </p>
+    </div>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="bg-white text-brand-text border-t border-brand-terracotta mt-auto">
@@ -107,30 +136,7 @@ export function Footer() {
               без компромиссов в качестве.
             </p>
 
-            <div className="mt-8 max-w-xs">
-              <h4 className="text-brand-terracotta text-xs tracking-[0.2em] uppercase mb-4">
-                Мы в соцсетях
-              </h4>
-              <div className="flex items-center gap-1">
-                {SOCIAL_LINKS.map((link) => (
-                  <a
-                    key={link.id}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={link.label}
-                    title={link.label}
-                    className="inline-flex size-12 items-center justify-center text-brand-text hover:text-brand-terracotta transition-colors"
-                  >
-                    <SocialIcon id={link.id} />
-                  </a>
-                ))}
-              </div>
-              <p className="mt-3 text-[11px] leading-relaxed text-brand-muted">
-                Instagram принадлежит Meta Platforms Inc., деятельность которой в РФ
-                признана экстремистской и запрещена
-              </p>
-            </div>
+            <SocialLinksBlock className="mt-8 max-w-xs hidden lg:block" />
           </div>
 
           <div>
@@ -199,6 +205,8 @@ export function Footer() {
               <br />
               ОГРН 1187746428484
             </p>
+
+            <SocialLinksBlock className="mt-8 max-w-xs lg:hidden" />
           </div>
         </div>
 
