@@ -1,13 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { trackHeroBannerClick } from "@/lib/analytics/metrika";
 
-const JUNWEX_TICKET_URL =
-  "https://www.junwex-msk.ru/posetitelyam/e-ticket.html";
-
 const BANNER_ALT =
-  "JUNWEX Москва, 23–27 сентября, ВДНХ. Стенд Синоним A-101, павильон 57. Получить пригласительный билет.";
+  "Синоним — ограненные синтетические алмазы в серебре. Узнать о бренде.";
 
 export function Hero() {
   return (
@@ -15,44 +13,39 @@ export function Hero() {
       <h1 className="sr-only">
         Синоним — ограненные синтетические алмазы в серебре
       </h1>
-      <h2 className="sr-only">
-        JUNWEX Москва, 23–27 сентября, стенд A-101, павильон 57
-      </h2>
 
-      <a
-        href={JUNWEX_TICKET_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Получить пригласительный билет на JUNWEX Москва — стенд Синоним A-101, павильон 57"
+      <Link
+        href="/about"
+        aria-label="Перейти на страницу О бренде"
         className="group relative block w-full cursor-pointer touch-manipulation [-webkit-tap-highlight-color:transparent]"
         onClick={() => trackHeroBannerClick()}
       >
-        {/* Mobile / tablet portrait: vertical 3:4 */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#c8e6c9] md:hidden">
+        {/* Mobile / tablet portrait */}
+        <div className="relative aspect-[1080/1440] w-full overflow-hidden bg-brand-sand md:hidden">
           <Image
-            src="/images/hero-junwex-banner-mobile.jpg"
+            src="/images/hero-about-banner-mobile.jpg"
             alt={BANNER_ALT}
-            width={4500}
-            height={6000}
+            width={1080}
+            height={1440}
             priority
             sizes="100vw"
             className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-95 group-active:opacity-90"
           />
         </div>
 
-        {/* Desktop / tablet landscape: horizontal banner */}
-        <div className="relative hidden aspect-[1920/601] w-full overflow-hidden bg-[#c8e6c9] md:block">
+        {/* Desktop / tablet landscape */}
+        <div className="relative hidden aspect-[1584/672] w-full overflow-hidden bg-brand-sand md:block">
           <Image
-            src="/images/hero-junwex-banner.jpg"
+            src="/images/hero-about-banner.jpg"
             alt={BANNER_ALT}
-            width={1920}
-            height={601}
+            width={1584}
+            height={672}
             priority
             sizes="100vw"
             className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-95 group-active:opacity-90"
           />
         </div>
-      </a>
+      </Link>
     </section>
   );
 }

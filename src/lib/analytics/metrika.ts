@@ -334,7 +334,7 @@ export function trackShowroomMapClick() {
 }
 
 /**
- * Клик по баннеру в hero (сейчас — JUNWEX / пригласительный билет).
+ * Клик по баннеру в hero (сейчас — переход на /about).
  * В кабинете Метрики создайте JS-цель с идентификатором `hero_banner_click`.
  */
 export function trackHeroBannerClick() {
