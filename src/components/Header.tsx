@@ -212,7 +212,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-base tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
+                className="text-base uppercase tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
               >
                 {item.label}
               </Link>
