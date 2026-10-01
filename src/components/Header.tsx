@@ -118,7 +118,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
         height={150}
         priority
         className={`logo-header-olive block max-w-none object-contain ${
-          compact ? "h-5 w-[6.5rem] sm:w-28" : "h-7 w-36 md:h-8 md:w-40"
+          compact ? "h-6 w-32 sm:h-7 sm:w-36" : "h-9 w-44 md:h-10 md:w-52"
         }`}
       />
       {!compact && (
@@ -212,7 +212,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
+                className="text-base tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
               >
                 {item.label}
               </Link>

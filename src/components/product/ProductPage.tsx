@@ -44,16 +44,19 @@ export function ProductPage({
         variant={insertMass}
       />
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10">
-        <nav className="text-sm text-brand-muted mb-6" aria-label="Хлебные крошки">
-          <ol className="flex flex-wrap items-center gap-2">
+        <nav
+          className="mb-6 text-xs text-brand-muted/55"
+          aria-label="Хлебные крошки"
+        >
+          <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link href="/" className="hover:text-brand-terracotta transition-colors">
+              <Link href="/" className="hover:text-brand-muted transition-colors">
                 Главная
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <Link href="/shop" className="hover:text-brand-terracotta transition-colors">
+              <Link href="/shop" className="hover:text-brand-muted transition-colors">
                 Каталог
               </Link>
             </li>
@@ -61,14 +64,14 @@ export function ProductPage({
             <li>
               <Link
                 href={`/shop/${product.category}`}
-                className="hover:text-brand-terracotta transition-colors"
+                className="hover:text-brand-muted transition-colors"
               >
                 {categoryTitle}
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <span className="text-brand-text">{product.name}</span>
+              <span>{product.name}</span>
             </li>
           </ol>
         </nav>
