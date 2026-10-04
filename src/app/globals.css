@@ -53,6 +53,29 @@ body {
     hue-rotate(39deg) brightness(92%) contrast(88%);
 }
 
+.socials__link--inst {
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.socials__link--inst:hover {
+  opacity: 0.7;
+}
+
+.socials__note {
+  font-size: 11px;
+  opacity: 0.5;
+  margin-top: 8px;
+  max-width: 260px;
+  line-height: 1.45;
+}
+
 @keyframes hero-unroll {
   from {
     opacity: 0;

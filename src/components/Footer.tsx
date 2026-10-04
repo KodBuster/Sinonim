@@ -46,24 +46,6 @@ const SOCIAL_LINKS = [
   },
 ] as const;
 
-function IconInstagram() {
-  return (
-    <svg className="size-7" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect
-        x="2.5"
-        y="2.5"
-        width="19"
-        height="19"
-        rx="5.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <circle cx="12" cy="12" r="4.25" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="17.65" cy="6.35" r="1.15" fill="currentColor" />
-    </svg>
-  );
-}
-
 function IconTelegram() {
   return (
     <svg className="size-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -80,20 +62,26 @@ function IconVk() {
   );
 }
 
-function SocialIcon({ id }: { id: (typeof SOCIAL_LINKS)[number]["id"] }) {
-  if (id === "instagram") return <IconInstagram />;
-  if (id === "telegram") return <IconTelegram />;
-  return <IconVk />;
-}
+const INSTAGRAM_HREF = "https://www.instagram.com/synonym_jewelry";
 
 function SocialLinksBlock({ className = "" }: { className?: string }) {
   return (
-    <div className={className}>
-      <h4 className="text-brand-terracotta text-xs tracking-[0.2em] uppercase mb-4">
+    <div className={`socials ${className}`.trim()}>
+      <p className="socials__title text-brand-terracotta text-xs tracking-[0.2em] uppercase mb-4">
         Мы в соцсетях
-      </h4>
-      <div className="flex items-center gap-1">
-        {SOCIAL_LINKS.map((link) => (
+      </p>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <a
+          className="socials__link socials__link--inst"
+          href={INSTAGRAM_HREF}
+          target="_blank"
+          rel="noopener nofollow"
+        >
+          Instagram*
+        </a>
+
+        {SOCIAL_LINKS.filter((link) => link.id !== "instagram").map((link) => (
           <a
             key={link.id}
             href={link.href}
@@ -103,12 +91,13 @@ function SocialLinksBlock({ className = "" }: { className?: string }) {
             title={link.label}
             className="inline-flex size-12 items-center justify-center text-brand-text hover:text-brand-terracotta transition-colors"
           >
-            <SocialIcon id={link.id} />
+            {link.id === "telegram" ? <IconTelegram /> : <IconVk />}
           </a>
         ))}
       </div>
-      <p className="mt-3 text-[11px] leading-relaxed text-brand-muted">
-        Instagram принадлежит Meta Platforms Inc., деятельность которой в РФ
+
+      <p className="socials__note">
+        *Instagram принадлежит Meta Platforms Inc., деятельность которой в РФ
         признана экстремистской и запрещена
       </p>
     </div>
