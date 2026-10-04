@@ -39,7 +39,7 @@ export function Hero() {
         <Link
           href="/about"
           aria-label="Перейти на страницу О бренде"
-          className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden rounded-2xl [-webkit-tap-highlight-color:transparent]"
+          className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden [-webkit-tap-highlight-color:transparent]"
           onClick={() => trackHeroBannerClick()}
         >
           <div className="relative aspect-[1584/672] w-full overflow-hidden bg-brand-sand">
