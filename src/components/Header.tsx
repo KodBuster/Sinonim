@@ -152,10 +152,9 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-brand-sand bg-brand-surface">
-      {/* Top utility — compact, like La Vivion */}
-      <div className="hidden md:flex justify-between items-center px-6 lg:px-10 py-1.5 text-[11px] text-brand-muted border-b border-brand-sand">
-        <div className="flex gap-5">
+    <header className="sticky top-0 z-[100] border-b border-brand-terracotta bg-brand-surface">
+      <div className="hidden md:flex justify-between items-center px-6 lg:px-10 py-2 text-xs text-brand-muted border-b border-brand-sand">
+        <div className="flex gap-6">
           <Link href="/shipping" className="hover:text-brand-terracotta transition-colors">
             Доставка и оплата
           </Link>
@@ -182,9 +181,8 @@ export function Header() {
         </div>
       </div>
 
-      <div className="relative px-4 md:px-6 lg:px-10">
-        {/* Mobile header */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center -mx-4 px-0 py-1 md:-mx-6 lg:hidden">
+      <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
           <div className="relative z-[2] flex items-center justify-start min-w-0">
             <Link
               href="/menu"
@@ -206,29 +204,27 @@ export function Header() {
           </div>
         </div>
 
-        {/* Desktop: logo + icons, then menu row below (La Vivion proportions) */}
-        <div className="hidden lg:block">
-          <div className="flex items-center justify-between gap-6 py-3">
-            <Logo />
-            <div className="flex items-center gap-1 shrink-0">
-              <HeaderActions
-                searchOpen={searchOpen}
-                onSearchToggle={toggleDesktopSearch}
-              />
-            </div>
-          </div>
+        <div className="hidden lg:flex items-center justify-between gap-4">
+          <Logo />
 
-          <nav className="flex items-center justify-center gap-7 border-t border-brand-sand py-2.5">
+          <nav className="flex items-center gap-8">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-[13px] uppercase tracking-[0.12em] text-brand-text hover:text-brand-terracotta transition-colors"
+                className="text-base uppercase tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <HeaderActions
+              searchOpen={searchOpen}
+              onSearchToggle={toggleDesktopSearch}
+            />
+          </div>
         </div>
 
         {searchOpen && (

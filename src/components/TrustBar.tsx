@@ -16,9 +16,8 @@ const ITEMS = [
 export function TrustBar() {
   return (
     <section className="bg-[#7f8e47]">
-      {/* Content width matches hero banner; bar itself stays full-bleed */}
-      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10 py-6 md:py-7">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8">
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
           {ITEMS.map((item) => (
             <div key={item.title} className="text-center lg:text-left text-white">
               <h3 className="font-heading text-base md:text-lg mb-1.5">
