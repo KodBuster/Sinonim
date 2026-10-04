@@ -9,7 +9,7 @@ const BANNER_ALT =
 
 export function Hero() {
   return (
-    <section className="relative border-b border-brand-sand bg-white">
+    <section className="relative bg-white">
       <h1 className="sr-only">
         Синоним — ограненные синтетические алмазы в серебре
       </h1>
@@ -34,12 +34,15 @@ export function Hero() {
         </div>
       </Link>
 
-      {/* Desktop: constrained to content width */}
-      <div className="mx-auto hidden max-w-7xl px-4 md:block md:px-6 lg:px-10 md:py-6 lg:py-8">
+      {/*
+        Desktop: same content width as blocks below (max-w-7xl).
+        Taller visual weight vs header — modest top gap, tight bottom gap to TrustBar.
+      */}
+      <div className="mx-auto hidden max-w-7xl px-4 pt-5 pb-3 md:block md:px-6 lg:px-10 lg:pt-6 lg:pb-4">
         <Link
           href="/about"
           aria-label="Перейти на страницу О бренде"
-          className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden rounded-2xl [-webkit-tap-highlight-color:transparent]"
+          className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden rounded-sm [-webkit-tap-highlight-color:transparent]"
           onClick={() => trackHeroBannerClick()}
         >
           <div className="relative aspect-[1584/672] w-full overflow-hidden bg-brand-sand">
