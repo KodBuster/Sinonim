@@ -13,7 +13,7 @@ export async function PriceOverview() {
 
   return (
     <section
-      className="bg-white border-y border-brand-sand py-6 md:py-8"
+      className="bg-white py-6 md:py-8"
       aria-label="Цены на украшения"
     >
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10">

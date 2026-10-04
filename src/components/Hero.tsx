@@ -9,7 +9,7 @@ const BANNER_ALT =
 
 export function Hero() {
   return (
-    <section className="relative border-b border-brand-sand bg-white">
+    <section className="relative bg-white">
       <h1 className="sr-only">
         Синоним — ограненные синтетические алмазы в серебре
       </h1>
