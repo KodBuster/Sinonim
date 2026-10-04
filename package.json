@@ -2,6 +2,10 @@
   "name": "storefront",
   "version": "0.1.0",
   "private": true,
+  "browserslist": [
+    "iOS >= 16",
+    "safari >= 16"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build && node scripts/prepare-standalone.mjs",
