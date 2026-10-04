@@ -34,8 +34,8 @@ export function Hero() {
         </div>
       </Link>
 
-      {/* Desktop: constrained to content width */}
-      <div className="mx-auto hidden max-w-7xl px-4 md:block md:px-6 lg:px-10 md:py-6 lg:py-8">
+      {/* Desktop: ~30% wider than max-w-7xl (1280 → 1664) */}
+      <div className="mx-auto hidden max-w-[1664px] px-4 md:block md:px-6 lg:px-10 md:py-6 lg:py-8">
         <Link
           href="/about"
           aria-label="Перейти на страницу О бренде"
@@ -49,7 +49,7 @@ export function Hero() {
               width={1584}
               height={672}
               priority
-              sizes="(min-width: 1280px) 1280px, 100vw"
+              sizes="(min-width: 1664px) 1664px, 100vw"
               className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-95 group-active:opacity-90"
             />
           </div>

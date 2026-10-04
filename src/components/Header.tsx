@@ -153,77 +153,80 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-[100] border-b border-brand-terracotta bg-brand-surface">
-      <div className="hidden md:flex justify-between items-center px-6 lg:px-10 py-2 text-xs text-brand-muted border-b border-brand-sand">
-        <div className="flex gap-6">
-          <Link href="/shipping" className="hover:text-brand-terracotta transition-colors">
-            Доставка и оплата
-          </Link>
-          <Link href="/showroom" className="hover:text-brand-terracotta transition-colors">
-            Шоурум
-          </Link>
-          <Link href="/cooperation" className="hover:text-brand-terracotta transition-colors">
-            Сотрудничество
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <a
-            href={SITE_EMAIL_MAILTO}
-            className="hover:text-brand-terracotta transition-colors"
-          >
-            {SITE_EMAIL}
-          </a>
-          <MetrikaPhoneLink
-            href={SITE_PHONE_TEL}
-            className="hover:text-brand-terracotta transition-colors"
-          >
-            {SITE_PHONE}
-          </MetrikaPhoneLink>
-        </div>
-      </div>
-
-      <div className="px-4 md:px-6 lg:px-10 py-1 md:py-3 lg:py-4">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
-          <div className="relative z-[2] flex items-center justify-start min-w-0">
-            <Link
-              href="/menu"
-              className={`${iconButtonClass} py-2 pl-3 pr-0.5 shrink-0`}
-              aria-label="Открыть меню"
-            >
-              <IconMenu />
+      {/* Same width as desktop hero banner so edges align */}
+      <div className="relative mx-auto max-w-[1664px] px-4 md:px-6 lg:px-10">
+        <div className="hidden md:flex justify-between items-center py-2 text-xs text-brand-muted border-b border-brand-sand">
+          <div className="flex gap-6">
+            <Link href="/shipping" className="hover:text-brand-terracotta transition-colors">
+              Доставка и оплата
             </Link>
-            <MobileSearchLink className="py-2 px-0.5" />
+            <Link href="/showroom" className="hover:text-brand-terracotta transition-colors">
+              Шоурум
+            </Link>
+            <Link href="/cooperation" className="hover:text-brand-terracotta transition-colors">
+              Сотрудничество
+            </Link>
           </div>
-
-          <div className="relative z-0 flex justify-center px-2 sm:px-3">
-            <Logo compact />
-          </div>
-
-          <div className="relative z-[2] flex items-center justify-end min-w-0">
-            <FavoritesLink className="touch-manipulation py-2 pl-2 pr-0.5" />
-            <CartLink className="touch-manipulation py-2 pl-0.5 pr-3" />
+          <div className="flex items-center gap-4">
+            <a
+              href={SITE_EMAIL_MAILTO}
+              className="hover:text-brand-terracotta transition-colors"
+            >
+              {SITE_EMAIL}
+            </a>
+            <MetrikaPhoneLink
+              href={SITE_PHONE_TEL}
+              className="hover:text-brand-terracotta transition-colors"
+            >
+              {SITE_PHONE}
+            </MetrikaPhoneLink>
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center justify-between gap-4">
-          <Logo />
-
-          <nav className="flex items-center gap-8">
-            {NAV_ITEMS.map((item) => (
+        <div className="py-1 md:py-3 lg:py-4">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center -mx-4 px-0 md:-mx-6 lg:mx-0 lg:hidden">
+            <div className="relative z-[2] flex items-center justify-start min-w-0">
               <Link
-                key={item.href}
-                href={item.href}
-                className="text-base uppercase tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
+                href="/menu"
+                className={`${iconButtonClass} py-2 pl-3 pr-0.5 shrink-0`}
+                aria-label="Открыть меню"
               >
-                {item.label}
+                <IconMenu />
               </Link>
-            ))}
-          </nav>
+              <MobileSearchLink className="py-2 px-0.5" />
+            </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <HeaderActions
-              searchOpen={searchOpen}
-              onSearchToggle={toggleDesktopSearch}
-            />
+            <div className="relative z-0 flex justify-center px-2 sm:px-3">
+              <Logo compact />
+            </div>
+
+            <div className="relative z-[2] flex items-center justify-end min-w-0">
+              <FavoritesLink className="touch-manipulation py-2 pl-2 pr-0.5" />
+              <CartLink className="touch-manipulation py-2 pl-0.5 pr-3" />
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center justify-between gap-4">
+            <Logo />
+
+            <nav className="flex items-center gap-8">
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-base uppercase tracking-wide text-brand-text hover:text-brand-terracotta transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <HeaderActions
+                searchOpen={searchOpen}
+                onSearchToggle={toggleDesktopSearch}
+              />
+            </div>
           </div>
         </div>
 
