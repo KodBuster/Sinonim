@@ -1,5 +1,6 @@
 import type { CategorySlug, Product, ProductDetails, ProductSizeOption, StoneVariant } from "@/lib/products";
 import { defaultRingBraceletSizeOptions, sortProductSizeOptions } from "@/lib/products";
+import { isFw2026Manufacturer, normalizeManufacturer } from "@/lib/collections";
 import {
   formatDiamondWeightLabel,
   isDiamondWeightPropertyName,
@@ -599,11 +600,50 @@ function buildSizeStockAmounts(
 }
 
 function mapBadge(
-  product: Pick<AdvantShopCatalogProduct, "newProduct" | "bestseller" | "sales">
+  product: Pick<AdvantShopCatalogProduct, "newProduct" | "bestseller" | "sales">,
+  manufacturer?: string,
 ): Product["badge"] {
-  if (product.newProduct) return "Новинка";
+  if (isFw2026Manufacturer(manufacturer) || product.newProduct) return "Новинка";
   if (product.bestseller) return "Хит";
   if (product.sales) return "Хит";
+  return undefined;
+}
+
+export function parseManufacturerFromProperties(
+  properties: AdvantShopProperty[],
+): string | undefined {
+  return normalizeManufacturer(
+    parseProperty(properties, [
+      "производител",
+      "manufacturer",
+      "brand",
+      "бренд",
+    ]),
+  ) || undefined;
+}
+
+export function resolveAdvantShopManufacturer(
+  item: {
+    brand?: string | null;
+    brandName?: string | null;
+    BrandName?: string | null;
+    manufacturer?: string | null;
+    Manufacturer?: string | null;
+  },
+  fromProperties?: string,
+): string | undefined {
+  const candidates = [
+    fromProperties,
+    item.Manufacturer,
+    item.manufacturer,
+    item.BrandName,
+    item.brandName,
+    item.brand,
+  ];
+  for (const candidate of candidates) {
+    const normalized = normalizeManufacturer(candidate);
+    if (normalized) return normalized;
+  }
   return undefined;
 }
 
@@ -626,6 +666,7 @@ export function mapCatalogProduct(
   category: CategorySlug,
   setArtNos?: string[],
   stock?: AdvantShopStockInfo,
+  manufacturerFromMap?: string,
 ): Product {
   const price =
     pickPositivePrice(
@@ -650,6 +691,8 @@ export function mapCatalogProduct(
   const offerArtNos = stock?.offerArtNos?.length
     ? [...new Set([...stock.offerArtNos, ...listOfferArtNos])]
     : listOfferArtNos;
+  const manufacturer = resolveAdvantShopManufacturer(item, manufacturerFromMap);
+  const isNew = Boolean(item.newProduct) || isFw2026Manufacturer(manufacturer);
 
   return {
     id: String(item.productId),
@@ -666,8 +709,9 @@ export function mapCatalogProduct(
     price,
     image: resolveProductImageUrl(pickImage(item)),
     stoneWeight,
-    badge: mapBadge(item),
-    isNew: Boolean(item.newProduct),
+    badge: mapBadge(item, manufacturer),
+    isNew,
+    manufacturer,
     description,
     images: resolveProductImages(collectImages(item.photos)),
     sizeOptions: resolveCatalogSizeOptions(sizeOptions, category),
@@ -751,6 +795,11 @@ export function mapProductDetails(
     item,
     category,
   );
+  const manufacturer = resolveAdvantShopManufacturer(
+    item,
+    parseManufacturerFromProperties(properties),
+  );
+  const isNew = Boolean(item.newProduct) || isFw2026Manufacturer(manufacturer);
 
   return {
     id: String(item.productId),
@@ -767,8 +816,9 @@ export function mapProductDetails(
     price: basePrice,
     image: fallbackImage,
     stoneWeight,
-    badge: mapBadge(item),
-    isNew: Boolean(item.newProduct),
+    badge: mapBadge(item, manufacturer),
+    isNew,
+    manufacturer,
     description,
     images: images.length ? images : [fallbackImage],
     cut:

@@ -22,6 +22,19 @@ type CatalogViewProps = {
   category?: CategorySlug;
   initialProducts: Product[];
   initialError?: string;
+  /** Кастомный заголовок (коллекции и спецподборки). */
+  heading?: {
+    eyebrow?: string;
+    title: string;
+    description?: string;
+  };
+  /** Базовый путь для фильтров (по умолчанию /shop или /shop/[category]). */
+  basePath?: string;
+  /**
+   * Не перезагружать каталог с /api/catalog.
+   * Нужно для лендингов коллекций с уже отфильтрованным списком.
+   */
+  localOnly?: boolean;
 };
 
 async function fetchCatalog(
@@ -48,13 +61,17 @@ export function CatalogView({
   category,
   initialProducts,
   initialError,
+  heading,
+  basePath: basePathProp,
+  localOnly = false,
 }: CatalogViewProps) {
   const searchParams = useSearchParams();
   const [catalogProducts, setCatalogProducts] = useState(initialProducts);
   const [catalogError, setCatalogError] = useState(initialError);
   const [loading, setLoading] = useState(false);
 
-  const basePath = category ? `/shop/${category}` : "/shop";
+  const basePath =
+    basePathProp ?? (category ? `/shop/${category}` : "/shop");
   const filters = parseFiltersFromSearchParams(
     new URLSearchParams(searchParams.toString()),
     category
@@ -77,6 +94,13 @@ export function CatalogView({
   }, [filtersOpen]);
 
   const retryLoad = useCallback(() => {
+    if (localOnly) {
+      setCatalogProducts(initialProducts);
+      setCatalogError(undefined);
+      setLoading(false);
+      return;
+    }
+
     const params = new URLSearchParams();
     if (category) params.set("category", category);
     if (filters.sort !== "default") params.set("sort", filters.sort);
@@ -113,17 +137,20 @@ export function CatalogView({
         window.clearTimeout(timeoutId);
         setLoading(false);
       });
-  }, [category, filters.sort]);
+  }, [category, filters.sort, initialProducts, localOnly]);
 
   const products = filterProducts(filters, catalogProducts);
   const activeFilterCount = countActiveFilters(filters);
 
-  const pageTitle = category
-    ? CATEGORIES[category].titlePlural
-    : "Все украшения";
-  const pageDescription = category
-    ? CATEGORIES[category].description
-    : "Каталог украшений из серебра 925 с ограненными синтетическими алмазами";
+  const pageTitle =
+    heading?.title ??
+    (category ? CATEGORIES[category].titlePlural : "Все украшения");
+  const pageDescription =
+    heading?.description ??
+    (category
+      ? CATEGORIES[category].description
+      : "Каталог украшений из серебра 925 с ограненными синтетическими алмазами");
+  const pageEyebrow = heading?.eyebrow ?? "Каталог";
 
   return (
     <section className="py-8 md:py-12">
@@ -137,7 +164,7 @@ export function CatalogView({
             </li>
             <li aria-hidden>/</li>
             <li>
-              {category ? (
+              {category || heading ? (
                 <Link href="/shop" className="hover:text-brand-terracotta transition-colors">
                   Каталог
                 </Link>
@@ -145,7 +172,7 @@ export function CatalogView({
                 <span className="text-brand-text">Каталог</span>
               )}
             </li>
-            {category && (
+            {(category || heading) && (
               <>
                 <li aria-hidden>/</li>
                 <li>
@@ -158,7 +185,7 @@ export function CatalogView({
 
         <div className="mb-8 md:mb-10">
           <p className="text-brand-terracotta text-sm tracking-[0.2em] uppercase mb-2">
-            Каталог
+            {pageEyebrow}
           </p>
           <h1 className="font-heading text-3xl md:text-4xl text-brand-olive-dark mb-2">
             {pageTitle}

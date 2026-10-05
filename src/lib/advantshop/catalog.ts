@@ -5,7 +5,7 @@ import { parseDiamondWeightNumber } from "@/lib/product-weight";
 import { parseSetArtNosFromProperties } from "@/lib/product-complect";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
-import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, pickOfferPrice } from "./mapper";
+import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, parseManufacturerFromProperties, pickOfferPrice } from "./mapper";
 import {
   getAdvantShopDetailsStockInfo,
   getAvailableSizePickerSizes,
@@ -217,8 +217,13 @@ async function mapPool<T, R>(
   return results;
 }
 
-const getCachedSetMap = unstable_cache(
-  async (): Promise<Record<string, string[]>> => {
+type CatalogPropertyExtras = {
+  setMap: Record<string, string[]>;
+  manufacturerMap: Record<string, string>;
+};
+
+const getCachedCatalogPropertyExtras = unstable_cache(
+  async (): Promise<CatalogPropertyExtras> => {
     const categoryMap = getCategoryUrlMap();
     const productIds = new Set<number>();
 
@@ -233,6 +238,7 @@ const getCachedSetMap = unstable_cache(
     }
 
     const setMap: Record<string, string[]> = {};
+    const manufacturerMap: Record<string, string> = {};
     const ids = [...productIds];
 
     await mapPool(ids, 8, async (productId) => {
@@ -241,11 +247,15 @@ const getCachedSetMap = unstable_cache(
       if (setArtNos.length) {
         setMap[String(productId)] = setArtNos;
       }
+      const manufacturer = parseManufacturerFromProperties(properties);
+      if (manufacturer) {
+        manufacturerMap[String(productId)] = manufacturer;
+      }
     });
 
-    return setMap;
+    return { setMap, manufacturerMap };
   },
-  ["advantshop-set-map"],
+  ["advantshop-catalog-property-extras"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
 );
 
@@ -303,7 +313,7 @@ function resolveListStockInfo(
 async function mapCatalogItems(
   items: NonNullable<AdvantShopCatalogResponse["products"]>,
   category: CategorySlug,
-  setMap: Record<string, string[]>,
+  extras: CatalogPropertyExtras,
   includeOutOfStock = true,
 ): Promise<Product[]> {
   const stockMap = await loadStockInfoMap(items, category);
@@ -317,8 +327,9 @@ async function mapCatalogItems(
     mapCatalogProduct(
       item,
       category,
-      setMap[String(item.productId)],
+      extras.setMap[String(item.productId)],
       stockMap.get(item.productId),
+      extras.manufacturerMap[String(item.productId)],
     ),
   );
 }
@@ -337,7 +348,7 @@ export async function fetchAdvantShopProducts(options?: {
 }): Promise<Product[]> {
   const categoryMap = getCategoryUrlMap();
   const sort = SORT_MAP[options?.sort ?? "default"] ?? "NoSorting";
-  const setMap = await getCachedSetMap();
+  const extras = await getCachedCatalogPropertyExtras();
   const includeOutOfStock = options?.includeOutOfStock !== false;
 
   if (options?.category) {
@@ -349,7 +360,7 @@ export async function fetchAdvantShopProducts(options?: {
         url: categoryUrl,
         sorting: sort,
       });
-      return mapCatalogItems(items, options.category, setMap, includeOutOfStock);
+      return mapCatalogItems(items, options.category, extras, includeOutOfStock);
     } catch (error) {
       if (isMissingCategoryError(error)) {
         console.warn(
@@ -371,7 +382,7 @@ export async function fetchAdvantShopProducts(options?: {
 
       try {
         const items = await fetchAllCatalogProducts({ url, sorting: sort });
-        return mapCatalogItems(items, slug, setMap, includeOutOfStock);
+        return mapCatalogItems(items, slug, extras, includeOutOfStock);
       } catch (error) {
         if (isMissingCategoryError(error)) {
           console.warn(

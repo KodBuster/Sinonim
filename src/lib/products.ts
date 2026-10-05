@@ -17,6 +17,8 @@ export type Product = {
   stoneWeight: number;
   badge?: "Хит" | "Новинка";
   isNew?: boolean;
+  /** Производитель из AdvantShop (для коллекций, напр. FW 2026). */
+  manufacturer?: string;
   description?: string;
   images?: string[];
   color?: string;

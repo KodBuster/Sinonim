@@ -11,6 +11,7 @@ import {
 
 const FOOTER_LINKS = {
   catalog: [
+    { label: "Новая коллекция", href: "/collections/fw-2026" },
     { label: "Кольца", href: "/shop/rings" },
     { label: "Серьги", href: "/shop/earrings" },
     { label: "Колье", href: "/shop/pendants" },

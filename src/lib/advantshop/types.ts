@@ -20,6 +20,12 @@ export type AdvantShopCatalogProduct = {
   bestseller?: boolean;
   sales?: boolean;
   recomended?: boolean;
+  /** Производитель / бренд (Admin: «Производитель»). */
+  brand?: string | null;
+  brandName?: string | null;
+  BrandName?: string | null;
+  manufacturer?: string | null;
+  Manufacturer?: string | null;
   photoMiddle?: string | null;
   photoSmall?: string | null;
   photos?: AdvantShopPhoto[] | null;
@@ -126,6 +132,11 @@ export type AdvantShopProductDetails = {
   newProduct?: boolean;
   bestseller?: boolean;
   sales?: boolean;
+  brand?: string | null;
+  brandName?: string | null;
+  BrandName?: string | null;
+  manufacturer?: string | null;
+  Manufacturer?: string | null;
   photos?: AdvantShopPhoto[] | null;
   offers?: AdvantShopOffer[];
   sizeColorPicker?: {

@@ -9,6 +9,10 @@ import {
   isAdvantShopConfigured,
 } from "@/lib/advantshop/config";
 import {
+  FW2026_COLLECTION,
+  isFw2026Manufacturer,
+} from "@/lib/collections";
+import {
   GIFT_SOURCE_CATEGORIES,
   getGiftPeriodId,
   getSecondsUntilNextGiftRefresh,
@@ -215,4 +219,43 @@ export async function getFeaturedProducts(): Promise<Product[]> {
   return FEATURED_CATEGORY_SLUGS.map((category) =>
     pickRandomProduct(PRODUCTS.filter((product) => product.category === category))
   ).filter((product): product is Product => product !== undefined);
+}
+
+function sortCollectionProducts(products: Product[], sort: string): Product[] {
+  const next = [...products];
+  if (sort === "price-asc") {
+    next.sort((a, b) => a.price - b.price);
+  } else if (sort === "price-desc") {
+    next.sort((a, b) => b.price - a.price);
+  } else if (sort === "new") {
+    next.sort((a, b) => Number(b.isNew) - Number(a.isNew));
+  }
+  return next;
+}
+
+/** Товары коллекции FW 2026 (AdvantShop «Производитель» = FW 2026). */
+export async function getFw2026CollectionProducts(options?: {
+  sort?: string;
+}): Promise<Product[]> {
+  const sort = options?.sort ?? "default";
+  const catalog = await getCatalogProducts({ sort });
+  const collection = catalog.filter((product) =>
+    isFw2026Manufacturer(product.manufacturer),
+  );
+
+  if (collection.length) {
+    return sortCollectionProducts(collection, sort);
+  }
+
+  // Fallback на статику, если поле ещё не прокинуто с AdvantShop.
+  return sortCollectionProducts(
+    PRODUCTS.filter((product) =>
+      isFw2026Manufacturer(product.manufacturer),
+    ),
+    sort,
+  );
+}
+
+export function getFw2026CollectionMeta() {
+  return FW2026_COLLECTION;
 }

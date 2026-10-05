@@ -16,8 +16,8 @@ export function Hero() {
 
       {/* Mobile: full-bleed — new filename busts immutable /images cache */}
       <Link
-        href="/about"
-        aria-label="Перейти на страницу О бренде"
+        href="/collections/fw-2026"
+        aria-label="Смотреть новую коллекцию FW 2026"
         className="group relative block w-full cursor-pointer touch-manipulation [-webkit-tap-highlight-color:transparent] md:hidden"
         onClick={() => trackHeroBannerClick()}
       >
@@ -37,8 +37,8 @@ export function Hero() {
       {/* Desktop: 2400×1000 */}
       <div className="mx-auto hidden max-w-[1664px] px-4 md:block md:px-6 lg:px-10 md:py-6 lg:py-8">
         <Link
-          href="/about"
-          aria-label="Перейти на страницу О бренде"
+          href="/collections/fw-2026"
+          aria-label="Смотреть новую коллекцию FW 2026"
           className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden [-webkit-tap-highlight-color:transparent]"
           onClick={() => trackHeroBannerClick()}
         >
