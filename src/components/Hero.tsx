@@ -14,7 +14,7 @@ export function Hero() {
         Синоним — ограненные синтетические алмазы в серебре
       </h1>
 
-      {/* Mobile: full-bleed */}
+      {/* Mobile: full-bleed — new filename busts immutable /images cache */}
       <Link
         href="/about"
         aria-label="Перейти на страницу О бренде"
@@ -23,7 +23,7 @@ export function Hero() {
       >
         <div className="relative aspect-[1080/1440] w-full overflow-hidden bg-brand-sand">
           <Image
-            src="/images/hero-about-banner-mobile.jpg"
+            src="/images/hero-fw2026-banner-mobile.jpg"
             alt={BANNER_ALT}
             width={1080}
             height={1440}
@@ -34,7 +34,7 @@ export function Hero() {
         </div>
       </Link>
 
-      {/* Desktop: ~30% wider than max-w-7xl (1280 → 1664) */}
+      {/* Desktop: 2400×1000 */}
       <div className="mx-auto hidden max-w-[1664px] px-4 md:block md:px-6 lg:px-10 md:py-6 lg:py-8">
         <Link
           href="/about"
@@ -42,12 +42,12 @@ export function Hero() {
           className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden [-webkit-tap-highlight-color:transparent]"
           onClick={() => trackHeroBannerClick()}
         >
-          <div className="relative aspect-[1584/884] w-full overflow-hidden bg-brand-sand">
+          <div className="relative aspect-[2400/1000] w-full overflow-hidden bg-brand-sand">
             <Image
-              src="/images/hero-about-banner.jpg"
+              src="/images/hero-fw2026-banner.jpg"
               alt={BANNER_ALT}
-              width={1584}
-              height={884}
+              width={2400}
+              height={1000}
               priority
               sizes="(min-width: 1664px) 1664px, 100vw"
               className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-95 group-active:opacity-90"
