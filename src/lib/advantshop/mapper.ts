@@ -721,7 +721,7 @@ export function mapCatalogProduct(
     : listOfferArtNos;
   const manufacturer = resolveAdvantShopManufacturer(
     item,
-    stock?.manufacturer ?? manufacturerFromMap,
+    stock?.manufacturer || manufacturerFromMap,
   );
   const isNew = Boolean(item.newProduct) || isFw2026Manufacturer(manufacturer);
 

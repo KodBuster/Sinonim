@@ -3,8 +3,9 @@ import type { CategorySlug, Product, ProductDetails } from "@/lib/products";
 import { findProductBySlug } from "@/lib/product-slug";
 import { parseDiamondWeightNumber } from "@/lib/product-weight";
 import { parseSetArtNosFromProperties } from "@/lib/product-complect";
+import { FW2026_COLLECTION } from "@/lib/collections";
 import { advantshopClientFetch, advantshopFetch } from "./client";
-import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
+import { getAdvantShopBaseUrl, getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
 import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, parseManufacturerFromProperties, pickOfferPrice, resolveAdvantShopManufacturer } from "./mapper";
 import {
   getAdvantShopDetailsStockInfo,
@@ -222,6 +223,74 @@ type CatalogPropertyExtras = {
   manufacturerMap: Record<string, string>;
 };
 
+/** ID товаров производителя FW 2026 со страницы /manufacturers/fw-2026. */
+async function scrapeFw2026ProductIdsFromHtml(): Promise<string[]> {
+  try {
+    const base = getAdvantShopBaseUrl();
+    const url = `${base}/manufacturers/${FW2026_COLLECTION.brandUrl}`;
+    const response = await fetch(url, {
+      headers: { Accept: "text/html" },
+      next: { revalidate: CATALOG_REVALIDATE_SECONDS },
+    });
+    if (!response.ok) return [];
+    const html = await response.text();
+    const ids = new Set<string>();
+    for (const match of html.matchAll(/data-product-id=["']?(\d+)/gi)) {
+      ids.add(match[1]);
+    }
+    return [...ids];
+  } catch (error) {
+    console.warn("FW 2026 manufacturer page scrape failed:", error);
+    return [];
+  }
+}
+
+async function fetchFw2026ProductIdsViaCatalogApi(): Promise<string[]> {
+  const brand = FW2026_COLLECTION.brandUrl;
+  const attempts: Record<string, unknown>[] = [
+    { brand, sorting: "NoSorting" },
+    { brandUrl: brand, sorting: "NoSorting" },
+    { Brand: brand, sorting: "NoSorting" },
+  ];
+
+  for (const body of attempts) {
+    try {
+      const items = await fetchAllCatalogProducts(body);
+      if (items.length) {
+        return items.map((item) => String(item.productId));
+      }
+    } catch {
+      // try next shape
+    }
+  }
+
+  const categoryMap = getCategoryUrlMap();
+  const ids = new Set<string>();
+  for (const url of Object.values(categoryMap)) {
+    try {
+      const items = await fetchAllCatalogProducts({
+        url,
+        brand,
+        sorting: "NoSorting",
+      });
+      for (const item of items) ids.add(String(item.productId));
+    } catch {
+      // ignore category-level brand filter failures
+    }
+  }
+  return [...ids];
+}
+
+const getCachedFw2026ProductIds = unstable_cache(
+  async (): Promise<string[]> => {
+    const fromApi = await fetchFw2026ProductIdsViaCatalogApi();
+    if (fromApi.length) return fromApi;
+    return scrapeFw2026ProductIdsFromHtml();
+  },
+  ["advantshop-fw2026-product-ids"],
+  { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
+);
+
 const getCachedCatalogPropertyExtras = unstable_cache(
   async (): Promise<CatalogPropertyExtras> => {
     const categoryMap = getCategoryUrlMap();
@@ -253,9 +322,16 @@ const getCachedCatalogPropertyExtras = unstable_cache(
       }
     });
 
+    // Brand/«Производитель» часто не приходит в properties и details Client API —
+    // добираем ID со страницы производителя / catalog brand filter.
+    const fw2026Ids = await getCachedFw2026ProductIds();
+    for (const id of fw2026Ids) {
+      manufacturerMap[id] = FW2026_COLLECTION.manufacturer;
+    }
+
     return { setMap, manufacturerMap };
   },
-  ["advantshop-catalog-property-extras"],
+  ["advantshop-catalog-property-extras-v2"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
 );
 

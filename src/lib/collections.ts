@@ -1,7 +1,9 @@
-/** Коллекция FW 2026: в AdvantShop поле «Производитель» = «FW 2026». */
+/** Коллекция FW 2026: в AdvantShop «Производитель» = «FW 2026», URL /manufacturers/fw-2026. */
 export const FW2026_COLLECTION = {
   slug: "fw-2026",
   manufacturer: "FW 2026",
+  /** urlPath производителя в AdvantShop. */
+  brandUrl: "fw-2026",
   title: "Новая коллекция FW 2026",
   shortTitle: "Новая коллекция",
   eyebrow: "Коллекция",
