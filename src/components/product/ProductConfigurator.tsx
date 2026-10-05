@@ -82,7 +82,13 @@ export function ProductConfigurator({ product }: ProductConfiguratorProps) {
             {formatPrice(price)}
           </p>
           {product.badge && (
-            <span className="px-2.5 py-1 bg-brand-terracotta text-white text-[10px] tracking-widest uppercase">
+            <span
+              className={`px-2.5 py-1 text-white text-[10px] tracking-widest uppercase ${
+                product.badge === "Новинка"
+                  ? "bg-[#7f8e47]"
+                  : "bg-brand-terracotta"
+              }`}
+            >
               {product.badge}
             </span>
           )}

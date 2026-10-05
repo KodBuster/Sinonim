@@ -31,7 +31,11 @@ export function ProductCard({
         />
       </Link>
       {displayBadge && (
-        <span className="absolute top-3 left-3 px-2.5 py-1 bg-brand-terracotta text-white text-[10px] tracking-widest uppercase">
+        <span
+          className={`absolute top-3 left-3 px-2.5 py-1 text-white text-[10px] tracking-widest uppercase ${
+            displayBadge === "Новинка" ? "bg-[#7f8e47]" : "bg-brand-terracotta"
+          }`}
+        >
           {displayBadge}
         </span>
       )}
