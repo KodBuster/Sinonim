@@ -3,8 +3,7 @@ import Link from "next/link";
 import { ProductViewTracker } from "@/components/analytics/ProductViewTracker";
 import { CATEGORIES, type ProductDetails } from "@/lib/products";
 import type { Product } from "@/lib/products";
-import { getProductCaratWeight } from "@/lib/product-weight";
-import { formatInsertMassLabel } from "@/lib/synthetic-diamond-labels";
+import { getInsertMassDisplayLabel } from "@/lib/synthetic-diamond-labels";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { ProductCharacteristics } from "./ProductCharacteristics";
 import { ProductComplectSection } from "./ProductComplectSection";
@@ -27,7 +26,7 @@ export function ProductPage({
 }: ProductPageProps) {
   const related = relatedProducts;
   const categoryTitle = CATEGORIES[product.category].title;
-  const insertMass = formatInsertMassLabel(getProductCaratWeight(product));
+  const insertMass = getInsertMassDisplayLabel(product) ?? "";
   const videoUrl = resolveProductVideoUrl([
     product.artNo,
     ...Object.values(product.sizeArtNos ?? {}),

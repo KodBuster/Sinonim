@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  extractInsertMassFromName,
-  formatInsertMassLabel,
+  getInsertMassDisplayLabel,
   INSERT_WEIGHT_LABEL,
   SYNTHETIC_DIAMOND_CAP,
 } from "@/lib/synthetic-diamond-labels";
-import { getProductCaratWeight } from "@/lib/product-weight";
 import type { ProductDetails } from "@/lib/products";
 import { useProductSelection } from "./ProductSelectionContext";
 
@@ -16,9 +14,7 @@ type ProductCharacteristicsProps = {
 
 export function ProductCharacteristics({ product }: ProductCharacteristicsProps) {
   const { selectedSize } = useProductSelection();
-  const insertMass =
-    extractInsertMassFromName(product.name) ??
-    formatInsertMassLabel(getProductCaratWeight(product, selectedSize));
+  const insertMass = getInsertMassDisplayLabel(product, selectedSize);
 
   return (
     <div className="bg-brand-surface rounded-xl p-6 md:p-8">

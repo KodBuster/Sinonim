@@ -8,6 +8,11 @@ import {
   FW2026_PRODUCT_IDS,
   isFw2026Manufacturer,
 } from "@/lib/collections";
+import {
+  getCachedStocksSetMapByArtNo,
+  lookupStocksSetArtNos,
+} from "@/lib/stocks-csv";
+import { extractInsertMassFromName } from "@/lib/synthetic-diamond-labels";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getAdvantShopBaseUrl, getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
 import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, parseManufacturerFromProperties, pickOfferPrice, resolveAdvantShopManufacturer } from "./mapper";
@@ -307,6 +312,7 @@ const getCachedCatalogPropertyExtras = unstable_cache(
   async (): Promise<CatalogPropertyExtras> => {
     const categoryMap = getCategoryUrlMap();
     const productIds = new Set<number>();
+    const artNoByProductId: Record<string, string> = {};
 
     for (const url of Object.values(categoryMap)) {
       const items = await fetchAllCatalogProducts({
@@ -315,6 +321,8 @@ const getCachedCatalogPropertyExtras = unstable_cache(
       });
       for (const item of items) {
         productIds.add(item.productId);
+        const artNo = item.artNo?.trim();
+        if (artNo) artNoByProductId[String(item.productId)] = artNo;
       }
     }
 
@@ -335,6 +343,14 @@ const getCachedCatalogPropertyExtras = unstable_cache(
       }
     });
 
+    // Set из stocks.csv (колонка Set) — добираем, если свойства AdvantShop пустые.
+    const stocksSetByArtNo = await getCachedStocksSetMapByArtNo();
+    for (const [productId, artNo] of Object.entries(artNoByProductId)) {
+      if (setMap[productId]?.length) continue;
+      const fromStocks = lookupStocksSetArtNos(stocksSetByArtNo, artNo);
+      if (fromStocks.length) setMap[productId] = fromStocks;
+    }
+
     const fw2026Ids = await getCachedFw2026ProductIds();
     for (const id of fw2026Ids) {
       manufacturerMap[id] = FW2026_COLLECTION.manufacturer;
@@ -342,7 +358,7 @@ const getCachedCatalogPropertyExtras = unstable_cache(
 
     return { setMap, manufacturerMap };
   },
-  ["advantshop-catalog-property-extras-v5"],
+  ["advantshop-catalog-property-extras-v6"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
 );
 
@@ -548,11 +564,26 @@ export async function loadAdvantShopProductDetails(
       ? sizeDiamondWeights[defaultSize.value]
       : undefined) ??
     product.diamondWeightLabel ??
-    (hasSizeDiamondWeights ? Object.values(sizeDiamondWeights)[0] : undefined);
+    (hasSizeDiamondWeights ? Object.values(sizeDiamondWeights)[0] : undefined) ??
+    // У новых коллекций масса часто только в description («0,027гр.»), не в свойствах.
+    extractInsertMassFromName(product.description ?? "")?.replace(/\s*г$/i, "") ??
+    extractInsertMassFromName(product.name)?.replace(/\s*г$/i, "");
   const lengthMmLabel =
     (defaultSize && hasSizeLengthMm ? sizeLengthMm[defaultSize.value] : undefined) ??
     product.lengthMmLabel ??
     (hasSizeLengthMm ? Object.values(sizeLengthMm)[0] : undefined);
+
+  let setArtNos = product.setArtNos?.length
+    ? product.setArtNos
+    : summary.setArtNos;
+  if (!setArtNos?.length) {
+    const stocksSetByArtNo = await getCachedStocksSetMapByArtNo();
+    const fromStocks = lookupStocksSetArtNos(
+      stocksSetByArtNo,
+      product.artNo ?? summary.artNo,
+    );
+    if (fromStocks.length) setArtNos = fromStocks;
+  }
 
   return {
     ...product,
@@ -567,6 +598,7 @@ export async function loadAdvantShopProductDetails(
     sizeLengthMm: hasSizeLengthMm ? sizeLengthMm : undefined,
     stoneWeight:
       parseDiamondWeightNumber(diamondWeightLabel) ?? product.stoneWeight,
+    setArtNos: setArtNos?.length ? setArtNos : undefined,
     stockAmount: product.stockAmount ?? summary.stockAmount,
     inStock: product.inStock !== false && summary.inStock !== false,
   };
