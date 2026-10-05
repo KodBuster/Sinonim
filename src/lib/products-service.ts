@@ -10,7 +10,7 @@ import {
 } from "@/lib/advantshop/config";
 import {
   FW2026_COLLECTION,
-  isFw2026Manufacturer,
+  isFw2026ProductId,
 } from "@/lib/collections";
 import {
   GIFT_SOURCE_CATEGORIES,
@@ -233,25 +233,21 @@ function sortCollectionProducts(products: Product[], sort: string): Product[] {
   return next;
 }
 
-/** Товары коллекции FW 2026 (AdvantShop «Производитель» = FW 2026). */
+/** Товары коллекции FW 2026 (канонические productId производителя). */
 export async function getFw2026CollectionProducts(options?: {
   sort?: string;
 }): Promise<Product[]> {
   const sort = options?.sort ?? "default";
   const catalog = await getCatalogProducts({ sort });
-  const collection = catalog.filter((product) =>
-    isFw2026Manufacturer(product.manufacturer),
-  );
+  const collection = catalog.filter((product) => isFw2026ProductId(product.id));
 
   if (collection.length) {
     return sortCollectionProducts(collection, sort);
   }
 
-  // Fallback на статику, если поле ещё не прокинуто с AdvantShop.
+  // Fallback на статику, если ID ещё не в ответе AdvantShop.
   return sortCollectionProducts(
-    PRODUCTS.filter((product) =>
-      isFw2026Manufacturer(product.manufacturer),
-    ),
+    PRODUCTS.filter((product) => isFw2026ProductId(product.id)),
     sort,
   );
 }

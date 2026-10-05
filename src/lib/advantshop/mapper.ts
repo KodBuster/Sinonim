@@ -1,6 +1,9 @@
 import type { CategorySlug, Product, ProductDetails, ProductSizeOption, StoneVariant } from "@/lib/products";
 import { defaultRingBraceletSizeOptions, sortProductSizeOptions } from "@/lib/products";
-import { isFw2026Manufacturer, normalizeManufacturer } from "@/lib/collections";
+import {
+  isFw2026ProductId,
+  normalizeManufacturer,
+} from "@/lib/collections";
 import {
   formatDiamondWeightLabel,
   isDiamondWeightPropertyName,
@@ -600,10 +603,14 @@ function buildSizeStockAmounts(
 }
 
 function mapBadge(
-  product: Pick<AdvantShopCatalogProduct, "newProduct" | "bestseller" | "sales">,
-  manufacturer?: string,
+  product: Pick<
+    AdvantShopCatalogProduct,
+    "productId" | "newProduct" | "bestseller" | "sales"
+  >,
 ): Product["badge"] {
-  if (isFw2026Manufacturer(manufacturer) || product.newProduct) return "Новинка";
+  // «Новинка» только по каноническим ID FW 2026 — не по newProduct/manufacturer
+  // (manufacturer-карта раньше могла заштамповать весь каталог).
+  if (isFw2026ProductId(product.productId)) return "Новинка";
   if (product.bestseller) return "Хит";
   if (product.sales) return "Хит";
   return undefined;
@@ -723,7 +730,7 @@ export function mapCatalogProduct(
     item,
     stock?.manufacturer || manufacturerFromMap,
   );
-  const isNew = Boolean(item.newProduct) || isFw2026Manufacturer(manufacturer);
+  const isNew = isFw2026ProductId(item.productId);
 
   return {
     id: String(item.productId),
@@ -740,7 +747,7 @@ export function mapCatalogProduct(
     price,
     image: resolveProductImageUrl(pickImage(item)),
     stoneWeight,
-    badge: mapBadge(item, manufacturer),
+    badge: mapBadge(item),
     isNew,
     manufacturer,
     description,
@@ -830,7 +837,7 @@ export function mapProductDetails(
     item,
     parseManufacturerFromProperties(properties),
   );
-  const isNew = Boolean(item.newProduct) || isFw2026Manufacturer(manufacturer);
+  const isNew = isFw2026ProductId(item.productId);
 
   return {
     id: String(item.productId),
@@ -847,7 +854,7 @@ export function mapProductDetails(
     price: basePrice,
     image: fallbackImage,
     stoneWeight,
-    badge: mapBadge(item, manufacturer),
+    badge: mapBadge(item),
     isNew,
     manufacturer,
     description,

@@ -13,6 +13,34 @@ export const FW2026_COLLECTION = {
   badge: "Новинка" as const,
 };
 
+/**
+ * Канонические ID товаров производителя FW 2026
+ * (со страницы AdvantShop /manufacturers/fw-2026).
+ * Нужны как источник истины: Client API не отдаёт Brand, а HTML-скрейп
+ * может быть недоступен с деплоя.
+ */
+export const FW2026_PRODUCT_IDS = [
+  "12872",
+  "12873",
+  "12874",
+  "12875",
+  "12876",
+  "12877",
+  "12878",
+  "12879",
+  "12880",
+  "12881",
+  "12882",
+  "12883",
+] as const;
+
+export const FW2026_PRODUCT_ID_SET = new Set<string>(FW2026_PRODUCT_IDS);
+
+export function isFw2026ProductId(id: string | number | null | undefined): boolean {
+  if (id === null || id === undefined) return false;
+  return FW2026_PRODUCT_ID_SET.has(String(id));
+}
+
 export function normalizeManufacturer(value: string | null | undefined): string {
   return (value ?? "").trim().replace(/\s+/g, " ");
 }
