@@ -15,7 +15,7 @@ export const FW2026_COLLECTION = {
 
 /**
  * Канонические ID товаров производителя FW 2026
- * (со страницы AdvantShop /manufacturers/fw-2026).
+ * (AdvantShop /manufacturers/fw-2026, страницы 1–2).
  * Нужны как источник истины: Client API не отдаёт Brand, а HTML-скрейп
  * может быть недоступен с деплоя.
  */
@@ -32,6 +32,18 @@ export const FW2026_PRODUCT_IDS = [
   "12881",
   "12882",
   "12883",
+  "12884",
+  "12885",
+  "12886",
+  "12887",
+  "12888",
+  "12889",
+  "12890",
+  "12891",
+  "12892",
+  "12893",
+  "12894",
+  "12895",
 ] as const;
 
 export const FW2026_PRODUCT_ID_SET = new Set<string>(FW2026_PRODUCT_IDS);

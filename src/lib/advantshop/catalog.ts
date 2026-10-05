@@ -227,36 +227,62 @@ type CatalogPropertyExtras = {
   manufacturerMap: Record<string, string>;
 };
 
-/** ID товаров производителя FW 2026 со страницы /manufacturers/fw-2026. */
+/** Извлечь productId с одной HTML-страницы листинга производителя. */
+function extractFw2026IdsFromHtml(html: string): string[] {
+  const ids = new Set<string>();
+  // Только карточки листинга (не виджеты/рекомендации в подвале).
+  for (const match of html.matchAll(
+    /products-view-item[\s\S]{0,1200}?data-product-id=["']?(\d+)/gi,
+  )) {
+    ids.add(match[1]);
+  }
+  if (ids.size === 0) {
+    for (const match of html.matchAll(/data-product-id=["']?(\d+)/gi)) {
+      ids.add(match[1]);
+    }
+  }
+  return [...ids];
+}
+
+/** ID товаров производителя FW 2026 со всех страниц /manufacturers/fw-2026. */
 async function scrapeFw2026ProductIdsFromHtml(): Promise<string[]> {
   try {
     const base = getAdvantShopBaseUrl();
-    const url = `${base}/manufacturers/${FW2026_COLLECTION.brandUrl}`;
-    const response = await fetch(url, {
-      headers: { Accept: "text/html" },
-      next: { revalidate: CATALOG_REVALIDATE_SECONDS },
-    });
-    if (!response.ok) return [];
-    const html = await response.text();
     const ids = new Set<string>();
-    // Только карточки листинга производителя (не виджеты/рекомендации в подвале).
-    for (const match of html.matchAll(
-      /products-view-item[\s\S]{0,800}?data-product-id=["']?(\d+)/gi,
-    )) {
-      ids.add(match[1]);
-    }
-    if (ids.size === 0) {
-      for (const match of html.matchAll(/data-product-id=["']?(\d+)/gi)) {
-        ids.add(match[1]);
+    const maxPages = 6;
+
+    for (let page = 1; page <= maxPages; page += 1) {
+      const url =
+        page === 1
+          ? `${base}/manufacturers/${FW2026_COLLECTION.brandUrl}`
+          : `${base}/manufacturers/${FW2026_COLLECTION.brandUrl}?page=${page}`;
+      const response = await fetch(url, {
+        headers: { Accept: "text/html" },
+        next: { revalidate: CATALOG_REVALIDATE_SECONDS },
+      });
+      if (!response.ok) break;
+
+      const pageIds = extractFw2026IdsFromHtml(await response.text());
+      // Защита: страница/прокси иногда отдаёт весь каталог.
+      if (pageIds.length > 40) {
+        console.warn(
+          `FW 2026 scrape page ${page} returned ${pageIds.length} ids — stopping`,
+        );
+        break;
       }
+      if (pageIds.length === 0) break;
+
+      let added = 0;
+      for (const id of pageIds) {
+        if (!ids.has(id)) {
+          ids.add(id);
+          added += 1;
+        }
+      }
+      // Пустая/повторившаяся страница — конец пагинации.
+      if (added === 0) break;
     }
-    // Защита: страница/прокси иногда отдаёт весь каталог.
-    if (ids.size > 40) {
-      console.warn(
-        `FW 2026 scrape returned ${ids.size} ids — ignoring (expected ~12)`,
-      );
-      return [];
-    }
+
     return [...ids];
   } catch (error) {
     console.warn("FW 2026 manufacturer page scrape failed:", error);
@@ -273,7 +299,7 @@ const getCachedFw2026ProductIds = unstable_cache(
     for (const id of scraped) ids.add(id);
     return [...ids];
   },
-  ["advantshop-fw2026-product-ids-v4"],
+  ["advantshop-fw2026-product-ids-v5"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
 );
 
@@ -316,7 +342,7 @@ const getCachedCatalogPropertyExtras = unstable_cache(
 
     return { setMap, manufacturerMap };
   },
-  ["advantshop-catalog-property-extras-v4"],
+  ["advantshop-catalog-property-extras-v5"],
   { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ["catalog"] },
 );
 
