@@ -5,7 +5,7 @@ import Link from "next/link";
 import { trackHeroBannerClick } from "@/lib/analytics/metrika";
 
 const BANNER_ALT =
-  "Синоним — ограненные синтетические алмазы в серебре. Узнать о бренде.";
+  "Новая коллекция FW 2026 — Синоним. Узнать о бренде.";
 
 export function Hero() {
   return (
@@ -42,12 +42,12 @@ export function Hero() {
           className="group relative block w-full cursor-pointer touch-manipulation overflow-hidden [-webkit-tap-highlight-color:transparent]"
           onClick={() => trackHeroBannerClick()}
         >
-          <div className="relative aspect-[1584/672] w-full overflow-hidden bg-brand-sand">
+          <div className="relative aspect-[1584/884] w-full overflow-hidden bg-brand-sand">
             <Image
               src="/images/hero-about-banner.jpg"
               alt={BANNER_ALT}
               width={1584}
-              height={672}
+              height={884}
               priority
               sizes="(min-width: 1664px) 1664px, 100vw"
               className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-95 group-active:opacity-90"
