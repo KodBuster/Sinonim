@@ -5,7 +5,7 @@ import { parseDiamondWeightNumber } from "@/lib/product-weight";
 import { parseSetArtNosFromProperties } from "@/lib/product-complect";
 import { advantshopClientFetch, advantshopFetch } from "./client";
 import { getCategoryUrlMap, CATALOG_REVALIDATE_SECONDS } from "./config";
-import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, parseManufacturerFromProperties, pickOfferPrice } from "./mapper";
+import { mapCatalogProduct, mapProductDetails, parseDiamondWeightLabelFromProperties, parseLengthMmLabelFromProperties, parseManufacturerFromProperties, pickOfferPrice, resolveAdvantShopManufacturer } from "./mapper";
 import {
   getAdvantShopDetailsStockInfo,
   getAvailableSizePickerSizes,
@@ -269,9 +269,11 @@ async function fetchProductStockInfo(
     );
     const stock = getAdvantShopDetailsStockInfo(details, category);
     const listPrice = pickOfferPrice(details.offers);
+    const manufacturer = resolveAdvantShopManufacturer(details);
     return {
       ...stock,
       listPrice: listPrice > 0 ? listPrice : undefined,
+      manufacturer,
     };
   } catch (error) {
     console.warn(

@@ -622,23 +622,51 @@ export function parseManufacturerFromProperties(
   ) || undefined;
 }
 
+function extractBrandLabel(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return normalizeManufacturer(value) || undefined;
+  }
+  if (!value || typeof value !== "object") return undefined;
+
+  const record = value as Record<string, unknown>;
+  for (const key of [
+    "name",
+    "Name",
+    "brandName",
+    "BrandName",
+    "title",
+    "Title",
+    "url",
+    "Url",
+    "urlPath",
+  ]) {
+    const candidate = record[key];
+    if (typeof candidate === "string" && candidate.trim()) {
+      return normalizeManufacturer(candidate);
+    }
+  }
+  return undefined;
+}
+
 export function resolveAdvantShopManufacturer(
   item: {
-    brand?: string | null;
+    brand?: unknown;
+    Brand?: unknown;
     brandName?: string | null;
     BrandName?: string | null;
     manufacturer?: string | null;
     Manufacturer?: string | null;
   },
-  fromProperties?: string,
+  fallback?: string,
 ): string | undefined {
   const candidates = [
-    fromProperties,
-    item.Manufacturer,
-    item.manufacturer,
+    extractBrandLabel(item.Brand),
+    extractBrandLabel(item.brand),
     item.BrandName,
     item.brandName,
-    item.brand,
+    item.Manufacturer,
+    item.manufacturer,
+    fallback,
   ];
   for (const candidate of candidates) {
     const normalized = normalizeManufacturer(candidate);
@@ -691,7 +719,10 @@ export function mapCatalogProduct(
   const offerArtNos = stock?.offerArtNos?.length
     ? [...new Set([...stock.offerArtNos, ...listOfferArtNos])]
     : listOfferArtNos;
-  const manufacturer = resolveAdvantShopManufacturer(item, manufacturerFromMap);
+  const manufacturer = resolveAdvantShopManufacturer(
+    item,
+    stock?.manufacturer ?? manufacturerFromMap,
+  );
   const isNew = Boolean(item.newProduct) || isFw2026Manufacturer(manufacturer);
 
   return {

@@ -18,8 +18,13 @@ export function normalizeManufacturer(value: string | null | undefined): string 
 export function isFw2026Manufacturer(
   value: string | null | undefined,
 ): boolean {
+  const normalized = normalizeManufacturer(value).toLowerCase();
+  if (!normalized) return false;
   return (
-    normalizeManufacturer(value).toLowerCase() ===
-    FW2026_COLLECTION.manufacturer.toLowerCase()
+    normalized === FW2026_COLLECTION.manufacturer.toLowerCase() ||
+    normalized === "fw2026" ||
+    normalized.includes("fw 2026") ||
+    normalized.includes("fw-2026") ||
+    normalized.includes("fw2026")
   );
 }

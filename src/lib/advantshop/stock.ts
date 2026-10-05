@@ -144,6 +144,8 @@ export type AdvantShopStockInfo = {
   offerArtNos?: string[];
   /** Цена для каталога: оффер в наличии, не «Главная» с нулевым остатком. */
   listPrice?: number;
+  /** Производитель/бренд с карточки AdvantShop (не из свойств). */
+  manufacturer?: string;
 };
 
 export function getAdvantShopDetailsStockInfo(
