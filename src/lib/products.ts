@@ -122,11 +122,14 @@ export const STONE_WEIGHTS = [
 ] as const;
 
 export const SORT_OPTIONS = [
+  { id: "new", label: "Сначала новинки" },
   { id: "default", label: "По умолчанию" },
   { id: "price-asc", label: "Цена: по возрастанию" },
   { id: "price-desc", label: "Цена: по убыванию" },
-  { id: "new", label: "Сначала новинки" },
 ] as const;
+
+/** Сортировка каталога без ?sort= в URL. */
+export const DEFAULT_CATALOG_SORT = "new";
 
 export const PRODUCTS: Product[] = [
   {

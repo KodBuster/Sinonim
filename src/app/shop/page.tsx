@@ -55,7 +55,7 @@ export default async function ShopPage({ searchParams }: PageProps) {
   let initialError: string | undefined;
 
   try {
-    initialProducts = await getCatalogProducts({ sort: sort ?? "default" });
+    initialProducts = await getCatalogProducts({ sort: sort ?? "new" });
   } catch {
     initialError = "Не удалось загрузить каталог из AdvantShop";
   }

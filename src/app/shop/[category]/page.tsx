@@ -87,7 +87,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   try {
     initialProducts = await getCatalogProducts({
       category: categorySlug,
-      sort: sort ?? "default",
+      sort: sort ?? "new",
     });
   } catch {
     initialError = "Не удалось загрузить каталог из AdvantShop";

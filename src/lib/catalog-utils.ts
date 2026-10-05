@@ -1,4 +1,5 @@
 import {
+  DEFAULT_CATALOG_SORT,
   numericSizesFromOptions,
   PRICE_RANGES,
   type CategorySlug,
@@ -85,7 +86,7 @@ export function parseFiltersFromSearchParams(
     priceRanges: params.getAll("price"),
     sizes: params.getAll("size"),
     complectsOnly: params.get("complect") === "1",
-    sort: params.get("sort") ?? "default",
+    sort: params.get("sort") ?? DEFAULT_CATALOG_SORT,
   };
 }
 
@@ -102,7 +103,7 @@ export function buildFilterQuery(
   if (next.complectsOnly) {
     query.set("complect", "1");
   }
-  if (next.sort && next.sort !== "default") {
+  if (next.sort && next.sort !== DEFAULT_CATALOG_SORT) {
     query.set("sort", next.sort);
   }
   if (options?.panel) {
@@ -126,7 +127,7 @@ export function hasCatalogFilterParams(params: URLSearchParams): boolean {
     params.has("price") ||
     params.has("size") ||
     params.has("complect") ||
-    (params.has("sort") && params.get("sort") !== "default")
+    (params.has("sort") && params.get("sort") !== DEFAULT_CATALOG_SORT)
   );
 }
 

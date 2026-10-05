@@ -72,7 +72,7 @@ export async function getCatalogProducts(options?: {
   category?: CategorySlug;
   sort?: string;
 }): Promise<Product[]> {
-  const sort = options?.sort ?? "default";
+  const sort = options?.sort ?? "new";
 
   if (options?.category === "gifts") {
     try {

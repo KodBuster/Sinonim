@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CATEGORIES, type CategorySlug, type Product } from "@/lib/products";
+import { CATEGORIES, DEFAULT_CATALOG_SORT, type CategorySlug, type Product } from "@/lib/products";
 import {
   filterProducts,
   parseFiltersFromSearchParams,
@@ -103,7 +103,7 @@ export function CatalogView({
 
     const params = new URLSearchParams();
     if (category) params.set("category", category);
-    if (filters.sort !== "default") params.set("sort", filters.sort);
+    if (filters.sort !== DEFAULT_CATALOG_SORT) params.set("sort", filters.sort);
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => {

@@ -9,7 +9,7 @@ import {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const categoryParam = searchParams.get("category");
-  const sort = searchParams.get("sort") ?? "default";
+  const sort = searchParams.get("sort") ?? "new";
 
   const category =
     categoryParam && isValidCategory(categoryParam) ? categoryParam : undefined;
