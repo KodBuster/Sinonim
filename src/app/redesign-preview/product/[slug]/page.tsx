@@ -14,14 +14,34 @@ import { getInsertMassDisplayLabel } from "@/lib/synthetic-diamond-labels";
 
 export const dynamic = "force-dynamic";
 
+function ServiceUnavailable() {
+  return <main className="sn-container sn-pdp sn-preview-error" role="status">
+    <h1>Каталог временно недоступен</h1>
+    <p>Не удалось получить актуальные данные товара из AdvantShop. Цена и остаток не отображаются, чтобы не вводить покупателя в заблуждение.</p>
+    <Link href="/redesign-preview/catalog">Перейти в каталог ↗</Link>
+  </main>;
+}
+
 export default async function PreviewProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  if (!isAdvantShopConfigured()) notFound();
+  if (!isAdvantShopConfigured()) return <ServiceUnavailable />;
 
-  const catalog = await fetchAdvantShopProducts({ includeOutOfStock: true });
+  let catalog;
+  try {
+    catalog = await fetchAdvantShopProducts({ includeOutOfStock: true });
+  } catch (error) {
+    console.error("SYNONYM redesign preview: AdvantShop catalog unavailable", error);
+    return <ServiceUnavailable />;
+  }
   const summary = findProductBySlug(catalog, slug);
   if (!summary) notFound();
-  const product = await loadAdvantShopProductDetails(summary);
+  let product;
+  try {
+    product = await loadAdvantShopProductDetails(summary);
+  } catch (error) {
+    console.error("SYNONYM redesign preview: AdvantShop product unavailable", error);
+    return <ServiceUnavailable />;
+  }
   if (!product) notFound();
 
   const related = catalog.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
