@@ -9,10 +9,10 @@ const categoryNames: Record<string,string> = {
 };
 type Sort = "new" | "price-asc" | "price-desc";
 
-export function PreviewCatalog({ products, initialCategory }: { products: Product[]; initialCategory: string }) {
+export function PreviewCatalog({ products, initialCategory, initialSort = "new", initialPrice = "all" }: { products: Product[]; initialCategory: string; initialSort?: string; initialPrice?: string }) {
   const [category, setCategory] = useState(initialCategory in categoryNames ? initialCategory : "all");
-  const [sort, setSort] = useState<Sort>("new");
-  const [priceRange, setPriceRange] = useState("all");
+  const [sort, setSort] = useState<Sort>(initialSort === "price-asc" || initialSort === "price-desc" ? initialSort : "new");
+  const [priceRange, setPriceRange] = useState(["all", "under15000", "15000to30000", "over30000"].includes(initialPrice) ? initialPrice : "all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Keep shareable filters and browser back/forward synchronized with the UI.
@@ -26,7 +26,6 @@ export function PreviewCatalog({ products, initialCategory }: { products: Produc
       setSort(nextSort === "price-asc" || nextSort === "price-desc" ? nextSort : "new");
       setPriceRange(["all", "under15000", "15000to30000", "over30000"].includes(nextPrice) ? nextPrice : "all");
     };
-    syncFromUrl();
     window.addEventListener("popstate", syncFromUrl);
     return () => window.removeEventListener("popstate", syncFromUrl);
   }, []);
