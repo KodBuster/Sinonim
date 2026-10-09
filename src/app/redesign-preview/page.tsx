@@ -37,7 +37,7 @@ export default async function RedesignPreviewHome() {
         <div className="sn-hero-content"><small>НОВАЯ КОЛЛЕКЦИЯ</small><h1>Украшения, которые становятся частью истории</h1><Link href="/collections/fw-2026">Смотреть коллекцию ↗</Link></div>
       </div>
       <div className="sn-hero-pane">
-        <Image src="/images/hero-fw2026-banner.jpg" alt="Украшения Синоним" fill priority sizes="(max-width: 760px) 100vw, 50vw" className="sn-cover" />
+        <Image src="/images/categories/bracelets.jpg" alt="Браслет из коллекции Синоним" fill priority sizes="(max-width: 760px) 100vw, 50vw" className="sn-cover" />
         <div className="sn-hero-shade" />
         <div className="sn-hero-content"><small>СИНОНИМ</small><h2>Каждая деталь имеет значение</h2><Link href="/redesign-preview/catalog">Открыть каталог ↗</Link></div>
       </div>
@@ -47,15 +47,15 @@ export default async function RedesignPreviewHome() {
       <Image src={item.image} fill sizes="(max-width: 760px) 50vw, 25vw" alt={item.label} className="sn-cover" /><span>{item.label} ↗</span>
     </Link>)}</section>
     <section className="sn-promo-grid" aria-label="Подборки">
-      <Link href="/collections/fw-2026" className="sn-promo"><Image src="/images/hero-about-banner.jpg" alt="Новая коллекция" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Новая коллекция <small>Открыть ↗</small></span></Link>
-      <Link href="/shop/gifts" className="sn-promo"><Image src="/images/showroom-hero.jpg" alt="Украшения для подарка" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Подарки <small>Смотреть ↗</small></span></Link>
+      <Link href="/collections/fw-2026" className="sn-promo"><Image src="/images/categories/rings.jpg" alt="Кольцо из коллекции Синоним" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Новая коллекция <small>Открыть ↗</small></span></Link>
+      <Link href="/shop/gifts" className="sn-promo"><Image src="/images/categories/pendants.jpg" alt="Подвеска в качестве подарка" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Подарки <small>Смотреть ↗</small></span></Link>
       <Link href="/redesign-preview/catalog" className="sn-promo"><Image src="/images/categories/earrings.jpg" alt="Выбор украшений" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Найти своё украшение <small>Каталог ↗</small></span></Link>
     </section>
     <div className="sn-trust"><p>◇ &nbsp; Серебро 925</p><p>✧ &nbsp; Современный дизайн</p><p>♡ &nbsp; Помощь с выбором</p></div>
     <section className="sn-container sn-journal">
       <div className="sn-heading"><h2>Вдохновение</h2><Link href="/blog">Перейти в журнал ↗</Link></div>
       <div className="sn-journal-grid">
-        <Link href="/about"><div><Image src="/images/hero-about-banner.jpg" alt="История бренда" fill sizes="25vw" className="sn-cover"/></div><span>История Синоним</span></Link>
+        <Link href="/about"><div><Image src="/images/categories/earrings.jpg" alt="Серьги Синоним" fill sizes="25vw" className="sn-cover"/></div><span>История Синоним</span></Link>
         <Link href="/how-size-ring"><div><Image src="/images/categories/rings.jpg" alt="Кольца" fill sizes="25vw" className="sn-cover"/></div><span>Как определить размер кольца</span></Link>
         <Link href="/guide"><div><Image src="/images/categories/pendants.jpg" alt="Колье" fill sizes="25vw" className="sn-cover"/></div><span>Гид покупателя</span></Link>
         <Link href="/warranty"><div><Image src="/images/categories/bracelets.jpg" alt="Браслеты" fill sizes="25vw" className="sn-cover"/></div><span>Уход и гарантия</span></Link>
