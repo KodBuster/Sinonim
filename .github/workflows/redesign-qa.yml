@@ -47,3 +47,26 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:3456/redesign-preview/product/test-unknown > /tmp/sn-product.html
           grep -q "Каталог временно недоступен" /tmp/sn-product.html
           echo "PASS: preview homepage, catalog, product fallback on Next.js server"
+
+      - name: Browser visual QA desktop tablet mobile
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright-core@1.55.1
+          export CHROME_PATH="$(command -v google-chrome || command -v chromium || true)"
+          echo "Browser: $CHROME_PATH"
+          test -n "$CHROME_PATH"
+          HOSTNAME=127.0.0.1 PORT=3456 NODE_ENV=production node .next/standalone/server.js > /tmp/synonym-visual-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:3456/redesign-preview > /dev/null; then break; fi
+            sleep 2
+          done
+          QA_BASE_URL=http://127.0.0.1:3456 node scripts/redesign-visual-qa.mjs
+      - name: Upload visual QA screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synonym-visual-qa
+          path: qa/
+          if-no-files-found: warn
