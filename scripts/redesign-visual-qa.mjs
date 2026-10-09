@@ -7,7 +7,7 @@ const report = {run: new Date().toISOString(), pages:[], issues:[]};
 await mkdir('qa/screenshots',{recursive:true});
 function problem(route,width,type,detail){report.issues.push({route,width,type,detail});}
 async function run(route,width,screenshot){
- const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1,reducedMotion:'reduce'});
+ const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1,reducedMotion:'no-preference'});
  const errors=[]; const failed=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('response',r=>{if(r.status()>=400&&r.url().startsWith(base))failed.push({status:r.status(),url:r.url().slice(base.length)});});
