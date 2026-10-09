@@ -30,7 +30,7 @@ export default async function RedesignPreviewHome() {
   return <main>
     <section className="sn-hero" aria-label="Коллекции Синоним">
       <div className="sn-hero-pane">
-        <video className="sn-hero-video" autoPlay muted loop playsInline preload="metadata" poster="/images/hero-fw2026-banner.jpg" aria-label="Видео коллекции Синоним">
+        <video className="sn-hero-video" autoPlay muted loop playsInline preload="metadata" poster="/images/categories/earrings.jpg" aria-label="Видео коллекции Синоним">
           <source src="/images/video-hero_2.mp4" type="video/mp4" />
         </video>
         <div className="sn-hero-shade" />
