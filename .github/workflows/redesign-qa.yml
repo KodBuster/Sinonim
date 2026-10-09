@@ -29,3 +29,21 @@ jobs:
         run: npm run lint
       - name: Next.js production build
         run: npm run build
+
+      - name: HTTP smoke test (no production API credentials)
+        run: |
+          set -euo pipefail
+          HOSTNAME=127.0.0.1 PORT=3456 NODE_ENV=production node .next/standalone/server.js > /tmp/synonym-preview-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:3456/redesign-preview > /tmp/sn-home.html; then break; fi
+            sleep 2
+          done
+          test -s /tmp/sn-home.html
+          grep -q "Простые ценности" /tmp/sn-home.html
+          curl --fail --silent --show-error http://127.0.0.1:3456/redesign-preview/catalog > /tmp/sn-catalog.html
+          grep -q "Все украшения" /tmp/sn-catalog.html
+          curl --fail --silent --show-error http://127.0.0.1:3456/redesign-preview/product/test-unknown > /tmp/sn-product.html
+          grep -q "Каталог временно недоступен" /tmp/sn-product.html
+          echo "PASS: preview homepage, catalog, product fallback on Next.js server"
