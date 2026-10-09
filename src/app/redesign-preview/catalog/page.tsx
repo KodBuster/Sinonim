@@ -5,7 +5,7 @@ import { PreviewCatalog } from "@/components/redesign/PreviewCatalog";
 
 export const dynamic = "force-dynamic";
 
-export default async function PreviewCatalogPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
+export default async function PreviewCatalogPage({ searchParams }: { searchParams: Promise<{ category?: string; sort?: string; price?: string }> }) {
   const query = await searchParams;
   let products: Product[] = [];
   if (isAdvantShopConfigured()) {
@@ -15,5 +15,5 @@ export default async function PreviewCatalogPage({ searchParams }: { searchParam
       console.error("SYNONYM redesign preview: AdvantShop catalog unavailable", error);
     }
   }
-  return <PreviewCatalog products={products} initialCategory={query.category ?? "all"} />;
+  return <PreviewCatalog products={products} initialCategory={query.category ?? "all"} initialSort={query.sort ?? "new"} initialPrice={query.price ?? "all"} />;
 }
