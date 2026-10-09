@@ -8,3 +8,13 @@
 /* QA: reliable mobile hit areas without widening the header beyond 360px. */
 @media (max-width:900px){.sn-menu-button{min-width:44px;min-height:44px;align-items:center;justify-content:center}.sn-nav-icons>a{min-height:40px;min-width:40px}}
 @media (max-width:760px){.sn-navigation{padding-left:10px;padding-right:10px;gap:4px}.sn-menu-button{display:inline-flex}.sn-logo img{width:126px}.sn-nav-icons{gap:0}.sn-nav-icons>a{min-height:44px;min-width:40px}.sn-nav-icons>a:first-child{font-size:24px}}
+
+/* Visual QA mobile fix: separate bright product photo from the hero title. */
+@media (max-width:760px){
+  .sn-hero-pane:nth-child(2){height:345px;background:var(--sn-olive)}
+  .sn-hero-pane:nth-child(2)>.sn-cover{height:215px!important;object-position:center top}
+  .sn-hero-pane:nth-child(2)>.sn-hero-shade{display:none}
+  .sn-hero-pane:nth-child(2)>.sn-hero-content{left:0;right:0;bottom:0;min-height:130px;padding:13px 18px 18px;background:var(--sn-olive);z-index:2}
+  .sn-hero-pane:nth-child(2)>.sn-hero-content h2{font-size:25px;line-height:1.15;margin:7px 0 11px}
+  .sn-hero-pane:nth-child(2)>.sn-hero-content a{font-size:12px}
+}
