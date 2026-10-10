@@ -34,6 +34,24 @@ async function run(route,width,screenshot){
     if(data.mainSectionOrder[index]!==cls)problem(route,width,'sectionOrder',{position:index+1,expected:cls,actual:data.mainSectionOrder[index]});
   }
 }
+ if(route.startsWith('/redesign-preview/collections/')){
+  const names={necklaces:'Колье',rings:'Кольца',bracelets:'Браслеты',earrings:'Серьги'};
+  const slug=route.split('/').at(-1);
+  const heading=await page.locator('.sn-collection-head h1').innerText().catch(()=>null);
+  if(heading!==names[slug])problem(route,width,'categoryTitle',{expected:names[slug],actual:heading});
+  for(const selector of ['.sn-collection-crumbs','.sn-collection-chips','.sn-collection-toolbar','.sn-collection-results','.sn-collection-spotlight','.sn-collection-editorial','.sn-collection-faq']){
+    if(await page.locator(selector).count()!==1)problem(route,width,'collectionMissingSection',selector);
+  }
+  const caption=await page.locator('.sn-collection-head>p').innerText().catch(()=>'');
+  if(caption.length<20)problem(route,width,'categoryDescriptionMissing',null);
+  if(width===390){
+    const trigger=page.locator('.sn-collection-toggle');
+    await trigger.click();
+    if(!await page.locator('.sn-collection-sheet[role="dialog"]').isVisible())problem(route,width,'mobileFilterDrawer','does not open');
+    await page.getByRole('button',{name:'Закрыть фильтры'}).click();
+    if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
+  }
+ }
  if(screenshot){const file='qa/screenshots/'+(route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview'&&width===390){
   const before=await page.locator('.sn-hero-slide.is-active h2').innerText();
@@ -78,7 +96,7 @@ async function run(route,width,screenshot){
  console.log('SN_VISUAL_QA '+JSON.stringify({route,width,status:response.status(),docWidth:data.docWidth,hero:data.hero,sections:data.mainSectionOrder,brokenImages:data.brokenImages,video:data.video,outside:data.outside,clipped:data.clipped,failed,errors}));
  await page.close();
 }
-try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);}finally{await browser.close();}
+try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));}finally{await browser.close();}
 await writeFile('qa/report.json',JSON.stringify(report,null,2));
 console.log('SN_VISUAL_QA_ISSUES '+JSON.stringify(report.issues));
 if(report.issues.length)process.exitCode=1;
