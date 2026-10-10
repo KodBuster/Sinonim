@@ -3,10 +3,13 @@ import Link from "next/link";
 import { isAdvantShopConfigured } from "@/lib/advantshop/config";
 import { fetchAdvantShopProducts } from "@/lib/advantshop/catalog";
 import type { Product } from "@/lib/products";
-import { PreviewCard } from "@/components/redesign/PreviewCard";
+import { HeroCarousel } from "@/components/redesign/HeroCarousel";
+import { BestSellerCarousel } from "@/components/redesign/BestSellerCarousel";
+import { InfluencerCarousel } from "@/components/redesign/InfluencerCarousel";
 
 export const dynamic = "force-dynamic";
 
+// The category section is deliberately unchanged from the previous preview.
 const categories = [
   { label: "Кольца", href: "/redesign-preview/catalog?category=rings", image: "/images/categories/rings.jpg" },
   { label: "Серьги", href: "/redesign-preview/catalog?category=earrings", image: "/images/categories/earrings.jpg" },
@@ -14,44 +17,46 @@ const categories = [
   { label: "Браслеты", href: "/redesign-preview/catalog?category=bracelets", image: "/images/categories/bracelets.jpg" },
 ];
 
-async function getLiveProducts(): Promise<Product[]> {
-  if (!isAdvantShopConfigured()) return [];
+async function getLiveProducts(): Promise<{products: Product[], hasVerifiedHits: boolean}> {
+  if (!isAdvantShopConfigured()) return {products: [], hasVerifiedHits: false};
   try {
-    const items = await fetchAdvantShopProducts({});
-    return items.filter(item => item.inStock !== false).slice(0, 4);
+    const catalog = await fetchAdvantShopProducts({});
+    const eligible = catalog.filter(product => product.inStock !== false && product.price > 0);
+    const hits = eligible.filter(product => product.badge === "Хит");
+    const picked = (hits.length >= 5 ? hits : eligible).slice(0, 12);
+    return {products: picked, hasVerifiedHits: hits.length >= 5};
   } catch (error) {
     console.error("SYNONYM redesign: live product catalog unavailable", error);
-    return [];
+    return {products: [], hasVerifiedHits: false};
   }
 }
 
 export default async function RedesignPreviewHome() {
-  const products = await getLiveProducts();
+  const {products, hasVerifiedHits} = await getLiveProducts();
   return <main>
-    <section className="sn-hero" aria-label="Коллекции Синоним">
-      <div className="sn-hero-pane">
-        <video className="sn-hero-video" autoPlay muted loop playsInline preload="metadata" poster="/images/categories/earrings.jpg" aria-label="Видео коллекции Синоним">
-          <source src="/images/video-hero_2.mp4" type="video/mp4" />
-        </video>
-        <div className="sn-hero-shade" />
-        <div className="sn-hero-content"><small>НОВАЯ КОЛЛЕКЦИЯ</small><h1>Украшения, которые становятся частью истории</h1><Link href="/collections/fw-2026">Смотреть коллекцию ↗</Link></div>
-      </div>
-      <div className="sn-hero-pane">
-        <Image src="/images/categories/bracelets.jpg" alt="Браслет из коллекции Синоним" fill priority sizes="(max-width: 760px) 100vw, 50vw" className="sn-cover" />
-        <div className="sn-hero-shade" />
-        <div className="sn-hero-content"><small>СИНОНИМ</small><h2>Каждая деталь имеет значение</h2><Link href="/redesign-preview/catalog">Открыть каталог ↗</Link></div>
-      </div>
-    </section>
-    <div className="sn-statement">Простые ценности. Инновационные технологии. Высокое качество.</div>
+    {/* 01 — a single full-width hero, three banners. */}
+    <HeroCarousel />
+
+    {/* 02 — preserved category block: markup and all 4 items unchanged. */}
     <section className="sn-category-grid" aria-label="Категории">{categories.map(item => <Link href={item.href} key={item.label} className="sn-category">
       <Image src={item.image} fill sizes="(max-width: 760px) 50vw, 25vw" alt={item.label} className="sn-cover" /><span>{item.label} ↗</span>
     </Link>)}</section>
+
+    {/* 03 — reference 1: horizontal product carousel. */}
+    <BestSellerCarousel products={products} hasVerifiedHits={hasVerifiedHits} />
+
+    {/* 04 — reference 2: three editorial promotions + trust strip. */}
     <section className="sn-promo-grid" aria-label="Подборки">
-      <Link href="/collections/fw-2026" className="sn-promo"><Image src="/images/categories/rings.jpg" alt="Кольцо из коллекции Синоним" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Новая коллекция <small>Открыть ↗</small></span></Link>
-      <Link href="/shop/gifts" className="sn-promo"><Image src="/images/categories/pendants.jpg" alt="Подвеска в качестве подарка" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Подарки <small>Смотреть ↗</small></span></Link>
-      <Link href="/redesign-preview/catalog" className="sn-promo"><Image src="/images/categories/earrings.jpg" alt="Выбор украшений" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Найти своё украшение <small>Каталог ↗</small></span></Link>
+      <Link href="/redesign-preview/catalog" className="sn-promo"><Image src="/images/categories/rings.jpg" alt="Кольца СИНОНИМ" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>До 15 000 ₽ <small>Перейти к украшениям ↗</small></span></Link>
+      <Link href="/collections/fw-2026" className="sn-promo"><Image src="/images/categories/pendants.jpg" alt="Колье и украшения коллекции" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Создайте свой комплект <small>Смотреть коллекцию ↗</small></span></Link>
+      <Link href="/shop/gifts" className="sn-promo"><Image src="/images/categories/earrings.jpg" alt="Украшения для подарков" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Идеи для подарков <small>Выбрать подарок ↗</small></span></Link>
     </section>
     <div className="sn-trust"><p>◇ &nbsp; Серебро 925</p><p>✧ &nbsp; Современный дизайн</p><p>♡ &nbsp; Помощь с выбором</p></div>
+
+    {/* 05 — reference 3: vertical-video carousel, awaiting real influencer material. */}
+    <InfluencerCarousel />
+
+    {/* 06 — blog/story section preserved from the previous preview. */}
     <section className="sn-container sn-journal">
       <div className="sn-heading"><h2>Вдохновение</h2><Link href="/blog">Перейти в журнал ↗</Link></div>
       <div className="sn-journal-grid">
@@ -60,10 +65,6 @@ export default async function RedesignPreviewHome() {
         <Link href="/guide"><div><Image src="/images/categories/pendants.jpg" alt="Колье" fill sizes="25vw" className="sn-cover"/></div><span>Гид покупателя</span></Link>
         <Link href="/warranty"><div><Image src="/images/categories/bracelets.jpg" alt="Браслеты" fill sizes="25vw" className="sn-cover"/></div><span>Уход и гарантия</span></Link>
       </div>
-    </section>
-    <section className="sn-container sn-featured">
-      <div className="sn-heading"><h2>Из каталога</h2><Link href="/redesign-preview/catalog">Все украшения ↗</Link></div>
-      {products.length ? <div className="sn-product-grid">{products.map(p => <PreviewCard key={p.id} product={p}/>)}</div> : <p className="sn-notice">Каталог будет показан при подключении безопасного тестового окружения к AdvantShop. Выдуманные товары и цены не подставляются.</p>}
     </section>
   </main>;
 }
