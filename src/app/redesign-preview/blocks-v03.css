@@ -85,3 +85,21 @@
 /* Merchandise details are rendered only when returned by AdvantShop. */
 .sn-product-photo .sn-card-badge{position:absolute;left:10px;top:10px;z-index:2;background:#fff;color:#34322d;border-radius:4px;padding:5px 9px;font-size:10px;line-height:1.2}
 .sn-product-metal{display:block;margin-top:5px;font-size:11px;line-height:1.4;color:#77736b}
+
+/* The video closest to the carousel center plays when the block enters view. */
+.sn-social-media video{opacity:0;transition:opacity .22s ease;pointer-events:none}
+.sn-social-media video.is-playing{opacity:1}
+.sn-social-media .sn-social-play{
+  inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);
+  height:48px;width:48px;border-radius:50%;
+  background:rgba(18,22,17,.43);backdrop-filter:blur(3px);
+  font-size:19px;line-height:1;transition:background .2s ease
+}
+.sn-social-media .sn-social-play.is-playing{
+  top:auto;left:auto;right:10px;bottom:10px;transform:none;
+  width:36px;height:36px;font-size:17px;background:rgba(20,25,20,.45)
+}
+.sn-social-item.is-central .sn-social-media{outline:1px solid rgba(74,83,53,.45);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){
+  .sn-social-media video{transition:none}
+}
