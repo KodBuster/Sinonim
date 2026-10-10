@@ -52,7 +52,7 @@ async function run(route,width,screenshot){
     if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
   }
  }
- if(screenshot){const file='qa/screenshots/'+(route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
+ if(screenshot){const file='qa/screenshots/'+(route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview'&&width===390){
   const before=await page.locator('.sn-hero-slide.is-active h2').innerText();
   await page.getByRole('button',{name:'Следующий баннер'}).click();
