@@ -49,7 +49,6 @@
 .sn-social-caption{padding:11px 8px 8px;border:1px solid #e8e3db;border-radius:0 0 7px 7px;min-height:66px}
 .sn-social-caption>span{display:block;font-size:12px;font-weight:500}
 .sn-social-caption small{display:block;font-size:10px;color:#777;margin-top:7px}
-.sn-journal{border-top:1px solid #eee}
 @media(min-width:761px) and (max-width:1250px){.sn-best-sellers-viewport>.sn-product-card{flex-basis:calc((100% - 25px)/3.5)}}
 @media(max-width:760px){
  .sn-single-hero{height:540px}
