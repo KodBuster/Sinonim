@@ -42,12 +42,38 @@ async function run(route,width,screenshot){
   if(before===after)problem(route,width,'heroNextClick','slide did not change');
   const indicators=await page.locator('.sn-hero-dot').count();
   if(indicators!==3)problem(route,width,'heroPaginationCount',indicators);
+  await page.locator('.sn-social').scrollIntoViewIfNeeded();
+  try {
+    await page.waitForFunction(() => {
+      const el = document.querySelector('.sn-social-item.is-central video');
+      return el && !el.paused && el.readyState >= 2;
+    }, null, {timeout:12000});
+  } catch {
+    const state = await page.locator('.sn-social-item').evaluateAll(nodes =>
+      nodes.map(node => ({id:node.getAttribute('data-clip-id'),central:node.classList.contains('is-central'),paused:node.querySelector('video')?.paused,readyState:node.querySelector('video')?.readyState,error:node.querySelector('video')?.error?.message})));
+    problem(route,width,'centerVideoAutoplay',state);
+  }
+  const videosBefore = await page.locator('.sn-social-item').evaluateAll(nodes =>
+    nodes.map(node=>({id:node.getAttribute('data-clip-id'),central:node.classList.contains('is-central'),paused:node.querySelector('video')?.paused,muted:node.querySelector('video')?.muted})));
+  if(videosBefore.filter(v=>v.paused===false).length!==1 || videosBefore.some(v=>v.paused===false && (!v.central || !v.muted))) problem(route,width,'centerVideoOnlyPlaying',videosBefore);
   const social=page.locator('.sn-social-viewport');
   const prevSocial=await social.evaluate(el=>el.scrollLeft);
   await page.getByRole('button',{name:'Следующие видео'}).click();
   await page.waitForTimeout(500);
   const nextSocial=await social.evaluate(el=>el.scrollLeft);
   if(nextSocial<=prevSocial)problem(route,width,'socialScroll','did not scroll horizontally');
+  try {
+    await page.waitForFunction(previous => {
+      const active = document.querySelector('.sn-social-item.is-central');
+      const v = active?.querySelector('video');
+      return active?.getAttribute('data-clip-id') !== previous && v && !v.paused && v.readyState >= 2;
+    }, videosBefore.find(v=>v.central)?.id, {timeout:12000});
+  } catch {
+    const state = await page.locator('.sn-social-item').evaluateAll(nodes =>
+      nodes.map(node=>({id:node.getAttribute('data-clip-id'),central:node.classList.contains('is-central'),paused:node.querySelector('video')?.paused,readyState:node.querySelector('video')?.readyState})));
+    problem(route,width,'autoplayOnCarouselScroll',state);
+  }
+
   await page.getByRole('button',{name:'Открыть меню'}).click();if(!await page.getByRole('navigation',{name:'Мобильное меню'}).isVisible())problem(route,width,'menuOpen','failed');await page.keyboard.press('Escape');if(await page.getByRole('navigation',{name:'Мобильное меню'}).count()>0)problem(route,width,'menuClose','failed');}
  console.log('SN_VISUAL_QA '+JSON.stringify({route,width,status:response.status(),docWidth:data.docWidth,hero:data.hero,sections:data.mainSectionOrder,brokenImages:data.brokenImages,video:data.video,outside:data.outside,clipped:data.clipped,failed,errors}));
  await page.close();
