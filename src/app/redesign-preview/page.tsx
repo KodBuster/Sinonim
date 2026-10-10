@@ -47,7 +47,7 @@ export default async function RedesignPreviewHome() {
 
     {/* 04 — reference 2: three editorial promotions + trust strip. */}
     <section className="sn-promo-grid" aria-label="Подборки">
-      <Link href="/redesign-preview/catalog" className="sn-promo"><Image src="/images/categories/rings.jpg" alt="Кольца СИНОНИМ" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>До 15 000 ₽ <small>Перейти к украшениям ↗</small></span></Link>
+      <Link href="/redesign-preview/catalog?price=under15000" className="sn-promo"><Image src="/images/categories/rings.jpg" alt="Кольца СИНОНИМ" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>До 15 000 ₽ <small>Перейти к украшениям ↗</small></span></Link>
       <Link href="/collections/fw-2026" className="sn-promo"><Image src="/images/categories/pendants.jpg" alt="Колье и украшения коллекции" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Создайте свой комплект <small>Смотреть коллекцию ↗</small></span></Link>
       <Link href="/shop/gifts" className="sn-promo"><Image src="/images/categories/earrings.jpg" alt="Украшения для подарков" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Идеи для подарков <small>Выбрать подарок ↗</small></span></Link>
     </section>
