@@ -13,7 +13,6 @@ import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 const PAGE_SIZE = 30;
 type Filters = {sort:string;metal:string;stock:string;tag:string;size:string;min:string;max:string};
 const INITIAL:Filters={sort:"new",metal:"",stock:"",tag:"",size:"",min:"",max:""};
-const normalize=(x:string)=>x.trim().toLocaleLowerCase("ru-RU");
 const formatMaterial=(metal:string)=>metal.trim().replace(/\s+/g," ");
 
 function CatalogProductCard({product}:{product:Product}) {
