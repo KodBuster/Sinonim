@@ -57,7 +57,7 @@ jobs:
           export CHROME_PATH="$(command -v google-chrome || command -v chromium || true)"
           echo "Browser: $CHROME_PATH"
           test -n "$CHROME_PATH"
-          HOSTNAME=127.0.0.1 PORT=3456 NODE_ENV=production node .next/standalone/server.js > /tmp/synonym-visual-server.log 2>&1 &
+          SYNONYM_PDP_QA_FIXTURE=1 HOSTNAME=127.0.0.1 PORT=3456 NODE_ENV=production node .next/standalone/server.js > /tmp/synonym-visual-server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" || true' EXIT
           for i in $(seq 1 30); do

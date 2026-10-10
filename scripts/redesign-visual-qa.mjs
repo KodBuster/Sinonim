@@ -52,6 +52,29 @@ async function run(route,width,screenshot){
     if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
   }
  }
+ if(route==='/redesign-preview/qa/product-layout'){
+  if(response.status()!==200)problem(route,width,'fixtureUnavailable',response.status());
+  for(const selector of ['.sn-pdp04-overview','.sn-pdp04-gallery','.sn-pdp04-purchase','.sn-pdp04-sizes','.sn-pdp04-accordions']){
+    if(await page.locator(selector).count()!==1)problem(route,width,'pdpMissingSection',selector);
+  }
+  if(!await page.locator('[data-add-to-cart]').isDisabled())problem(route,width,'demoPurchaseSafety','cart button must stay disabled for test fixture');
+  const size=page.getByRole('radio',{name:'17',exact:true});
+  await size.click();
+  if(await size.getAttribute('aria-checked')!=='true')problem(route,width,'sizeInteraction','size not selected');
+  await page.getByRole('button',{name:'Как определить размер'}).click();
+  if(!await page.getByRole('dialog',{name:'Как определить размер'}).isVisible())problem(route,width,'sizeGuideModal','not visible');
+  await page.keyboard.press('Escape');
+  if(await page.getByRole('dialog',{name:'Как определить размер'}).count())problem(route,width,'sizeGuideModal','not closed');
+  await page.getByRole('button',{name:'Увеличить фото'}).click();
+  if(!await page.getByRole('dialog',{name:'Увеличенное фото'}).isVisible())problem(route,width,'galleryZoom','not visible');
+  await page.keyboard.press('Escape');
+  if(await page.getByRole('dialog',{name:'Увеличенное фото'}).count())problem(route,width,'galleryZoom','not closed');
+  await page.getByRole('button',{name:'Фото 2'}).click();
+  if(await page.getByRole('button',{name:'Фото 2'}).getAttribute('aria-pressed')!=='true')problem(route,width,'galleryThumbnail','not active');
+  const details=page.locator('.sn-pdp04-accordions details').nth(1);
+  await details.locator('summary').click();
+  if(!await details.evaluate(node=>node.open))problem(route,width,'pdpAccordions','details not opened');
+ }
  if(screenshot){const file='qa/screenshots/'+(route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview'&&width===390){
   const before=await page.locator('.sn-hero-slide.is-active h2').innerText();
@@ -96,7 +119,7 @@ async function run(route,width,screenshot){
  console.log('SN_VISUAL_QA '+JSON.stringify({route,width,status:response.status(),docWidth:data.docWidth,hero:data.hero,sections:data.mainSectionOrder,brokenImages:data.brokenImages,video:data.video,outside:data.outside,clipped:data.clipped,failed,errors}));
  await page.close();
 }
-try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));}finally{await browser.close();}
+try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
 await writeFile('qa/report.json',JSON.stringify(report,null,2));
 console.log('SN_VISUAL_QA_ISSUES '+JSON.stringify(report.issues));
 if(report.issues.length)process.exitCode=1;
