@@ -104,3 +104,9 @@
  .sn-collection-editorial{padding-top:45px;padding-bottom:45px}.sn-collection-editorial-grid{grid-template-columns:1fr;gap:18px}.sn-collection-editorial-grid h3{font-size:23px;margin-bottom:8px}
  .sn-collection-editorial-heading{margin-bottom:28px}.sn-collection-faq{padding-top:20px;padding-bottom:70px}.sn-collection-faq h2{font-size:27px}.sn-collection-faq summary{font-size:13px;padding:20px 0}
 }
+
+/* Collection Spotlight mirrors the reference carousel using verified brand demo videos. */
+.sn-collection-spotlight{display:block;max-width:none;margin:0;background:#fff;border-top:1px solid #e8e7e3;border-bottom:1px solid #e8e7e3;padding:0}
+.sn-collection-spotlight-intro{padding-top:44px;padding-bottom:0}
+.sn-collection-spotlight-intro p{max-width:780px;font-size:12px;line-height:1.65;color:#77716c;margin-top:12px}
+.sn-collection-spotlight .sn-social{padding-top:25px}

@@ -9,6 +9,7 @@ import type { CollectionConfig, ShopCollectionSlug } from "@/lib/redesign/collec
 import { COLLECTIONS, SHOP_COLLECTION_ORDER } from "@/lib/redesign/collection-content";
 import { ProductImage } from "@/components/catalog/ProductImage";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
+import { InfluencerCarousel } from "@/components/redesign/InfluencerCarousel";
 
 const PAGE_SIZE = 30;
 type Filters = {sort:string;metal:string;stock:string;tag:string;size:string;min:string;max:string};
@@ -166,9 +167,12 @@ export function CollectionPageView({slug,products,apiAvailable,initialFilters}:{
          </>}
       </section>
     </div>
-    <section className="sn-collection-spotlight sn-container">
-      <div><span className="sn-collection-overline">НАСТРОЕНИЕ СИНОНИМ</span><h2>Украшения в движении</h2><p>Визуальная история коллекции. Пока здесь используется действующее видео бренда; подтверждённые видео инфлюенсеров добавим позднее.</p><Link href="/redesign-preview">Больше вдохновения ↗</Link></div>
-      <video src="/images/braslet_video_3.mp4" poster={config.image} playsInline muted loop controls preload="none" aria-label="Демонстрационное видео украшений"/>
+    <section className="sn-collection-spotlight" aria-label="Видеообразы Синоним">
+      <div className="sn-container sn-collection-spotlight-intro">
+        <span className="sn-collection-overline">SPOTLIGHT · СИНОНИМ</span>
+        <p>Украшения в движении. Пока используются видео бренда без привязки к конкретным артикулам. Подтверждённые ролики с товарами добавим позже.</p>
+      </div>
+      <InfluencerCarousel />
     </section>
     <section className="sn-collection-editorial sn-container" aria-labelledby="sn-collection-about">
       <div className="sn-collection-editorial-heading"><span className="sn-collection-overline">ГИД ПО УКРАШЕНИЯМ</span><h2 id="sn-collection-about">{config.editorialTitle}</h2></div>
