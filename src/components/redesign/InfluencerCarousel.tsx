@@ -1,23 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import mediaManifest from "@/config/synonym-media.json";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type Clip = {
-  id: string;
-  video: string;
-  poster: string;
-  label: string;
-};
-
-// Temporary brand assets. Replace with verified influencer videos when available.
-const demoClips: Clip[] = [
-  { id: "demo-1", video: "/images/braslet_video_3.mp4", poster: "/images/categories/bracelets.jpg", label: "Браслеты в движении" },
-  { id: "demo-2", video: "/images/video-hero_1.mp4", poster: "/images/categories/earrings.jpg", label: "Детали коллекции" },
-  { id: "demo-3", video: "/images/braslet_video_6.mp4", poster: "/images/categories/bracelets.jpg", label: "Украшение крупным планом" },
-  { id: "demo-4", video: "/images/double_video.mp4", poster: "/images/categories/rings.jpg", label: "Ювелирные сочетания" },
-  { id: "demo-5", video: "/images/braslet_video_7.mp4", poster: "/images/categories/bracelets.jpg", label: "Внимание к деталям" },
-];
+// Placeholder clips remain tagged as brand demos until explicitly approved.
+const demoClips = mediaManifest.brandVideos;
 
 export function InfluencerCarousel() {
   const viewport = useRef<HTMLDivElement>(null);
@@ -193,11 +181,11 @@ export function InfluencerCarousel() {
               >
                 {playing === clip.id ? "Ⅱ" : "▶"}
               </button>
-              <span className="sn-social-demo">ВИДЕО БРЕНДА</span>
+              <span className="sn-social-demo">{clip.kind === "brand-demo" ? "ВИДЕО БРЕНДА" : "ВИДЕО ИНФЛЮЕНСЕРА"}</span>
             </div>
             <div className="sn-social-caption">
               <span>{clip.label}</span>
-              <small>Демо · без отзыва инфлюенсера</small>
+              <small>{clip.kind === "brand-demo" ? "Демо · без отзыва инфлюенсера" : "Видео разрешено к публикации"}</small>
             </div>
           </article>
         ))}

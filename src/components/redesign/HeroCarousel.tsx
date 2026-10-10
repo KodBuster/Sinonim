@@ -2,47 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import mediaManifest from "@/config/synonym-media.json";
 import { useCallback, useEffect, useState } from "react";
 
-type HeroSlide = {
-  eyebrow: string;
-  heading: string;
-  image: string;
-  alt: string;
-  href: string;
-  cta: string;
-  position?: string;
-};
-
-const slides: HeroSlide[] = [
-  {
-    eyebrow: "СИНОНИМ · УКРАШЕНИЯ",
-    heading: "Украшения для настоящих моментов",
-    image: "/images/categories/earrings.jpg",
-    alt: "Серьги СИНОНИМ — кадр коллекции",
-    href: "/redesign-preview/collections/earrings",
-    cta: "Смотреть серьги",
-    position: "center center",
-  },
-  {
-    eyebrow: "КОЛЬЦА",
-    heading: "Маленькая деталь. Большое чувство.",
-    image: "/images/categories/rings.jpg",
-    alt: "Кольца СИНОНИМ — кадр коллекции",
-    href: "/redesign-preview/collections/rings",
-    cta: "Выбрать кольцо",
-    position: "center center",
-  },
-  {
-    eyebrow: "КОЛЬЕ И ПОДВЕСКИ",
-    heading: "Сияние, которое остаётся с вами",
-    image: "/images/categories/pendants.jpg",
-    alt: "Подвески СИНОНИМ — кадр коллекции",
-    href: "/redesign-preview/collections/necklaces",
-    cta: "Открыть коллекцию",
-    position: "center center",
-  },
-];
+const slides = mediaManifest.heroSlides;
 
 export function HeroCarousel() {
   const [active, setActive] = useState(0);
@@ -84,19 +47,22 @@ export function HeroCarousel() {
       {slides.map((slide, index) => (
         <div
           className={"sn-hero-slide " + (index === active ? "is-active" : "")}
-          key={slide.href}
+          key={slide.id}
           aria-hidden={index !== active}
           inert={index !== active}
         >
-          <Image
-            src={slide.image}
-            alt={slide.alt}
-            fill
-            priority={index === 0}
-            sizes="100vw"
-            className="sn-hero-slide-image"
-            style={{ objectPosition: slide.position ?? "center center" }}
-          />
+          <picture className="sn-hero-media">
+            {slide.mobileSrc && <source media="(max-width: 760px)" srcSet={slide.mobileSrc} />}
+            <Image
+              src={slide.desktopSrc}
+              alt={slide.alt}
+              fill
+              priority={index === 0}
+              sizes="100vw"
+              className="sn-hero-slide-image"
+              style={{ objectPosition: slide.objectPosition ?? "center center" }}
+            />
+          </picture>
           <div className="sn-hero-slide-shade" />
           <div className="sn-hero-slide-copy">
             <span className="sn-hero-kicker">{slide.eyebrow}</span>

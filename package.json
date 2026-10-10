@@ -12,7 +12,8 @@
     "start": "node scripts/start-server.mjs",
     "lint": "eslint",
     "sync:1c": "node scripts/sync-ftp-to-advantshop.mjs",
-    "sync:1c:dry": "node scripts/sync-ftp-to-advantshop.mjs --dry-run"
+    "sync:1c:dry": "node scripts/sync-ftp-to-advantshop.mjs --dry-run",
+    "media:check": "node scripts/validate-redesign-media.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

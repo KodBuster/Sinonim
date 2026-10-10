@@ -103,3 +103,7 @@
 @media(prefers-reduced-motion:reduce){
   .sn-social-media video{transition:none}
 }
+
+/* Responsive art direction: optional mobile image source from media manifest. */
+.sn-hero-media,.sn-promo-media{position:absolute;inset:0;display:block}
+.sn-hero-media img,.sn-promo-media img{object-fit:cover}

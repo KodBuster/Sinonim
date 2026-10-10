@@ -6,6 +6,7 @@ import type { Product } from "@/lib/products";
 import { HeroCarousel } from "@/components/redesign/HeroCarousel";
 import { BestSellerCarousel } from "@/components/redesign/BestSellerCarousel";
 import { InfluencerCarousel } from "@/components/redesign/InfluencerCarousel";
+import mediaManifest from "@/config/synonym-media.json";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +48,15 @@ export default async function RedesignPreviewHome() {
 
     {/* 04 — reference 2: three editorial promotions + trust strip. */}
     <section className="sn-promo-grid" aria-label="Подборки">
-      <Link href="/redesign-preview/catalog?price=under15000" className="sn-promo"><Image src="/images/categories/rings.jpg" alt="Кольца СИНОНИМ" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>До 15 000 ₽ <small>Перейти к украшениям ↗</small></span></Link>
-      <Link href="/collections/fw-2026" className="sn-promo"><Image src="/images/categories/pendants.jpg" alt="Колье и украшения коллекции" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Создайте свой комплект <small>Смотреть коллекцию ↗</small></span></Link>
-      <Link href="/shop/gifts" className="sn-promo"><Image src="/images/categories/earrings.jpg" alt="Украшения для подарков" fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/><span>Идеи для подарков <small>Выбрать подарок ↗</small></span></Link>
+      {mediaManifest.promotions.map(promo => (
+        <Link key={promo.id} href={promo.href} className="sn-promo">
+          <picture className="sn-promo-media">
+            {promo.mobileSrc && <source media="(max-width: 760px)" srcSet={promo.mobileSrc} />}
+            <Image src={promo.src} alt={promo.alt} fill sizes="(max-width: 760px) 100vw, 33vw" className="sn-cover"/>
+          </picture>
+          <span>{promo.title} <small>{promo.cta}</small></span>
+        </Link>
+      ))}
     </section>
     <div className="sn-trust"><p>◇ &nbsp; Серебро 925</p><p>✧ &nbsp; Современный дизайн</p><p>♡ &nbsp; Помощь с выбором</p></div>
 
@@ -60,10 +67,12 @@ export default async function RedesignPreviewHome() {
     <section className="sn-container sn-journal">
       <div className="sn-heading"><h2>Вдохновение</h2><Link href="/blog">Перейти в журнал ↗</Link></div>
       <div className="sn-journal-grid">
-        <Link href="/about"><div><Image src="/images/categories/earrings.jpg" alt="Серьги Синоним" fill sizes="25vw" className="sn-cover"/></div><span>История Синоним</span></Link>
-        <Link href="/how-size-ring"><div><Image src="/images/categories/rings.jpg" alt="Кольца" fill sizes="25vw" className="sn-cover"/></div><span>Как определить размер кольца</span></Link>
-        <Link href="/guide"><div><Image src="/images/categories/pendants.jpg" alt="Колье" fill sizes="25vw" className="sn-cover"/></div><span>Гид покупателя</span></Link>
-        <Link href="/warranty"><div><Image src="/images/categories/bracelets.jpg" alt="Браслеты" fill sizes="25vw" className="sn-cover"/></div><span>Уход и гарантия</span></Link>
+        {mediaManifest.blogCovers.map(story => (
+          <Link key={story.id} href={story.href}>
+            <div><Image src={story.src} alt={story.alt} fill sizes="25vw" className="sn-cover"/></div>
+            <span>{story.title}</span>
+          </Link>
+        ))}
       </div>
     </section>
   </main>;
