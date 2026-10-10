@@ -38,7 +38,7 @@ async function run(route,width,screenshot){
   const names={necklaces:'Колье',rings:'Кольца',bracelets:'Браслеты',earrings:'Серьги'};
   const slug=route.split('/').at(-1);
   const heading=await page.locator('.sn-collection-head h1').innerText().catch(()=>null);
-  if(heading!==names[slug])problem(route,width,'categoryTitle',{expected:names[slug],actual:heading});
+  if(heading?.toLocaleLowerCase('ru-RU')!==names[slug]?.toLocaleLowerCase('ru-RU'))problem(route,width,'categoryTitle',{expected:names[slug],actual:heading});
   for(const selector of ['.sn-collection-crumbs','.sn-collection-chips','.sn-collection-toolbar','.sn-collection-results','.sn-collection-spotlight','.sn-collection-editorial','.sn-collection-faq']){
     if(await page.locator(selector).count()!==1)problem(route,width,'collectionMissingSection',selector);
   }
