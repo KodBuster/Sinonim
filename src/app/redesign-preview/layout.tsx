@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { PreviewHeader } from "@/components/redesign/PreviewHeader";
 import "./preview.css";
 import "./subpages.css";
+import "./blocks-v03.css";
 
 export const metadata: Metadata = {
   title: "Предпросмотр нового Синонима",
