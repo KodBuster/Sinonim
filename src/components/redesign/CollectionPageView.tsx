@@ -73,16 +73,13 @@ export function CollectionPageView({config,products,apiAvailable,initialFilters}
   const maxCatalogPrice=useMemo(()=>Math.max(0,...products.map(p=>p.price)),[products]);
 
   const change=useCallback((next:Partial<Filters>)=>{
-    setFilters(prev=>{
-      const updated={...prev,...next};
-      const url=new URL(window.location.href);
-      Object.entries(updated).forEach(([key,value])=>{
-        if(!value || (key==="sort" && value==="new"))url.searchParams.delete(key);
-        else url.searchParams.set(key,value);
-      });
-      window.history.pushState(null,"",url.pathname+url.search);
-      return updated;
+    const url=new URL(window.location.href);
+    Object.entries(next).forEach(([key,value])=>{
+      if(!value || (key==="sort" && value==="new"))url.searchParams.delete(key);
+      else url.searchParams.set(key,value);
     });
+    window.history.pushState(null,"",url.pathname+url.search);
+    setFilters(previous=>({...previous,...next}));
     setVisibleCount(PAGE_SIZE);
   },[]);
 

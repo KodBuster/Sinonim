@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 
 // The category section is deliberately unchanged from the previous preview.
 const categories = [
-  { label: "Кольца", href: "/redesign-preview/catalog?category=rings", image: "/images/categories/rings.jpg" },
-  { label: "Серьги", href: "/redesign-preview/catalog?category=earrings", image: "/images/categories/earrings.jpg" },
-  { label: "Колье", href: "/redesign-preview/catalog?category=pendants", image: "/images/categories/pendants.jpg" },
-  { label: "Браслеты", href: "/redesign-preview/catalog?category=bracelets", image: "/images/categories/bracelets.jpg" },
+  { label: "Кольца", href: "/redesign-preview/collections/rings", image: "/images/categories/rings.jpg" },
+  { label: "Серьги", href: "/redesign-preview/collections/earrings", image: "/images/categories/earrings.jpg" },
+  { label: "Колье", href: "/redesign-preview/collections/necklaces", image: "/images/categories/pendants.jpg" },
+  { label: "Браслеты", href: "/redesign-preview/collections/bracelets", image: "/images/categories/bracelets.jpg" },
 ];
 
 async function getLiveProducts(): Promise<{products: Product[], hasVerifiedHits: boolean}> {

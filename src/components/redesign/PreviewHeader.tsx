@@ -8,10 +8,10 @@ import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 
 const links = [
   { label: "Все украшения", href: "/redesign-preview/catalog" },
-  { label: "Кольца", href: "/redesign-preview/catalog?category=rings" },
-  { label: "Серьги", href: "/redesign-preview/catalog?category=earrings" },
-  { label: "Колье", href: "/redesign-preview/catalog?category=pendants" },
-  { label: "Браслеты", href: "/redesign-preview/catalog?category=bracelets" },
+  { label: "Кольца", href: "/redesign-preview/collections/rings" },
+  { label: "Серьги", href: "/redesign-preview/collections/earrings" },
+  { label: "Колье", href: "/redesign-preview/collections/necklaces" },
+  { label: "Браслеты", href: "/redesign-preview/collections/bracelets" },
 ];
 
 export function PreviewHeader() {
