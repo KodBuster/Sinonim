@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "heroSlides": [
+    {
+      "id": "hero-01",
+      "eyebrow": "СИНОНИМ · УКРАШЕНИЯ",
+      "heading": "Украшения для настоящих моментов",
+      "desktopSrc": "/images/categories/earrings.jpg",
+      "mobileSrc": null,
+      "alt": "Серьги СИНОНИМ — кадр коллекции",
+      "href": "/redesign-preview/collections/earrings",
+      "cta": "Смотреть серьги",
+      "objectPosition": "center center"
+    },
+    {
+      "id": "hero-02",
+      "eyebrow": "КОЛЬЦА",
+      "heading": "Маленькая деталь. Большое чувство.",
+      "desktopSrc": "/images/categories/rings.jpg",
+      "mobileSrc": null,
+      "alt": "Кольца СИНОНИМ — кадр коллекции",
+      "href": "/redesign-preview/collections/rings",
+      "cta": "Выбрать кольцо",
+      "objectPosition": "center center"
+    },
+    {
+      "id": "hero-03",
+      "eyebrow": "КОЛЬЕ И ПОДВЕСКИ",
+      "heading": "Сияние, которое остаётся с вами",
+      "desktopSrc": "/images/categories/pendants.jpg",
+      "mobileSrc": null,
+      "alt": "Подвески СИНОНИМ — кадр коллекции",
+      "href": "/redesign-preview/collections/necklaces",
+      "cta": "Открыть коллекцию",
+      "objectPosition": "center center"
+    }
+  ],
+  "promotions": [
+    {
+      "id": "promo-price",
+      "src": "/images/categories/rings.jpg",
+      "mobileSrc": null,
+      "alt": "Кольца СИНОНИМ",
+      "title": "До 15 000 ₽",
+      "cta": "Перейти к украшениям ↗",
+      "href": "/redesign-preview/catalog?price=under15000"
+    },
+    {
+      "id": "promo-sets",
+      "src": "/images/categories/pendants.jpg",
+      "mobileSrc": null,
+      "alt": "Колье и украшения коллекции",
+      "title": "Создайте свой комплект",
+      "cta": "Смотреть коллекцию ↗",
+      "href": "/collections/fw-2026"
+    },
+    {
+      "id": "promo-gifts",
+      "src": "/images/categories/earrings.jpg",
+      "mobileSrc": null,
+      "alt": "Украшения для подарков",
+      "title": "Идеи для подарков",
+      "cta": "Выбрать подарок ↗",
+      "href": "/shop/gifts"
+    }
+  ],
+  "brandVideos": [
+    {
+      "id": "demo-1",
+      "video": "/images/braslet_video_3.mp4",
+      "poster": "/images/categories/bracelets.jpg",
+      "label": "Браслеты в движении",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-2",
+      "video": "/images/video-hero_1.mp4",
+      "poster": "/images/categories/earrings.jpg",
+      "label": "Детали коллекции",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-3",
+      "video": "/images/braslet_video_6.mp4",
+      "poster": "/images/categories/bracelets.jpg",
+      "label": "Украшение крупным планом",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-4",
+      "video": "/images/double_video.mp4",
+      "poster": "/images/categories/rings.jpg",
+      "label": "Ювелирные сочетания",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-5",
+      "video": "/images/braslet_video_7.mp4",
+      "poster": "/images/categories/bracelets.jpg",
+      "label": "Внимание к деталям",
+      "kind": "brand-demo",
+      "productSlug": null
+    }
+  ],
+  "blogCovers": [
+    {
+      "id": "blog-brand",
+      "href": "/about",
+      "src": "/images/categories/earrings.jpg",
+      "alt": "Серьги Синоним",
+      "title": "История Синоним"
+    },
+    {
+      "id": "blog-sizes",
+      "href": "/how-size-ring",
+      "src": "/images/categories/rings.jpg",
+      "alt": "Кольца",
+      "title": "Как определить размер кольца"
+    },
+    {
+      "id": "blog-guide",
+      "href": "/guide",
+      "src": "/images/categories/pendants.jpg",
+      "alt": "Колье",
+      "title": "Гид покупателя"
+    },
+    {
+      "id": "blog-care",
+      "href": "/warranty",
+      "src": "/images/categories/bracelets.jpg",
+      "alt": "Браслеты",
+      "title": "Уход и гарантия"
+    }
+  ]
+}
