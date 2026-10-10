@@ -37,7 +37,7 @@ export default async function ShopCollectionPreview({params,searchParams}: Props
   }
   const value=(key:string)=>typeof query[key]==="string"?query[key] as string:"";
   return <CollectionPageView
-    config={content}
+    slug={content.slug}
     products={products}
     apiAvailable={available}
     initialFilters={{sort:value("sort"),metal:value("metal"),stock:value("stock"),tag:value("tag"),size:value("size"),min:value("min"),max:value("max")}}

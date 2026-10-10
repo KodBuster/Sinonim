@@ -59,7 +59,8 @@ function ImageChips({config,products,onPick,active}:{config:CollectionConfig;pro
   </div>;
 }
 
-export function CollectionPageView({config,products,apiAvailable,initialFilters}:{config:CollectionConfig;products:Product[];apiAvailable:boolean;initialFilters:Partial<Filters>}) {
+export function CollectionPageView({slug,products,apiAvailable,initialFilters}:{slug:ShopCollectionSlug;products:Product[];apiAvailable:boolean;initialFilters:Partial<Filters>}) {
+  const config = COLLECTIONS[slug];
   const [filters,setFilters]=useState<Filters>(()=>({...INITIAL,...initialFilters,sort:initialFilters.sort||"new"}));
   const [showFilters,setShowFilters]=useState(true);
   const [mobileOpen,setMobileOpen]=useState(false);
