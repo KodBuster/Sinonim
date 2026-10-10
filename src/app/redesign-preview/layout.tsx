@@ -6,6 +6,7 @@ import "./preview.css";
 import "./subpages.css";
 import "./collections/collections.css";
 import "./blocks-v03.css";
+import "./pdp-v04.css";
 
 export const metadata: Metadata = {
   title: "Предпросмотр нового Синонима",
