@@ -9,7 +9,7 @@ import { trackAddToCart } from "@/lib/analytics/metrika";
 import { formatPrice,type ProductDetails } from "@/lib/products";
 import { formatInsertMassLabel,getInsertMassDisplayLabel } from "@/lib/synthetic-diamond-labels";
 
-export function PreviewPdpPurchase({product}:{product:ProductDetails}){
+export function PreviewPdpPurchase({product,qaDemo=false}:{product:ProductDetails;qaDemo?:boolean}){
  const {selectedSize,setSelectedSize,selectedSizeLabel,price,artNo,diamondWeight}=useProductSelection();
  const [added,setAdded]=useState(false);
  const [sizeGuideOpen,setSizeGuideOpen]=useState(false);
@@ -45,11 +45,11 @@ export function PreviewPdpPurchase({product}:{product:ProductDetails}){
    <FavoriteButton slug={product.slug} className="!opacity-100 !h-11 !w-11 !bg-[#f7f5f2]"/>
   </div>
   {product.manufacturer&&<p className="sn-pdp04-maker">{product.manufacturer}</p>}
-  <p className="sn-pdp04-price">{formatPrice(price)}</p>
+  <p className="sn-pdp04-price">{qaDemo?"Цена загружается из AdvantShop":formatPrice(price)}</p>
   {product.inStock===false&&<p className="sn-pdp04-stock is-out" role="status">Нет в наличии</p>}
   {product.inStock!==false&&sizeStock!==undefined&&<p className={"sn-pdp04-stock"+(!sizeAvailable?" is-out":"")} role="status">{sizeAvailable?"Размер в наличии":"Выбранного размера нет в наличии"}</p>}
   {product.metal&&<div className="sn-pdp04-property"><span className="sn-pdp04-property-label">Металл</span><span className="sn-pdp04-property-value">{product.metal}</span></div>}
-  {insertWeight&&<div className="sn-pdp04-property"><span className="sn-pdp04-property-label">Масса вставки</span><span className="sn-pdp04-property-value">{insertWeight}</span></div>}
+  {!qaDemo&&insertWeight&&<div className="sn-pdp04-property"><span className="sn-pdp04-property-label">Масса вставки</span><span className="sn-pdp04-property-value">{insertWeight}</span></div>}
   {product.sizeOptions.length>0&&<div className="sn-pdp04-sizing">
    <div className="sn-pdp04-sizeheading"><span><strong>Размер:</strong> {selectedSizeLabel??"Выберите"}</span><button type="button" onClick={()=>setSizeGuideOpen(true)}>Как определить размер ↗</button></div>
    <div className="sn-pdp04-sizes" role="radiogroup" aria-label="Размер изделия">
@@ -62,8 +62,8 @@ export function PreviewPdpPurchase({product}:{product:ProductDetails}){
     })}
    </div>
   </div>}
-  {artNo&&<p className="sn-pdp04-art">Артикул: {artNo}</p>}
-  {(mass||product.weightGrams)&&<p className="sn-pdp04-art">Вес изделия: {mass??product.weightGrams} г</p>}
+  {!qaDemo&&artNo&&<p className="sn-pdp04-art">Артикул: {artNo}</p>}
+  {!qaDemo&&(mass||product.weightGrams)&&<p className="sn-pdp04-art">Вес изделия: {mass??product.weightGrams} г</p>}
   <div className="sn-pdp04-cta">
    <button type="button" data-add-to-cart onClick={add} disabled={!canBuy}>{product.inStock===false||!sizeAvailable?"Нет в наличии":added?"Добавлено ✓":"Добавить в корзину"}</button>
    {added&&<p role="status">Украшение добавлено. <Link href="/cart">Перейти в корзину ↗</Link></p>}

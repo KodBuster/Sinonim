@@ -23,7 +23,7 @@ export default function QaProductPage(){
   <Suspense fallback={null}><ProductSelectionProvider product={fixture}>
    <div className="sn-pdp04-overview">
     <PreviewPdpGallery images={fixture.images} name={fixture.name}/>
-    <PreviewPdpPurchase product={fixture}/>
+    <PreviewPdpPurchase product={fixture} qaDemo/>
    </div>
    <div className="sn-pdp04-info-row"><div className="sn-pdp04-benefits"><div>Для проверки дизайна</div></div><PreviewPdpInformation product={fixture}/></div>
   </ProductSelectionProvider></Suspense>

@@ -52,6 +52,7 @@ async function run(route,width,screenshot){
     if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
   }
  }
+ if(screenshot){const file='qa/screenshots/'+(route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview/qa/product-layout'){
   if(response.status()!==200)problem(route,width,'fixtureUnavailable',response.status());
   for(const selector of ['.sn-pdp04-overview','.sn-pdp04-gallery','.sn-pdp04-purchase','.sn-pdp04-sizes','.sn-pdp04-accordions']){
@@ -75,7 +76,7 @@ async function run(route,width,screenshot){
   await details.locator('summary').click();
   if(!await details.evaluate(node=>node.open))problem(route,width,'pdpAccordions','details not opened');
  }
- if(screenshot){const file='qa/screenshots/'+(route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
+
  if(route==='/redesign-preview'&&width===390){
   const before=await page.locator('.sn-hero-slide.is-active h2').innerText();
   await page.getByRole('button',{name:'Следующий баннер'}).click();
