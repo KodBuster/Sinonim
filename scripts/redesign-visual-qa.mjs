@@ -112,7 +112,7 @@ async function run(route,width,screenshot){
     if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
   }
  }
- if(screenshot){const file='qa/screenshots/'+(route.endsWith('/gifts')?'gifts':route.includes('/styleguide')?'styleguide':route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
+ if(screenshot){const file='qa/screenshots/'+(route.endsWith('/sku-editorial')?'sku-editorial':route.endsWith('/gifts')?'gifts':route.includes('/styleguide')?'styleguide':route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview/qa/product-layout'){
   if(response.status()!==200)problem(route,width,'fixtureUnavailable',response.status());
   for(const selector of ['.sn-pdp04-overview','.sn-pdp04-gallery','.sn-pdp04-purchase','.sn-pdp04-sizes','.sn-pdp04-accordions']){
@@ -182,7 +182,7 @@ async function run(route,width,screenshot){
 }
 try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));
 for(const width of [390,1440])await run('/redesign-preview/styleguide',width,true);
-for(const width of [390,1440])await run('/redesign-preview/gifts',width,true);for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
+for(const width of [390,1440])await run('/redesign-preview/gifts',width,true);for(const width of [390,1440])await run('/redesign-preview/qa/sku-editorial',width,true);for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
 await writeFile('qa/report.json',JSON.stringify(report,null,2));
 console.log('SN_VISUAL_QA_ISSUES '+JSON.stringify(report.issues));
 if(report.issues.length)process.exitCode=1;
