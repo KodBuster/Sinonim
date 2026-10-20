@@ -6,13 +6,19 @@ import { useEffect, useState } from "react";
 import { CartLink } from "@/components/cart/CartLink";
 import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 
-const links = [
-  { label: "Все украшения", href: "/redesign-preview/catalog" },
-  { label: "Кольца", href: "/redesign-preview/collections/rings" },
-  { label: "Серьги", href: "/redesign-preview/collections/earrings" },
-  { label: "Колье", href: "/redesign-preview/collections/necklaces" },
-  { label: "Браслеты", href: "/redesign-preview/collections/bracelets" },
-];
+// Single source for desktop navigation and mobile drawer.
+// Approved exact menu order: NEW COLLECTION, RINGS, EARRINGS, NECKLACES,
+// BRACELETS, GIFTS, ABOUT, BLOG.
+export const previewNavigation = [
+  { label: "НОВАЯ КОЛЛЕКЦИЯ", href: "/collections/fw-2026" },
+  { label: "КОЛЬЦА", href: "/redesign-preview/collections/rings" },
+  { label: "СЕРЬГИ", href: "/redesign-preview/collections/earrings" },
+  { label: "КОЛЬЕ", href: "/redesign-preview/collections/necklaces" },
+  { label: "БРАСЛЕТЫ", href: "/redesign-preview/collections/bracelets" },
+  { label: "ПОДАРКИ", href: "/redesign-preview/gifts" },
+  { label: "О БРЕНДЕ", href: "/about" },
+  { label: "БЛОГ", href: "/blog" },
+] as const;
 
 export function PreviewHeader() {
   const [open, setOpen] = useState(false);
@@ -26,14 +32,9 @@ export function PreviewHeader() {
     <div className="sn-announcement">СИНОНИМ · Украшения из серебра 925</div>
     <header className="sn-header">
       <div className="sn-container sn-navigation">
-        <button className="sn-menu-button" type="button" aria-label={open ? "Закрыть меню" : "Открыть меню"} aria-expanded={open} onClick={() => setOpen(v => !v)}>☰</button>
-        <nav className="sn-nav-left" aria-label="Главное меню">
-          <Link href="/redesign-preview/catalog">Украшения</Link>
-          <Link href="/collections/fw-2026">Новая коллекция</Link>
-          <Link href="/shop/gifts">Подарки</Link>
-          <Link href="/blog">Журнал</Link>
-          <Link href="/about">О бренде</Link>
-        </nav>
+        <div className="sn-header-start">
+          <button className="sn-menu-button" type="button" aria-label={open ? "Закрыть меню" : "Открыть меню"} aria-expanded={open} aria-controls="sn-mobile-menu" onClick={() => setOpen(v => !v)}>☰</button>
+        </div>
         <Link href="/redesign-preview" className="sn-logo" aria-label="Синоним — главная">
           <Image src="/images/logo_20260527190756.png" width={1000} height={150} alt="Синоним" priority />
         </Link>
@@ -43,15 +44,17 @@ export function PreviewHeader() {
           <CartLink />
         </div>
       </div>
+      <nav className="sn-primary-nav" aria-label="Главное меню">
+        {previewNavigation.map(item => <Link href={item.href} key={item.label}>{item.label}</Link>)}
+      </nav>
     </header>
     {open && <div className="sn-drawer-shade" onClick={() => setOpen(false)}>
-      <nav className="sn-drawer" aria-label="Мобильное меню" onClick={e => e.stopPropagation()}>
+      <nav className="sn-drawer" id="sn-mobile-menu" aria-label="Мобильное меню" onClick={e => e.stopPropagation()}>
         <button type="button" className="sn-drawer-close" onClick={() => setOpen(false)} aria-label="Закрыть меню">×</button>
         <p>СИНОНИМ</p>
-        {links.map(link => <Link href={link.href} key={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}
+        {previewNavigation.map(item => <Link href={item.href} key={item.label} onClick={() => setOpen(false)}>{item.label}</Link>)}
         <hr />
-        <Link href="/about" onClick={() => setOpen(false)}>О бренде</Link>
-        <Link href="/blog" onClick={() => setOpen(false)}>Журнал</Link>
+        <Link href="/redesign-preview/catalog" onClick={() => setOpen(false)}>Все украшения</Link>
         <Link href="/shipping" onClick={() => setOpen(false)}>Доставка и оплата</Link>
       </nav>
     </div>}
