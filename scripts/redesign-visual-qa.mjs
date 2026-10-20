@@ -83,7 +83,7 @@ async function run(route,width,screenshot){
     await page.getByRole('button',{name:'Открыть меню'}).click();
     const mobile=await page.locator('.sn-drawer a').allTextContents();
     if(JSON.stringify(mobile.slice(0,8))!==JSON.stringify(expectedLabels))problem(route,width,'mobileNavigationOrder',{expected:expectedLabels,actual:mobile});
-    await page.getByRole('button',{name:'Закрыть меню'}).first().click();
+    await page.locator('.sn-drawer-close').click();
     if(await page.locator('.sn-drawer').count())problem(route,width,'mobileMenuClose','drawer remained open');
   }
  }
