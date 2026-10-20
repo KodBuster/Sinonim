@@ -22,6 +22,8 @@ jobs:
         run: npm ci
       - name: Validate SYNONYM editorial media
         run: npm run media:check
+      - name: Verify SYNONYM brand v05
+        run: npm run brand:check
       - name: TypeScript
         run: npx tsc --noEmit
       - name: ESLint for new redesign code
