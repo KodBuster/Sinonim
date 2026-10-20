@@ -66,6 +66,28 @@ async function run(route,width,screenshot){
     problem(route,width,'brandPrimaryButton',{background:branded.primaryBg,foreground:branded.primaryFg});
  }
  if(route==='/redesign-preview'){
+  const expectedLabels=['НОВАЯ КОЛЛЕКЦИЯ','КОЛЬЦА','СЕРЬГИ','КОЛЬЕ','БРАСЛЕТЫ','ПОДАРКИ','О БРЕНДЕ','БЛОГ'];
+  const desktopNav=page.locator('.sn-primary-nav');
+  const labels=await desktopNav.locator('a').allTextContents();
+  if(JSON.stringify(labels)!==JSON.stringify(expectedLabels))problem(route,width,'headerNavigationOrder',{expected:expectedLabels,actual:labels});
+  const shouldShowDesktop=width>900;
+  const visible=await desktopNav.isVisible();
+  if(visible!==shouldShowDesktop)problem(route,width,'headerNavigationVisibility',{expected:shouldShowDesktop,actual:visible});
+  if(visible){
+    const links=await desktopNav.locator('a').evaluateAll(nodes=>nodes.map(node=>{const b=node.getBoundingClientRect();return{left:b.left,right:b.right,top:b.top,bottom:b.bottom}}));
+    for(let i=1;i<links.length;i++){
+      if(links[i].left<links[i-1].right-1)problem(route,width,'headerLinkOverlap',{first:expectedLabels[i-1],second:expectedLabels[i]});
+    }
+  }
+  if(width===390){
+    await page.getByRole('button',{name:'Открыть меню'}).click();
+    const mobile=await page.locator('.sn-drawer a').allTextContents();
+    if(JSON.stringify(mobile.slice(0,8))!==JSON.stringify(expectedLabels))problem(route,width,'mobileNavigationOrder',{expected:expectedLabels,actual:mobile});
+    await page.getByRole('button',{name:'Закрыть меню'}).first().click();
+    if(await page.locator('.sn-drawer').count())problem(route,width,'mobileMenuClose','drawer remained open');
+  }
+ }
+ if(route==='/redesign-preview'){
   if(data.slideCount!==3||data.activeSlides!==1||!data.hero)problem(route,width,'heroCarousel',{slideCount:data.slideCount,activeSlides:data.activeSlides,hero:data.hero});
   const expected=['sn-single-hero','sn-category-grid','sn-best-sellers','sn-promo-grid','sn-trust','sn-social','sn-container sn-journal'];
   for(const [index,cls] of expected.entries()){
@@ -90,7 +112,7 @@ async function run(route,width,screenshot){
     if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
   }
  }
- if(screenshot){const file='qa/screenshots/'+(route.includes('/styleguide')?'styleguide':route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
+ if(screenshot){const file='qa/screenshots/'+(route.endsWith('/gifts')?'gifts':route.includes('/styleguide')?'styleguide':route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview/qa/product-layout'){
   if(response.status()!==200)problem(route,width,'fixtureUnavailable',response.status());
   for(const selector of ['.sn-pdp04-overview','.sn-pdp04-gallery','.sn-pdp04-purchase','.sn-pdp04-sizes','.sn-pdp04-accordions']){
@@ -159,7 +181,8 @@ async function run(route,width,screenshot){
  await page.close();
 }
 try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));
-for(const width of [390,1440])await run('/redesign-preview/styleguide',width,true);for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
+for(const width of [390,1440])await run('/redesign-preview/styleguide',width,true);
+for(const width of [390,1440])await run('/redesign-preview/gifts',width,true);for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
 await writeFile('qa/report.json',JSON.stringify(report,null,2));
 console.log('SN_VISUAL_QA_ISSUES '+JSON.stringify(report.issues));
 if(report.issues.length)process.exitCode=1;
