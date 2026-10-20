@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { PreviewHeader } from "@/components/redesign/PreviewHeader";
 import "./preview.css";
@@ -7,6 +8,7 @@ import "./subpages.css";
 import "./collections/collections.css";
 import "./blocks-v03.css";
 import "./pdp-v04.css";
+import "./brand-v05.css";
 
 export const metadata: Metadata = {
   title: "Предпросмотр нового Синонима",
@@ -21,7 +23,7 @@ export default function RedesignPreviewLayout({ children }: { children: ReactNod
       {children}
       <footer className="sn-footer">
         <div className="sn-container sn-footer-cols">
-          <div><h2>СИНОНИМ</h2><p>Простые ценности. Инновационные технологии. Высокое качество.</p></div>
+          <div className="sn-footer-brand-block"><Link className="sn-footer-brand" href="/redesign-preview" aria-label="СИНОНИМ — на главную"><Image src="/images/logo_20260527190756.png" alt="СИНОНИМ" width={1000} height={150} sizes="(max-width:760px) 175px, 220px"/></Link><p>Простые ценности. Инновационные технологии. Высокое качество.</p></div>
           <div><b>Украшения</b><a href="/redesign-preview/catalog">Каталог</a><Link href="/redesign-preview/collections/rings">Кольца</Link><Link href="/redesign-preview/collections/earrings">Серьги</Link><Link href="/redesign-preview/collections/necklaces">Колье</Link><Link href="/redesign-preview/collections/bracelets">Браслеты</Link></div>
           <div><b>Информация</b><a href="/shipping">Доставка и оплата</a><a href="/warranty">Гарантия</a><a href="/showroom">Шоурум</a><a href="/privacy">Конфиденциальность</a></div>
         </div>
