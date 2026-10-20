@@ -1,0 +1,35 @@
+name: SYNONYM v06 Editorial Activation Check
+
+on:
+  push:
+    branches:
+      - redesign/synonym-v02
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activate-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run media v06 activation
+        run: npm run media:v06:activate
+      - name: Ensure activation is committed
+        run: git diff --exit-code -- src/config/synonym-media.json
+      - name: Validate media
+        run: npm run media:check
+      - name: Validate SYNONYM brand
+        run: npm run brand:check
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Next.js production build
+        run: npm run build
