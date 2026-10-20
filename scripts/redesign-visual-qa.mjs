@@ -27,6 +27,44 @@ async function run(route,width,screenshot){
  if(data.clipped.length)problem(route,width,'clippedText',data.clipped);
  if(errors.length)problem(route,width,'jsErrors',errors);
  if(failed.length)problem(route,width,'failedRequests',failed);
+ if(route.startsWith('/redesign-preview')){
+  const branded=await page.evaluate(()=>{
+    const root=document.querySelector('.sn-root');
+    const st=getComputedStyle(root);
+    const get=(name)=>st.getPropertyValue(name).trim().toUpperCase();
+    const headerLogo=document.querySelector('.sn-logo img');
+    const footerLogo=document.querySelector('.sn-footer-brand img');
+    const heading=document.querySelector('.sn-collection-head h1')??document.querySelector('.sn-v05-styleguide h1');
+    const primary=document.querySelector('.sn-v05-actions .is-primary');
+    return {
+      green:get('--syn-brand-green'),
+      terracotta:get('--syn-brand-terracotta'),
+      sand:get('--syn-brand-sand'),
+      logoOlive:get('--syn-logo-olive'),
+      logoTerra:get('--syn-logo-terracotta'),
+      headerWidth:headerLogo?.getBoundingClientRect().width??0,
+      footerWidth:footerLogo?.getBoundingClientRect().width??0,
+      bodyFont:st.fontFamily,
+      headingFont:heading?getComputedStyle(heading).fontFamily:null,
+      primaryBg:primary?getComputedStyle(primary).backgroundColor:null,
+      primaryFg:primary?getComputedStyle(primary).color:null,
+    };
+  });
+  for(const [name,expected] of Object.entries({
+    green:'#73A341',terracotta:'#D47750',sand:'#E8D9B5',
+    logoOlive:'#4A5335',logoTerra:'#C96A4A'
+  })){
+    if(branded[name]!==expected)problem(route,width,'brandToken',{name,expected,actual:branded[name]});
+  }
+  if(branded.headerWidth<80||branded.footerWidth<80)
+    problem(route,width,'brandLogoWidth',{header:branded.headerWidth,footer:branded.footerWidth});
+  if(!branded.bodyFont.includes('Inter'))problem(route,width,'brandFontBody',branded.bodyFont);
+  if(branded.headingFont&&!branded.headingFont.includes('Playfair Display'))
+    problem(route,width,'brandFontHeading',branded.headingFont);
+  if(route==='/redesign-preview/styleguide'&&
+    (branded.primaryBg!=='rgb(74, 83, 53)'||branded.primaryFg!=='rgb(255, 255, 255)'))
+    problem(route,width,'brandPrimaryButton',{background:branded.primaryBg,foreground:branded.primaryFg});
+ }
  if(route==='/redesign-preview'){
   if(data.slideCount!==3||data.activeSlides!==1||!data.hero)problem(route,width,'heroCarousel',{slideCount:data.slideCount,activeSlides:data.activeSlides,hero:data.hero});
   const expected=['sn-single-hero','sn-category-grid','sn-best-sellers','sn-promo-grid','sn-trust','sn-social','sn-container sn-journal'];
@@ -52,7 +90,7 @@ async function run(route,width,screenshot){
     if(await page.locator('.sn-collection-sheet').count()>0)problem(route,width,'mobileFilterDrawer','does not close');
   }
  }
- if(screenshot){const file='qa/screenshots/'+(route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
+ if(screenshot){const file='qa/screenshots/'+(route.includes('/styleguide')?'styleguide':route.includes('/collections/')?'collection-'+route.split('/').at(-1):route.includes('catalog')?'catalog':route.includes('product')?'product':'home')+'-'+width+'.png';await page.screenshot({path:file,fullPage:true,animations:'disabled'});}
  if(route==='/redesign-preview/qa/product-layout'){
   if(response.status()!==200)problem(route,width,'fixtureUnavailable',response.status());
   for(const selector of ['.sn-pdp04-overview','.sn-pdp04-gallery','.sn-pdp04-purchase','.sn-pdp04-sizes','.sn-pdp04-accordions']){
@@ -120,7 +158,8 @@ async function run(route,width,screenshot){
  console.log('SN_VISUAL_QA '+JSON.stringify({route,width,status:response.status(),docWidth:data.docWidth,hero:data.hero,sections:data.mainSectionOrder,brokenImages:data.brokenImages,video:data.video,outside:data.outside,clipped:data.clipped,failed,errors}));
  await page.close();
 }
-try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
+try{for(const width of [360,390,768,820,1024,1440,1920])await run('/redesign-preview',width,[390,820,1440].includes(width));for(const width of [390,820,1440])await run('/redesign-preview/catalog',width,[390,1440].includes(width));for(const width of [390,1440])await run('/redesign-preview/product/test-unknown',width,false);for(const category of ['necklaces','rings','bracelets','earrings'])for(const width of [390,820,1440])await run('/redesign-preview/collections/'+category,width,[390,1440].includes(width));
+for(const width of [390,1440])await run('/redesign-preview/styleguide',width,true);for(const width of [390,820,1440])await run('/redesign-preview/qa/product-layout',width,true);}finally{await browser.close();}
 await writeFile('qa/report.json',JSON.stringify(report,null,2));
 console.log('SN_VISUAL_QA_ISSUES '+JSON.stringify(report.issues));
 if(report.issues.length)process.exitCode=1;
