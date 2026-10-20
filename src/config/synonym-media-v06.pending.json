@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "heroSlides": [
+    {
+      "id": "hero-01",
+      "eyebrow": "СИНОНИМ · СЕРЕБРО 925",
+      "heading": "Украшения для настоящих моментов",
+      "desktopSrc": "/media/hero/desktop/hero-01-v01.webp",
+      "mobileSrc": "/media/hero/mobile/hero-01-v01.webp",
+      "alt": "Редакционный портрет модели в серебристых украшениях, художественная композиция",
+      "href": "/redesign-preview/collections/earrings",
+      "cta": "Смотреть украшения",
+      "objectPosition": "center center"
+    },
+    {
+      "id": "hero-02",
+      "eyebrow": "КОЛЬЦА И КОЛЬЕ",
+      "heading": "Красота в каждой детали",
+      "desktopSrc": "/media/hero/desktop/hero-02-v01.webp",
+      "mobileSrc": "/media/hero/mobile/hero-02-v01.webp",
+      "alt": "Серебристые украшения на камне и оливковой коробочке, редакционная композиция",
+      "href": "/redesign-preview/collections/rings",
+      "cta": "Выбрать кольцо",
+      "objectPosition": "center center"
+    },
+    {
+      "id": "hero-03",
+      "eyebrow": "ПОДАРКИ",
+      "heading": "Моменты, которые остаются",
+      "desktopSrc": "/media/hero/desktop/hero-03-v01.webp",
+      "mobileSrc": "/media/hero/mobile/hero-03-v01.webp",
+      "alt": "Девушка открывает подарочную коробочку с украшением, художественная композиция",
+      "href": "/redesign-preview/gifts",
+      "cta": "Найти подарок",
+      "objectPosition": "center center"
+    }
+  ],
+  "promotions": [
+    {
+      "id": "promo-price",
+      "src": "/media/promotions/desktop/promo-price-v01.webp",
+      "mobileSrc": "/media/promotions/mobile/promo-price-v01.webp",
+      "alt": "Серебристые кольца на солнечном камне — редакционная композиция",
+      "title": "До 15 000 ₽",
+      "cta": "Перейти к украшениям ↗",
+      "href": "/redesign-preview/catalog?price=under15000"
+    },
+    {
+      "id": "promo-sets",
+      "src": "/media/promotions/desktop/promo-sets-v01.webp",
+      "mobileSrc": "/media/promotions/mobile/promo-sets-v01.webp",
+      "alt": "Серебристые серьги в тёплом естественном свете",
+      "title": "Идеи для сочетаний",
+      "cta": "Смотреть коллекцию ↗",
+      "href": "/collections/fw-2026"
+    },
+    {
+      "id": "promo-gifts",
+      "src": "/media/promotions/desktop/promo-gifts-v01.webp",
+      "mobileSrc": "/media/promotions/mobile/promo-gifts-v01.webp",
+      "alt": "Тонкий серебристый браслет на руке модели",
+      "title": "Украшение в подарок",
+      "cta": "Выбрать подарок ↗",
+      "href": "/redesign-preview/gifts"
+    }
+  ],
+  "brandVideos": [
+    {
+      "id": "demo-1",
+      "video": "/images/braslet_video_3.mp4",
+      "poster": "/images/categories/bracelets.jpg",
+      "label": "Браслеты в движении",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-2",
+      "video": "/images/video-hero_1.mp4",
+      "poster": "/images/categories/earrings.jpg",
+      "label": "Детали коллекции",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-3",
+      "video": "/images/braslet_video_6.mp4",
+      "poster": "/images/categories/bracelets.jpg",
+      "label": "Украшение крупным планом",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-4",
+      "video": "/images/double_video.mp4",
+      "poster": "/images/categories/rings.jpg",
+      "label": "Ювелирные сочетания",
+      "kind": "brand-demo",
+      "productSlug": null
+    },
+    {
+      "id": "demo-5",
+      "video": "/images/braslet_video_7.mp4",
+      "poster": "/images/categories/bracelets.jpg",
+      "label": "Внимание к деталям",
+      "kind": "brand-demo",
+      "productSlug": null
+    }
+  ],
+  "blogCovers": [
+    {
+      "id": "blog-brand",
+      "href": "/about",
+      "src": "/media/blog/images/blog-brand-v01.webp",
+      "alt": "Серьги Синоним",
+      "title": "История Синоним"
+    },
+    {
+      "id": "blog-sizes",
+      "href": "/how-size-ring",
+      "src": "/media/blog/images/blog-sizes-v01.webp",
+      "alt": "Кольца",
+      "title": "Как определить размер кольца"
+    },
+    {
+      "id": "blog-guide",
+      "href": "/guide",
+      "src": "/media/blog/images/blog-guide-v01.webp",
+      "alt": "Колье",
+      "title": "Гид покупателя"
+    },
+    {
+      "id": "blog-care",
+      "href": "/warranty",
+      "src": "/media/blog/images/blog-care-v01.webp",
+      "alt": "Браслеты",
+      "title": "Уход и гарантия"
+    }
+  ]
+}

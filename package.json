@@ -14,7 +14,8 @@
     "sync:1c": "node scripts/sync-ftp-to-advantshop.mjs",
     "sync:1c:dry": "node scripts/sync-ftp-to-advantshop.mjs --dry-run",
     "media:check": "node scripts/validate-redesign-media.mjs",
-    "brand:check": "node scripts/validate-synonym-brand.mjs"
+    "brand:check": "node scripts/validate-synonym-brand.mjs",
+    "media:v06:activate": "node scripts/activate-redesign-v06-media.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
